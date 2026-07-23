@@ -1,0 +1,45 @@
+---
+// Tečkovaný indikátor pozice na horizontální dráze.
+// Aktivní tečku přepíná scroll-engine.ts podle IntersectionObserveru.
+interface Props {
+  rowId: string;
+  count: number;
+  class?: string;
+}
+
+const { rowId, count, class: className } = Astro.props;
+---
+
+{
+  count > 1 && (
+    <div class:list={['progress-dots', className]} data-dots-for={rowId} aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <span class:list={['dot', { 'is-active': i === 0 }]} data-dot />
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .progress-dots {
+    position: absolute;
+    bottom: var(--space-md);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--space-xs);
+    z-index: 2;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-line);
+    transition: background var(--duration) var(--ease);
+  }
+
+  .dot.is-active {
+    background: var(--color-text);
+  }
+</style>

@@ -1,0 +1,67 @@
+---
+// Úroveň 1 — úvod. Fullscreen foto nebo video. Jediná úroveň BEZ
+// horizontálního posunu.
+import SanityImage from '../SanityImage.astro';
+import { isMockImage, urlFor } from '../../lib/image';
+import type { IntroLevel } from '../../types/sanity';
+
+interface Props {
+  data: IntroLevel;
+  siteName: string;
+}
+
+const { data, siteName } = Astro.props;
+
+const videoSrc = data.videoFileUrl ?? data.videoUrl;
+const showVideo = data.mode === 'video' && Boolean(videoSrc);
+
+const posterUrl = data.poster
+  ? isMockImage(data.poster)
+    ? data.poster.src
+    : urlFor(data.poster).width(1920).url()
+  : undefined;
+---
+
+<section class="level intro" data-level="uvod" id="uvod">
+  <h1 class="visually-hidden">{siteName}</h1>
+
+  {
+    showVideo ? (
+      <video
+        class="intro-media"
+        data-intro-video
+        muted
+        loop
+        playsinline
+        preload="none"
+        poster={posterUrl}
+      >
+        <source data-src={videoSrc} type="video/mp4" />
+      </video>
+    ) : data.photo ? (
+      <SanityImage
+        image={data.photo}
+        alt=""
+        sizes="100vw"
+        loading="eager"
+        class="intro-media"
+      />
+    ) : (
+      <div class="intro-media intro-empty" />
+    )
+  }
+</section>
+
+<style>
+  .intro :global(.intro-media) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .intro-empty {
+    background: var(--color-line);
+  }
+</style>

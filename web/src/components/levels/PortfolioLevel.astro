@@ -1,0 +1,115 @@
+---
+// Úroveň 3 — portfolio. Desktop: dvouřadý grid s horizontálním posunem,
+// mobil: jeden projekt na obrazovku (swipe).
+import ProgressDots from '../ProgressDots.astro';
+import SanityImage from '../SanityImage.astro';
+import type { PortfolioLevel } from '../../types/sanity';
+
+interface Props {
+  data: PortfolioLevel;
+}
+
+const { data } = Astro.props;
+const projects = data.projects ?? [];
+---
+
+<section class="level portfolio" data-level="portfolio" id="portfolio">
+  {data.heading && <h2 class="portfolio-heading">{data.heading}</h2>}
+
+  <div class="scroll-row portfolio-track" data-row="portfolio-row">
+    {
+      projects.map((project) => (
+        <a class="portfolio-item" href={`/portfolio/${project.slug}/`}>
+          <SanityImage
+            image={project.cover}
+            alt={project.title}
+            sizes="(min-width: 768px) 38vw, 100vw"
+            maxWidth={1440}
+            class="portfolio-cover"
+          />
+          <span class="portfolio-item-meta">
+            <span class="portfolio-item-title">{project.title}</span>
+            {project.location && (
+              <span class="portfolio-item-location">{project.location}</span>
+            )}
+          </span>
+        </a>
+      ))
+    }
+  </div>
+
+  <ProgressDots rowId="portfolio-row" count={projects.length} />
+</section>
+
+<style>
+  .portfolio {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    padding-top: var(--header-height);
+  }
+
+  .portfolio-heading {
+    padding: var(--space-sm) var(--page-pad);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    font-weight: 400;
+  }
+
+  .portfolio-track {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: 1fr;
+    grid-auto-columns: 100vw;
+    gap: var(--space-sm);
+    align-items: stretch;
+    padding-bottom: var(--space-xl);
+  }
+
+  .portfolio-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: 0 var(--page-pad);
+    min-height: 0;
+  }
+
+  .portfolio-item:hover {
+    text-decoration: none;
+  }
+
+  .portfolio :global(.portfolio-cover) {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .portfolio-item-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+  }
+
+  .portfolio-item-location {
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 768px) {
+    .portfolio-track {
+      grid-template-rows: 1fr 1fr;
+      grid-auto-columns: 38vw;
+      gap: var(--space-md) var(--space-lg);
+      padding-inline: var(--page-pad);
+    }
+
+    .portfolio-item {
+      padding: 0;
+    }
+  }
+</style>

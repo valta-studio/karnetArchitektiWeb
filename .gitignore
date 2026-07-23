@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# build
+web/dist/
+web/.astro/
+studio/dist/
+.netlify/
+
+# env
+.env
+.env.*
+!.env.example
+
+# sanity
+studio/.sanity/
+
+# os
+.DS_Store

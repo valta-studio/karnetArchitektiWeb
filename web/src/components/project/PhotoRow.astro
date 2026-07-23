@@ -1,0 +1,48 @@
+---
+// Karta projektu — úroveň 1: horizontální dráha fotek přes celou obrazovku.
+import ProgressDots from '../ProgressDots.astro';
+import SanityImage from '../SanityImage.astro';
+import ScrollRow from '../ScrollRow.astro';
+import type { Project } from '../../types/sanity';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const photos = project.photos ?? [];
+---
+
+<section class="level photo-row" data-level="fotky" id="fotky">
+  <ScrollRow id="photo-row">
+    {
+      photos.map((photo, index) => (
+        <div class="scroll-panel photo-panel">
+          <SanityImage
+            image={photo}
+            alt={`${project.title} — fotografie ${index + 1}`}
+            sizes="100vw"
+            loading={index === 0 ? 'eager' : 'lazy'}
+            class="photo-img"
+          />
+        </div>
+      ))
+    }
+  </ScrollRow>
+
+  <ProgressDots rowId="photo-row" count={photos.length} />
+</section>
+
+<style>
+  .photo-panel {
+    position: relative;
+  }
+
+  .photo-row :global(.photo-img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>

@@ -1,0 +1,41 @@
+/* Design tokens — neutrální minimalistické hodnoty.
+   Finální barvy a typografická škála se doladí podle dodaných náhledů. */
+
+:root {
+  /* barvy */
+  --color-bg: #ffffff;
+  --color-text: #111111;
+  --color-muted: #757575;
+  --color-line: #e2e2e2;
+  --color-inverse-bg: #111111;
+  --color-inverse-text: #ffffff;
+
+  /* typografie — Riforma LL po dodání licence (viz global.css) */
+  --font-sans: 'Riforma LL', 'Neue Haas Grotesk', 'Helvetica Neue', Helvetica,
+    Arial, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.75rem;
+  --text-xl: clamp(2rem, 5vw, 3.5rem);
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+
+  /* spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+
+  /* layout */
+  --page-pad: clamp(1rem, 3vw, 2.5rem);
+  --header-height: 4rem;
+
+  /* motion */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --duration: 200ms;
+}

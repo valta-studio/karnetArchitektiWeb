@@ -1,0 +1,110 @@
+---
+// Logo + textová navigace (desktop) + burger ikona (mobil).
+// Aktivní položku podtrhává scroll-engine.ts (class .is-active).
+import { HEADER_LINKS } from '../lib/nav';
+
+interface Props {
+  siteName: string;
+}
+
+const { siteName } = Astro.props;
+---
+
+<header class="site-header">
+  <a class="logo" href="/" data-scroll-to="uvod">{siteName}</a>
+
+  <nav class="header-nav" aria-label="Hlavní navigace">
+    {
+      HEADER_LINKS.map((link) => (
+        <a href={link.href} data-scroll-to={link.id} data-nav-link={link.id}>
+          {link.label}
+        </a>
+      ))
+    }
+  </nav>
+
+  <button class="burger" data-burger aria-label="Menu">
+    <span></span>
+    <span></span>
+  </button>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-height);
+    padding: 0 var(--page-pad);
+    /* čitelnost nad fotkami i světlým pozadím */
+    mix-blend-mode: difference;
+    color: #fff;
+  }
+
+  .logo {
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .header-nav {
+    display: none;
+    gap: var(--space-lg);
+  }
+
+  .header-nav a {
+    position: relative;
+  }
+
+  .header-nav a:hover {
+    text-decoration: none;
+  }
+
+  .header-nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 100%;
+    bottom: -0.2em;
+    height: 1px;
+    background: currentColor;
+    transition: right var(--duration) var(--ease);
+  }
+
+  .header-nav a:hover::after,
+  .header-nav a.is-active::after {
+    right: 0;
+  }
+
+  .burger {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-xs) 0;
+  }
+
+  .burger span {
+    display: block;
+    width: 28px;
+    height: 1.5px;
+    background: currentColor;
+  }
+
+  @media (min-width: 768px) {
+    .header-nav {
+      display: flex;
+    }
+
+    .burger {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-nav a::after {
+      transition: none;
+    }
+  }
+</style>

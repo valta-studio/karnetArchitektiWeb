@@ -1,0 +1,169 @@
+---
+// Úroveň 2 — ateliér: texty, ocenění, horizontální dráha publikací, lidé.
+import ProgressDots from '../ProgressDots.astro';
+import SanityImage from '../SanityImage.astro';
+import ScrollRow from '../ScrollRow.astro';
+import { portableTextToHtml } from '../../lib/portable-text';
+import type { AtelierLevel } from '../../types/sanity';
+
+interface Props {
+  data: AtelierLevel;
+}
+
+const { data } = Astro.props;
+
+const introHtml = portableTextToHtml(data.intro);
+const publications = data.publications ?? [];
+
+const panelCount =
+  (introHtml ? 1 : 0) +
+  (data.awards?.length ? 1 : 0) +
+  publications.length +
+  (data.founding || data.people?.length ? 1 : 0);
+---
+
+<section class="level atelier" data-level="atelier" id="atelier">
+  <ScrollRow id="atelier-row">
+    {
+      introHtml && (
+        <div class="scroll-panel atelier-panel">
+          <div class="atelier-intro" set:html={introHtml} />
+        </div>
+      )
+    }
+
+    {
+      data.awards?.length ? (
+        <div class="scroll-panel atelier-panel">
+          <h2 class="panel-label">Ocenění</h2>
+          <ul class="awards">
+            {data.awards.map((award) => (
+              <li>
+                <span class="award-year">{award.year}</span>
+                <span>{award.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null
+    }
+
+    {
+      publications.map((publication) => (
+        <div class="scroll-panel atelier-panel atelier-publication">
+          <figure>
+            <SanityImage
+              image={publication}
+              alt={publication.caption ?? 'Publikace'}
+              sizes="(min-width: 768px) 60vw, 90vw"
+              maxWidth={1440}
+            />
+            {publication.caption && <figcaption>{publication.caption}</figcaption>}
+          </figure>
+        </div>
+      ))
+    }
+
+    {
+      data.founding || data.people?.length ? (
+        <div class="scroll-panel atelier-panel">
+          {data.founding && <p class="founding">{data.founding}</p>}
+          {data.people?.length ? (
+            <ul class="people">
+              {data.people.map((person) => (
+                <li>
+                  {person.degree && <span class="degree">{person.degree} </span>}
+                  {person.name}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null
+    }
+  </ScrollRow>
+
+  <ProgressDots rowId="atelier-row" count={panelCount} />
+</section>
+
+<style>
+  .atelier-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: calc(var(--header-height) + var(--space-md)) var(--page-pad)
+      var(--space-xl);
+  }
+
+  .atelier-intro {
+    max-width: 34em;
+    font-size: var(--text-md);
+  }
+
+  .atelier-intro :global(p + p) {
+    margin-top: var(--space-md);
+  }
+
+  .panel-label {
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    font-weight: 400;
+    margin-bottom: var(--space-lg);
+  }
+
+  .awards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-width: 40em;
+  }
+
+  .awards li {
+    display: flex;
+    gap: var(--space-md);
+    border-top: 1px solid var(--color-line);
+    padding-top: var(--space-sm);
+  }
+
+  .award-year {
+    flex: none;
+    width: 4em;
+    color: var(--color-muted);
+  }
+
+  .atelier-publication {
+    align-items: center;
+  }
+
+  .atelier-publication figure {
+    max-width: min(90vw, 60rem);
+  }
+
+  .atelier-publication :global(img) {
+    max-height: 65dvh;
+    width: auto;
+    margin-inline: auto;
+  }
+
+  .atelier-publication figcaption {
+    margin-top: var(--space-sm);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    text-align: center;
+  }
+
+  .founding {
+    max-width: 34em;
+    margin-bottom: var(--space-lg);
+  }
+
+  .people {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .degree {
+    color: var(--color-muted);
+  }
+</style>

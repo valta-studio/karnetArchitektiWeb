@@ -1,0 +1,54 @@
+---
+// Karta projektu — úroveň 3: pohledy a půdorysy (čárová grafika na bílé).
+import ProgressDots from '../ProgressDots.astro';
+import SanityImage from '../SanityImage.astro';
+import ScrollRow from '../ScrollRow.astro';
+import type { Project } from '../../types/sanity';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const drawings = project.drawings ?? [];
+---
+
+{
+  drawings.length > 0 && (
+    <section class="level drawings-row" data-level="vykresy" id="vykresy">
+      <ScrollRow id="drawings-row">
+        {drawings.map((drawing, index) => (
+          <div class="scroll-panel drawing-panel">
+            <SanityImage
+              image={drawing}
+              alt={`${project.title} — výkres ${index + 1}`}
+              sizes="90vw"
+              maxWidth={1920}
+              class="drawing-img"
+            />
+          </div>
+        ))}
+      </ScrollRow>
+
+      <ProgressDots rowId="drawings-row" count={drawings.length} />
+    </section>
+  )
+}
+
+<style>
+  .drawing-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--header-height) + var(--space-md)) var(--page-pad)
+      var(--space-xl);
+  }
+
+  .drawings-row :global(.drawing-img) {
+    max-width: 90%;
+    max-height: 75dvh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+</style>

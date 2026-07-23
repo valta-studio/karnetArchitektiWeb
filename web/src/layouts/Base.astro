@@ -1,0 +1,130 @@
+---
+// <head>, meta s fallbacky, OG, JSON-LD LocalBusiness, fonty, globální skripty.
+import '../styles/tokens.css';
+import '../styles/global.css';
+import '../styles/scroll.css';
+import { getContact, getSeoSettings } from '../lib/sanity';
+import { isMockImage, urlFor } from '../lib/image';
+import type { ImageSource, Seo } from '../types/sanity';
+
+interface Props {
+  /** Titulek stránky — fallback, když seo.metaTitle chybí. */
+  title?: string;
+  /** Popis stránky — fallback, když seo.metaDescription chybí. */
+  description?: string;
+  seo?: Seo;
+  /** Hlavní stránka nepoužívá šablonu titulku. */
+  isHome?: boolean;
+}
+
+const { title, description, seo, isHome = false } = Astro.props;
+
+const settings = await getSeoSettings();
+const contact = await getContact();
+
+const baseTitle =
+  seo?.metaTitle || title || settings.defaultTitle || settings.siteName;
+const fullTitle = isHome
+  ? baseTitle
+  : (settings.titleTemplate ?? '%s').replace('%s', baseTitle);
+const metaDescription =
+  seo?.metaDescription || description || settings.defaultDescription;
+const noindex = Boolean(settings.noindex || seo?.noindex);
+
+function ogImageUrl(image: ImageSource | undefined): string | undefined {
+  if (!image) return undefined;
+  if (isMockImage(image)) return new URL(image.src, Astro.site).href;
+  return urlFor(image).width(1200).height(630).url();
+}
+
+const ogImage = ogImageUrl(seo?.ogImage ?? settings.defaultOgImage);
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: contact.billing?.companyName ?? settings.siteName,
+  url: Astro.site?.href,
+  ...(contact.email ? { email: contact.email } : {}),
+  ...(contact.phone ? { telephone: contact.phone } : {}),
+  ...(contact.address
+    ? {
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: contact.address.replace(/\n/g, ', '),
+          addressCountry: 'CZ',
+        },
+      }
+    : {}),
+  ...(contact.socialLinks?.length
+    ? { sameAs: contact.socialLinks.map((social) => social.url) }
+    : {}),
+};
+
+const analyticsId = settings.analyticsId;
+const isPlausible = Boolean(analyticsId && !analyticsId.startsWith('G-'));
+---
+
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    {metaDescription && <meta name="description" content={metaDescription} />}
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={settings.siteName} />
+    <meta property="og:title" content={fullTitle} />
+    {metaDescription && <meta property="og:description" content={metaDescription} />}
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+
+    {
+      settings.googleSiteVerification && (
+        <meta name="google-site-verification" content={settings.googleSiteVerification} />
+      )
+    }
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    {
+      analyticsId && isPlausible && (
+        <script is:inline defer data-domain={analyticsId} src="https://plausible.io/js/script.js" />
+      )
+    }
+    {
+      analyticsId && !isPlausible && (
+        <>
+          <script
+            is:inline
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`}
+          />
+          <script
+            is:inline
+            set:html={`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${analyticsId}');`}
+          />
+        </>
+      )
+    }
+  </head>
+  <body>
+    <slot />
+
+    <script>
+      import { initScrollEngine } from '../scripts/scroll-engine';
+      import { initMenu } from '../scripts/menu';
+      import { initVideo } from '../scripts/video';
+
+      initScrollEngine();
+      initMenu();
+      initVideo();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+---
+// Karta projektu — tři úrovně (fotky, text, výkresy) + burger obrazovka.
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import ScrollDeck from '../../components/ScrollDeck.astro';
+import BurgerScreen from '../../components/BurgerScreen.astro';
+import PhotoRow from '../../components/project/PhotoRow.astro';
+import TextRow from '../../components/project/TextRow.astro';
+import DrawingsRow from '../../components/project/DrawingsRow.astro';
+import { getContact, getProjects, getSeoSettings } from '../../lib/sanity';
+import type { Project } from '../../types/sanity';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const [contact, settings] = await Promise.all([getContact(), getSeoSettings()]);
+---
+
+<Base title={project.title} description={project.perex} seo={project.seo}>
+  <Header siteName={settings.siteName} />
+
+  <ScrollDeck>
+    <PhotoRow project={project} />
+    <TextRow project={project} />
+    <DrawingsRow project={project} />
+    <BurgerScreen contact={contact} siteName={settings.siteName} />
+  </ScrollDeck>
+</Base>

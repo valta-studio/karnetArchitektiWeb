@@ -1,0 +1,103 @@
+---
+// Závěrečná menu obrazovka — poslední snap úroveň každé stránky.
+// Dosažitelná scrollem i klikem na burger ikonu (menu.ts).
+import { NAV_LINKS } from '../lib/nav';
+import type { Contact } from '../types/sanity';
+
+interface Props {
+  contact: Contact;
+  siteName: string;
+}
+
+const { contact, siteName } = Astro.props;
+---
+
+<section class="level burger-screen" data-level="menu" id="menu">
+  <nav class="burger-nav" aria-label="Menu">
+    <ul>
+      {
+        NAV_LINKS.map((link) => (
+          <li>
+            <a href={link.href} data-scroll-to={link.id}>
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  <div class="burger-footer">
+    <div class="burger-contact">
+      {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
+      {
+        contact.phone && (
+          <a href={`tel:${contact.phone.replace(/\s/g, '')}`}>{contact.phone}</a>
+        )
+      }
+    </div>
+
+    {
+      contact.socialLinks?.length ? (
+        <ul class="burger-socials">
+          {contact.socialLinks.map((social) => (
+            <li>
+              <a href={social.url} rel="noopener" target="_blank">
+                {social.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null
+    }
+
+    <p class="burger-sitename">{siteName}</p>
+  </div>
+</section>
+
+<style>
+  .burger-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: calc(var(--header-height) + var(--space-lg)) var(--page-pad)
+      var(--space-lg);
+    background: var(--color-inverse-bg);
+    color: var(--color-inverse-text);
+  }
+
+  .burger-nav ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .burger-nav a {
+    font-size: var(--text-xl);
+    line-height: var(--leading-tight);
+    font-weight: 500;
+  }
+
+  .burger-footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .burger-contact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .burger-socials {
+    display: flex;
+    gap: var(--space-md);
+    color: var(--color-muted);
+  }
+
+  .burger-sitename {
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+</style>
