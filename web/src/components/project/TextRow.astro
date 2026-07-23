@@ -1,0 +1,93 @@
+---
+// Karta projektu — úroveň 2 (dle náhledů): název + metadata + perex
+// v prvním sloupci, texty tečou do dalších sloupců a pokračují
+// horizontálním posunem (CSS multicol s pevnou výškou).
+import ScrollRow from '../ScrollRow.astro';
+import type { Project } from '../../types/sanity';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const columns = project.columns ?? [];
+---
+
+<section class="level text-row" data-level="text" id="text">
+  <ScrollRow id="text-row" class="text-scroll">
+    <div class="text-columns">
+      <div class="text-lead">
+        <h1 class="project-title">{project.title}</h1>
+
+        <p class="project-meta">
+          {project.years && <span>Rok: {project.years}<br /></span>}
+          {project.location && <span>Lokalita: {project.location}<br /></span>}
+          {
+            project.credits?.map((credit) => (
+              <span>
+                {credit.role}: {credit.name}
+                <br />
+              </span>
+            ))
+          }
+        </p>
+
+        {project.perex && <p class="project-perex pre-line">{project.perex}</p>}
+      </div>
+
+      {columns.map((column) => <p class="text-column pre-line">{column}</p>)}
+    </div>
+  </ScrollRow>
+</section>
+
+<style>
+  .text-row :global(.text-scroll) {
+    min-height: 100dvh;
+    align-items: center;
+    padding-inline: var(--page-pad);
+    /* sloupce se magneticky zastavují na odsazení stránky */
+    scroll-padding-inline-start: var(--page-pad);
+  }
+
+  .text-columns {
+    /* snap cíle jsou vložené markery sloupců (scroll-engine.ts) — samotný
+       multicol blok by jako obří snap area kolidoval s jejich pozicemi */
+    scroll-snap-align: none;
+    height: 66dvh;
+    column-width: min(34vw, 560px);
+    column-gap: clamp(2.5rem, 5vw, 5.5rem);
+    column-fill: auto;
+    font-size: var(--text-body);
+    line-height: var(--leading-snug);
+  }
+
+  .text-lead {
+    break-inside: avoid;
+  }
+
+  .text-column {
+    break-before: column;
+  }
+
+  .project-title {
+    font-size: var(--text-lg);
+    margin-bottom: 0.8em;
+  }
+
+  .project-meta {
+    margin-bottom: 1.2em;
+  }
+
+  .project-perex,
+  .pre-line {
+    white-space: pre-line;
+  }
+
+  @media (max-width: 767px) {
+    .text-columns {
+      height: 72dvh;
+      column-width: calc(100vw - 2 * var(--page-pad));
+      column-gap: calc(2 * var(--page-pad));
+    }
+  }
+</style>

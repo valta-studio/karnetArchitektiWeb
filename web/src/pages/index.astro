@@ -1,0 +1,40 @@
+---
+// Hlavní stránka — úrovně 1–4 + burger obrazovka.
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import ScrollDeck from '../components/ScrollDeck.astro';
+import LevelDots from '../components/LevelDots.astro';
+import BurgerScreen from '../components/BurgerScreen.astro';
+import IntroLevelComponent from '../components/levels/IntroLevel.astro';
+import AtelierLevelComponent from '../components/levels/AtelierLevel.astro';
+import PortfolioLevelComponent from '../components/levels/PortfolioLevel.astro';
+import KontaktLevelComponent from '../components/levels/KontaktLevel.astro';
+import {
+  getAtelierLevel,
+  getContact,
+  getIntroLevel,
+  getPortfolioLevel,
+  getSeoSettings,
+} from '../lib/sanity';
+
+const [intro, atelier, portfolio, contact, settings] = await Promise.all([
+  getIntroLevel(),
+  getAtelierLevel(),
+  getPortfolioLevel(),
+  getContact(),
+  getSeoSettings(),
+]);
+---
+
+<Base isHome seo={intro.seo}>
+  <Header siteName={settings.siteName} />
+  <LevelDots count={5} />
+
+  <ScrollDeck>
+    <IntroLevelComponent data={intro} siteName={settings.siteName} />
+    <AtelierLevelComponent data={atelier} intro={intro} />
+    <PortfolioLevelComponent data={portfolio} />
+    <KontaktLevelComponent contact={contact} />
+    <BurgerScreen contact={contact} siteName={settings.siteName} />
+  </ScrollDeck>
+</Base>

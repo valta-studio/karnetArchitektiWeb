@@ -1,0 +1,90 @@
+---
+// Karta projektu — úroveň 3 (dle náhledů): výkresy na BÍLÉM pásu přes celou
+// šířku, šedé pruhy nahoře a dole, 2–3 výkresy vedle sebe, horizontální posun.
+import ProgressDots from '../ProgressDots.astro';
+import SanityImage from '../SanityImage.astro';
+import ScrollRow from '../ScrollRow.astro';
+import type { Project } from '../../types/sanity';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const drawings = project.drawings ?? [];
+---
+
+{
+  drawings.length > 0 && (
+    <section class="level drawings-row" data-level="vykresy" id="vykresy">
+      <div class="drawings-band">
+        <ScrollRow id="drawings-row">
+          {drawings.map((drawing, index) => (
+            <div class="drawing-panel">
+              <SanityImage
+                image={drawing}
+                alt={`${project.title} — výkres ${index + 1}`}
+                sizes="(min-width: 768px) 36vw, 86vw"
+                maxWidth={1440}
+                class="drawing-img"
+              />
+            </div>
+          ))}
+        </ScrollRow>
+      </div>
+
+      <ProgressDots rowId="drawings-row" count={drawings.length} />
+    </section>
+  )
+}
+
+<style>
+  .drawings-row {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100dvh;
+  }
+
+  .drawings-band {
+    background: var(--color-paper);
+    height: 60dvh;
+  }
+
+  .drawings-row :global(.scroll-row) {
+    height: 100%;
+    align-items: center;
+    gap: clamp(3rem, 9vw, 11rem);
+    /* jako u fotek: dost velké odsazení, aby se každý výkres mohl
+       magneticky vystředit (snap-align: center jinak nemá kam dojet) */
+    padding-inline: 30vw;
+  }
+
+  .drawing-panel {
+    scroll-snap-align: center;
+    display: flex;
+    align-items: center;
+  }
+
+  .drawings-row :global(.drawing-img) {
+    width: auto;
+    max-width: 40vw;
+    max-height: 48dvh;
+    object-fit: contain;
+  }
+
+  @media (max-width: 767px) {
+    .drawings-band {
+      height: 56dvh;
+    }
+
+    .drawings-row :global(.scroll-row) {
+      gap: var(--space-md);
+      padding-inline: 9vw;
+    }
+
+    .drawings-row :global(.drawing-img) {
+      max-width: 82vw;
+    }
+  }
+</style>

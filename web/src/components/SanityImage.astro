@@ -1,0 +1,55 @@
+---
+// Jediná povolená cesta k obrázkům — srcset, WebP (auto=format), hotspot, lazy.
+// V mock režimu (bez Sanity) renderuje lokální placeholder.
+import { dimensionsFor, isMockImage, srcsetFor, urlFor } from '../lib/image';
+import type { ImageSource } from '../types/sanity';
+
+interface Props {
+  image: ImageSource;
+  alt: string;
+  sizes?: string;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+  maxWidth?: number;
+}
+
+const {
+  image,
+  alt,
+  sizes = '100vw',
+  loading = 'lazy',
+  class: className,
+  maxWidth = 2560,
+} = Astro.props;
+
+const mock = isMockImage(image);
+const dimensions = mock
+  ? { width: image.width, height: image.height }
+  : dimensionsFor(image);
+---
+
+{
+  mock ? (
+    <img
+      src={image.src}
+      width={dimensions.width}
+      height={dimensions.height}
+      alt={alt}
+      loading={loading}
+      decoding="async"
+      class={className}
+    />
+  ) : (
+    <img
+      src={urlFor(image).width(1080).url()}
+      srcset={srcsetFor(image, maxWidth)}
+      sizes={sizes}
+      width={dimensions.width}
+      height={dimensions.height}
+      alt={alt}
+      loading={loading}
+      decoding="async"
+      class={className}
+    />
+  )
+}

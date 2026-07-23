@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import { getSeoSettings } from '../lib/sanity';
+
+const settings = await getSeoSettings();
+---
+
+<Base title="Stránka nenalezena">
+  <Header siteName={settings.siteName} />
+
+  <main class="not-found level">
+    <p class="code">404</p>
+    <p>Stránka nenalezena.</p>
+    <a href="/">Zpět na úvod</a>
+  </main>
+</Base>
+
+<style>
+  .not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    min-height: 100dvh;
+  }
+
+  .code {
+    font-size: var(--text-xl);
+    font-weight: 500;
+  }
+
+  .not-found a {
+    color: var(--color-muted);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+</style>

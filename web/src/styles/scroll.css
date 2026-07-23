@@ -1,0 +1,65 @@
+/* Scroll systém — nativní CSS scroll snap, JS pouze pozoruje.
+   Vertikální osa: root scroller, y mandatory, úrovně 100dvh.
+   Horizontální dráhy: x mandatory + touch-action: pan-x
+   + overscroll-behavior-x: contain (iOS Safari — swipe nesmí protéct). */
+
+html {
+  scroll-snap-type: y mandatory;
+}
+
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+}
+
+/* vertikální úroveň — vždy dvh, nikdy vh (address bar na mobilech) */
+.level {
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+  overflow: hidden;
+}
+
+/* horizontální snap dráha */
+.scroll-row {
+  position: relative;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-row > * {
+  scroll-snap-align: start;
+  flex: none;
+}
+
+/* panel přes celou obrazovku (výchozí) */
+.scroll-panel {
+  width: 100vw;
+  min-height: 100dvh;
+}
+
+/* neviditelné snap cíle pro CSS multicol sloupce (vkládá scroll-engine.ts) —
+   samotný posun zůstává nativnímu snapu, JS jen po layoutu změří rozteč */
+.snap-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  pointer-events: none;
+  scroll-snap-align: start;
+}

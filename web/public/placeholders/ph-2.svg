@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1067" preserveAspectRatio="xMidYMid slice">
+  <rect width="1600" height="1067" fill="#dcd9d4"/>
+  <line x1="0" y1="1067" x2="1600" y2="200" stroke="#999590" stroke-width="2"/>
+  <line x1="360" y1="0" x2="360" y2="1067" stroke="#999590" stroke-width="2"/>
+  <text x="60" y="1000" font-family="Helvetica, Arial, sans-serif" font-size="36" fill="#8a867f">placeholder 2</text>
+</svg>

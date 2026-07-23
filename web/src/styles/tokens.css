@@ -1,0 +1,49 @@
+/* Design tokens — odvozené z dodaných náhledů (web_náhled.pdf).
+   Světle šedé pozadí, téměř černý text, velká polotučná typografie. */
+
+:root {
+  /* barvy */
+  --color-bg: #e3e3e1;
+  --color-text: #161615;
+  --color-muted: #6f6f6d;
+  --color-line: #c9c9c6;
+  --color-paper: #ffffff; /* bílý pás výkresů */
+  --color-inverse-bg: #161615;
+  --color-inverse-text: #e3e3e1;
+
+  /* typografie — Riforma LL po dodání licence (viz global.css) */
+  --font-sans: 'Riforma LL', 'Neue Haas Grotesk', 'Helvetica Neue', Helvetica,
+    Arial, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: clamp(0.875rem, 1vw, 1.125rem);
+  --text-base: clamp(1rem, 1.2vw, 1.375rem);
+  /* hlavní obsahový text — v náhledech výrazně velký a polotučný */
+  --text-body: clamp(1.125rem, 1.65vw, 1.75rem);
+  --text-md: clamp(1.25rem, 1.8vw, 2rem);
+  --text-lg: clamp(1.5rem, 2.2vw, 2.5rem);
+  /* logo / velké titulky */
+  --text-xl: clamp(1.75rem, 2.6vw, 2.75rem);
+
+  --weight-normal: 400;
+  --weight-heavy: 600;
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.25;
+  --leading-normal: 1.4;
+
+  /* spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+
+  /* layout */
+  --page-pad: clamp(1.25rem, 3vw, 3.25rem);
+  --header-height: clamp(4rem, 9dvh, 6rem);
+
+  /* motion */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --duration: 200ms;
+}

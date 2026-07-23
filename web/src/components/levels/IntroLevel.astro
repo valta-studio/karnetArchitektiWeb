@@ -1,0 +1,111 @@
+---
+// Úroveň 1 — úvod. Centrované portrétní video/foto na šedém pozadí
+// (dle náhledů — médium NENÍ fullscreen). Jediná úroveň bez
+// horizontálního posunu.
+import SanityImage from '../SanityImage.astro';
+import { isMockImage, urlFor } from '../../lib/image';
+import type { IntroLevel } from '../../types/sanity';
+
+interface Props {
+  data: IntroLevel;
+  siteName: string;
+}
+
+const { data, siteName } = Astro.props;
+
+const videoSrc = data.videoFileUrl ?? data.videoUrl;
+const showVideo = data.mode === 'video' && Boolean(videoSrc);
+
+const posterUrl = data.poster
+  ? isMockImage(data.poster)
+    ? data.poster.src
+    : urlFor(data.poster).width(1200).url()
+  : undefined;
+---
+
+<section class="level intro" data-level="uvod" id="uvod">
+  <h1 class="visually-hidden">{siteName}</h1>
+
+  <div class="intro-frame">
+    {
+      showVideo ? (
+        <video
+          class="intro-media"
+          data-intro-video
+          muted
+          loop
+          playsinline
+          preload="none"
+          poster={posterUrl}
+        >
+          <source data-src={videoSrc} type="video/mp4" />
+        </video>
+      ) : data.photo ? (
+        <SanityImage
+          image={data.photo}
+          alt=""
+          sizes="(min-width: 768px) 34vw, 82vw"
+          maxWidth={1440}
+          loading="eager"
+          class="intro-media"
+        />
+      ) : (
+        <div class="intro-media intro-empty" />
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .intro {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .intro-frame {
+    width: min(34vw, 560px);
+    height: 72dvh;
+  }
+
+  .intro :global(.intro-media) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .intro-empty {
+    background: var(--color-line);
+  }
+
+  /* Předání média do ateliéru: při odjezdu úvodu médium lehce zeslábne
+     a zmenší se — navazuje na backdrop-settle v AtelierLevel. Čistě CSS
+     scroll-driven animace, bez podpory zůstane statický stav. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .intro {
+        view-timeline: --uvod block;
+      }
+
+      .intro-frame {
+        animation: intro-hand-off linear both;
+        animation-timeline: --uvod;
+        animation-range: exit 0% exit 100%;
+      }
+    }
+  }
+
+  @keyframes intro-hand-off {
+    to {
+      opacity: 0.35;
+      transform: scale(0.97);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .intro-frame {
+      width: 82vw;
+      height: 66dvh;
+    }
+  }
+</style>

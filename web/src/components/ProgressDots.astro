@@ -1,0 +1,44 @@
+---
+// Čárkový indikátor pozice na horizontální dráze (dole uprostřed, dle náhledů).
+// Aktivní čárku přepíná scroll-engine.ts podle IntersectionObserveru.
+interface Props {
+  rowId: string;
+  count: number;
+  class?: string;
+}
+
+const { rowId, count, class: className } = Astro.props;
+---
+
+{
+  count > 1 && (
+    <div class:list={['progress-dots', className]} data-dots-for={rowId} aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <span class:list={['dot', { 'is-active': i === 0 }]} data-dot />
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .progress-dots {
+    position: absolute;
+    bottom: var(--space-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+    z-index: 2;
+  }
+
+  .dot {
+    width: 7px;
+    height: 1.5px;
+    background: var(--color-line);
+    transition: background var(--duration) var(--ease);
+  }
+
+  .dot.is-active {
+    background: var(--color-text);
+  }
+</style>

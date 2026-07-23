@@ -1,0 +1,73 @@
+---
+// Karta projektu — úroveň 1 (dle náhledů): fotky v přirozených proporcích,
+// výška ~72dvh, centrované, další fotka „nakukuje" od kraje.
+import ProgressDots from '../ProgressDots.astro';
+import SanityImage from '../SanityImage.astro';
+import ScrollRow from '../ScrollRow.astro';
+import type { Project } from '../../types/sanity';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const photos = project.photos ?? [];
+---
+
+<section class="level photo-row" data-level="fotky" id="fotky">
+  <ScrollRow id="photo-row">
+    {
+      photos.map((photo, index) => (
+        <div class="photo-panel">
+          <SanityImage
+            image={photo}
+            alt={`${project.title} — fotografie ${index + 1}`}
+            sizes="(min-width: 768px) 60vw, 90vw"
+            loading={index === 0 ? 'eager' : 'lazy'}
+            class="photo-img"
+          />
+        </div>
+      ))
+    }
+  </ScrollRow>
+
+  <ProgressDots rowId="photo-row" count={photos.length} />
+</section>
+
+<style>
+  .photo-row :global(.scroll-row) {
+    min-height: 100dvh;
+    align-items: center;
+    gap: clamp(3rem, 8vw, 9rem);
+    padding-inline: 33vw;
+  }
+
+  .photo-panel {
+    scroll-snap-align: center;
+    height: 72dvh;
+    display: flex;
+    align-items: center;
+  }
+
+  .photo-row :global(.photo-img) {
+    height: 100%;
+    width: auto;
+    max-width: none;
+  }
+
+  @media (max-width: 767px) {
+    .photo-row :global(.scroll-row) {
+      gap: var(--space-md);
+      padding-inline: 9vw;
+    }
+
+    .photo-panel {
+      height: 62dvh;
+    }
+
+    .photo-row :global(.photo-img) {
+      max-width: 82vw;
+      object-fit: contain;
+    }
+  }
+</style>

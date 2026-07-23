@@ -1,0 +1,254 @@
+---
+// Úroveň 2 — ateliér (dle náhledů): texty ve dvou sloupcích přes zesvětlené
+// úvodní médium, ocenění jako prozaické odstavce, koláž publikací,
+// závěrem založení + lidé. Panely jsou užší než viewport — další „nakukuje".
+import ProgressDots from '../ProgressDots.astro';
+import SanityImage from '../SanityImage.astro';
+import ScrollRow from '../ScrollRow.astro';
+import { portableTextToHtml } from '../../lib/portable-text';
+import { isMockImage, urlFor } from '../../lib/image';
+import type { AtelierLevel, IntroLevel } from '../../types/sanity';
+
+interface Props {
+  data: AtelierLevel;
+  /** Úvodní médium — v náhledu prosvítá za texty (video, nebo foto). */
+  intro?: IntroLevel;
+}
+
+const { data, intro } = Astro.props;
+
+const backdropVideoSrc = intro?.videoFileUrl ?? intro?.videoUrl;
+const backdropIsVideo = intro?.mode === 'video' && Boolean(backdropVideoSrc);
+const backdropImage = intro?.photo ?? intro?.poster;
+
+const backdropPosterUrl = intro?.poster
+  ? isMockImage(intro.poster)
+    ? intro.poster.src
+    : urlFor(intro.poster).width(1200).url()
+  : undefined;
+
+const introHtml = portableTextToHtml(data.intro);
+const publications = data.publications ?? [];
+const hasAwards = Boolean(data.awardsIntro || data.awards?.length);
+
+const panelCount =
+  (introHtml ? 1 : 0) +
+  (hasAwards ? 1 : 0) +
+  (publications.length ? 1 : 0) +
+  (data.founding || data.people?.length ? 1 : 0);
+---
+
+<section class="level atelier" data-level="atelier" id="atelier">
+  {
+    (backdropIsVideo || backdropImage) && (
+      <div class="atelier-backdrop" aria-hidden="true">
+        {backdropIsVideo ? (
+          <video data-intro-video muted loop playsinline preload="none" poster={backdropPosterUrl}>
+            <source data-src={backdropVideoSrc} type="video/mp4" />
+          </video>
+        ) : (
+          <SanityImage image={backdropImage!} alt="" sizes="34vw" maxWidth={1080} />
+        )}
+      </div>
+    )
+  }
+
+  <ScrollRow id="atelier-row">
+    {
+      introHtml && (
+        <div class="atelier-panel atelier-text-panel">
+          <div class="atelier-intro" set:html={introHtml} />
+        </div>
+      )
+    }
+
+    {
+      hasAwards && (
+        <div class="atelier-panel atelier-text-panel">
+          <div class="awards">
+            {data.awardsIntro && <p>{data.awardsIntro}</p>}
+            {data.awards?.map((award) => (
+              <p>{award.text}</p>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      publications.length > 0 && (
+        <div class="atelier-panel atelier-publications">
+          {publications.map((publication, i) => (
+            <div class:list={['atelier-publication', { 'is-offset': i % 2 === 1 }]}>
+              <SanityImage
+                image={publication}
+                alt={publication.caption ?? 'Publikace'}
+                sizes="(min-width: 768px) 28vw, 80vw"
+                maxWidth={1080}
+              />
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    {
+      data.founding || data.people?.length ? (
+        <div class="atelier-panel atelier-text-panel">
+          <div class="atelier-people">
+            {data.founding && <p>{data.founding}</p>}
+            {data.people?.length ? (
+              <ul>
+                {data.people.map((person) => (
+                  <li>
+                    {person.degree && <span class="degree">{person.degree} </span>}
+                    {person.name}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </div>
+      ) : null
+    }
+  </ScrollRow>
+
+  <ProgressDots rowId="atelier-row" count={panelCount} />
+</section>
+
+<style>
+  .atelier-backdrop {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0.14;
+  }
+
+  .atelier-backdrop :global(img),
+  .atelier-backdrop :global(video) {
+    width: min(34vw, 560px);
+    height: 72dvh;
+    object-fit: cover;
+  }
+
+  /* Přechod z úvodu: médium přijíždí v plné síle a při usazení úrovně
+     zeslábne do podkresu. Čistě CSS scroll-driven animace — JS scroll
+     neřídí; prohlížeče bez podpory zůstanou u statického stavu. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .atelier {
+        view-timeline: --atelier block;
+      }
+
+      .atelier-backdrop {
+        animation: backdrop-settle linear both;
+        animation-timeline: --atelier;
+        animation-range: entry 0% entry 100%;
+      }
+    }
+  }
+
+  @keyframes backdrop-settle {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0.14;
+    }
+  }
+
+  .atelier :global(.scroll-row) {
+    position: relative;
+    min-height: 100dvh;
+    align-items: center;
+  }
+
+  .atelier-panel {
+    scroll-snap-align: start;
+    scroll-margin-left: var(--page-pad);
+    flex: none;
+  }
+
+  .atelier-text-panel {
+    /* textový blok stojí ve středu stránky, další panel „nakukuje" zprava */
+    display: flex;
+    justify-content: center;
+    width: min(80vw, 1200px);
+    padding-inline: var(--page-pad);
+  }
+
+  .atelier-intro,
+  .awards,
+  .atelier-people {
+    max-width: 21em;
+    font-size: var(--text-body);
+    line-height: var(--leading-snug);
+  }
+
+  /* Úvodní texty studia jsou sazené těsněji než ostatní odstavce. */
+  .atelier-intro {
+    line-height: var(--leading-tight);
+  }
+
+  .atelier-intro :global(p + p),
+  .awards p + p,
+  .atelier-people p + ul {
+    margin-top: 1.2em;
+  }
+
+  /* publikace = jedna souvislá koláž (jeden snap cíl); je širší než viewport,
+     takže se uvnitř posouvá volně a snapuje jen na svých okrajích */
+  .atelier-publications {
+    display: flex;
+    align-items: center;
+  }
+
+  .atelier-publication {
+    flex: none;
+    padding-inline: clamp(0.75rem, 1.75vw, 2rem);
+  }
+
+  .atelier-publication :global(img) {
+    width: auto;
+    max-width: min(34vw, 620px);
+    max-height: 46dvh;
+  }
+
+  .atelier-publication.is-offset {
+    transform: translateY(18dvh);
+  }
+
+  .degree {
+    color: var(--color-muted);
+  }
+
+  @media (max-width: 767px) {
+    .atelier-backdrop :global(img) {
+      width: 82vw;
+      height: 66dvh;
+    }
+
+    .atelier-text-panel {
+      width: 100vw;
+    }
+
+    .atelier-intro,
+    .awards,
+    .atelier-people {
+      max-width: none;
+    }
+
+    .atelier-publication :global(img) {
+      max-width: 78vw;
+      max-height: 52dvh;
+    }
+
+    .atelier-publication.is-offset {
+      transform: translateY(8dvh);
+    }
+  }
+</style>

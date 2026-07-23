@@ -1,0 +1,14 @@
+---
+// Horizontální snap dráha (scroll.css: x mandatory, touch-action: pan-x,
+// overscroll-behavior-x: contain).
+interface Props {
+  id: string;
+  class?: string;
+}
+
+const { id, class: className } = Astro.props;
+---
+
+<div class:list={['scroll-row', className]} data-row={id}>
+  <slot />
+</div>

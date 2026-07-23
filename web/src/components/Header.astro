@@ -1,0 +1,122 @@
+---
+// Velké logo vlevo + textová navigace „Atelier, Portfolio, Kontakt" vpravo
+// (dle náhledů — položky oddělené čárkami, aktivní podtržená).
+// Aktivní položku přepíná scroll-engine.ts (class .is-active).
+import { HEADER_LINKS } from '../lib/nav';
+
+interface Props {
+  siteName: string;
+}
+
+const { siteName } = Astro.props;
+---
+
+<header class="site-header">
+  <a class="logo" href="/" data-scroll-to="uvod">{siteName}</a>
+
+  <nav class="header-nav" aria-label="Hlavní navigace">
+    {
+      HEADER_LINKS.map((link, i) => (
+        <span class="nav-item"
+          ><a href={link.href} data-scroll-to={link.id} data-nav-link={link.id}
+            >{link.label}</a
+          >{i < HEADER_LINKS.length - 1 && ', '}</span
+        >
+      ))
+    }
+  </nav>
+
+  <button class="burger" data-burger aria-label="Menu">
+    <span></span>
+    <span></span>
+  </button>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 10;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: var(--space-md) var(--page-pad) 0;
+  }
+
+  .logo {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-heavy);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .logo:hover {
+    text-decoration: none;
+  }
+
+  .header-nav {
+    display: none;
+    font-size: var(--text-md);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    padding-top: 0.35em;
+  }
+
+  .nav-item {
+    white-space: nowrap;
+  }
+
+  .header-nav a {
+    position: relative;
+  }
+
+  .header-nav a:hover {
+    text-decoration: none;
+  }
+
+  .header-nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 100%;
+    bottom: -0.12em;
+    height: 0.06em;
+    background: currentColor;
+    transition: right var(--duration) var(--ease);
+  }
+
+  .header-nav a:hover::after,
+  .header-nav a.is-active::after {
+    right: 0;
+  }
+
+  .burger {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: var(--space-xs) 0;
+  }
+
+  .burger span {
+    display: block;
+    width: 30px;
+    height: 2px;
+    background: currentColor;
+  }
+
+  @media (min-width: 768px) {
+    .header-nav {
+      display: block;
+    }
+
+    .burger {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-nav a::after {
+      transition: none;
+    }
+  }
+</style>
