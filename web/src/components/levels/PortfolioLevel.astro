@@ -89,6 +89,9 @@ for (let i = 0; i < items.length; i += 2) {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    /* fotka si drží vlastní šířku z poměru stran (jinak by ji flex/grid
+       roztáhl na šířku sloupce a při pevné výšce zdeformoval), vystředěná */
+    align-items: center;
   }
 
   .portfolio-item:hover {
@@ -125,10 +128,6 @@ for (let i = 0; i < items.length; i += 2) {
     /* jeden sloupec na obrazovku → 2 projekty na stránku */
     .portfolio-col {
       width: calc(100vw - 2 * var(--page-pad));
-    }
-
-    .portfolio-item {
-      align-items: flex-start;
     }
 
     .portfolio :global(.portfolio-cover) {
