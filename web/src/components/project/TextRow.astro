@@ -1,7 +1,7 @@
 ---
-// Karta projektu — úroveň 2: texty ve třech sloupcích.
-// Desktop: tři sloupce vedle sebe, mobil: každý sloupec = swipe panel.
-import ProgressDots from '../ProgressDots.astro';
+// Karta projektu — úroveň 2 (dle náhledů): název + metadata + perex
+// v prvním sloupci, texty tečou do dalších sloupců a pokračují
+// horizontálním posunem (CSS multicol s pevnou výškou).
 import ScrollRow from '../ScrollRow.astro';
 import type { Project } from '../../types/sanity';
 
@@ -11,101 +11,83 @@ interface Props {
 
 const { project } = Astro.props;
 const columns = project.columns ?? [];
-const panelCount = 1 + columns.length;
 ---
 
 <section class="level text-row" data-level="text" id="text">
-  <ScrollRow id="text-row" class="text-track">
-    <div class="scroll-panel text-panel">
-      <h1 class="project-title">{project.title}</h1>
+  <ScrollRow id="text-row" class="text-scroll">
+    <div class="text-columns">
+      <div class="text-lead">
+        <h1 class="project-title">{project.title}</h1>
 
-      <dl class="project-meta">
-        {
-          project.years && (
-            <div>
-              <dt>Roky</dt>
-              <dd>{project.years}</dd>
-            </div>
-          )
-        }
-        {
-          project.location && (
-            <div>
-              <dt>Místo</dt>
-              <dd>{project.location}</dd>
-            </div>
-          )
-        }
-        {
-          project.credits?.map((credit) => (
-            <div>
-              <dt>{credit.role}</dt>
-              <dd>{credit.name}</dd>
-            </div>
-          ))
-        }
-      </dl>
+        <p class="project-meta">
+          {project.years && <span>Rok: {project.years}<br /></span>}
+          {project.location && <span>Lokalita: {project.location}<br /></span>}
+          {
+            project.credits?.map((credit) => (
+              <span>
+                {credit.role}: {credit.name}
+                <br />
+              </span>
+            ))
+          }
+        </p>
 
-      {project.perex && <p class="project-perex">{project.perex}</p>}
+        {project.perex && <p class="project-perex pre-line">{project.perex}</p>}
+      </div>
+
+      {columns.map((column) => <p class="text-column pre-line">{column}</p>)}
     </div>
-
-    {
-      columns.map((column) => (
-        <div class="scroll-panel text-panel">
-          <p class="project-column">{column}</p>
-        </div>
-      ))
-    }
   </ScrollRow>
-
-  <ProgressDots rowId="text-row" count={panelCount} class="text-dots" />
 </section>
 
 <style>
-  .text-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: var(--space-lg);
-    padding: calc(var(--header-height) + var(--space-md)) var(--page-pad)
-      var(--space-xl);
+  .text-row :global(.text-scroll) {
+    min-height: 100dvh;
+    align-items: center;
+    padding-inline: var(--page-pad);
+    /* sloupce se magneticky zastavují na odsazení stránky */
+    scroll-padding-inline-start: var(--page-pad);
+  }
+
+  .text-columns {
+    /* snap cíle jsou vložené markery sloupců (scroll-engine.ts) — samotný
+       multicol blok by jako obří snap area kolidoval s jejich pozicemi */
+    scroll-snap-align: none;
+    height: 66dvh;
+    column-width: min(34vw, 560px);
+    column-gap: clamp(2.5rem, 5vw, 5.5rem);
+    column-fill: auto;
+    font-size: var(--text-body);
+    line-height: var(--leading-snug);
+  }
+
+  .text-lead {
+    break-inside: avoid;
+  }
+
+  .text-column {
+    break-before: column;
   }
 
   .project-title {
-    font-size: var(--text-xl);
+    font-size: var(--text-lg);
+    margin-bottom: 0.8em;
   }
 
   .project-meta {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-    font-size: var(--text-sm);
-  }
-
-  .project-meta div {
-    display: flex;
-    gap: var(--space-sm);
-  }
-
-  .project-meta dt {
-    color: var(--color-muted);
-    min-width: 5em;
+    margin-bottom: 1.2em;
   }
 
   .project-perex,
-  .project-column {
-    max-width: 34em;
+  .pre-line {
     white-space: pre-line;
   }
 
-  @media (min-width: 768px) {
-    .text-panel {
-      width: calc(100vw / 3);
-    }
-
-    /* tři sloupce se vejdou na obrazovku — tečky nejsou potřeba */
-    :global(.progress-dots.text-dots) {
-      display: none;
+  @media (max-width: 767px) {
+    .text-columns {
+      height: 72dvh;
+      column-width: calc(100vw - 2 * var(--page-pad));
+      column-gap: calc(2 * var(--page-pad));
     }
   }
 </style>

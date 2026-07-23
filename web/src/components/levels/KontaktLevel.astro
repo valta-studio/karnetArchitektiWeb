@@ -1,7 +1,6 @@
 ---
-// Úroveň 4 — kontakt: e-mail, telefon, adresa, sítě + fakturační údaje.
-import ProgressDots from '../ProgressDots.astro';
-import ScrollRow from '../ScrollRow.astro';
+// Úroveň 4 — kontakt (dle náhledů): jeden blok vlevo — e-mail a telefon,
+// adresa kanceláře, sociální sítě pod sebou, fakturační údaje.
 import type { Contact } from '../../types/sanity';
 
 interface Props {
@@ -10,109 +9,92 @@ interface Props {
 
 const { contact } = Astro.props;
 const billing = contact.billing;
-const hasBilling = Boolean(
-  billing && (billing.companyName || billing.registeredAddress || billing.ico || billing.dic)
-);
 ---
 
 <section class="level kontakt" data-level="kontakt" id="kontakt">
-  <ScrollRow id="kontakt-row">
-    <div class="scroll-panel kontakt-panel">
-      <h2 class="panel-label">Kontakt</h2>
-
-      <div class="kontakt-main">
-        {
-          contact.email && (
-            <a class="kontakt-email" href={`mailto:${contact.email}`}>
-              {contact.email}
-            </a>
-          )
-        }
-        {
-          contact.phone && (
-            <a href={`tel:${contact.phone.replace(/\s/g, '')}`}>{contact.phone}</a>
-          )
-        }
-        {contact.address && <p class="kontakt-address">{contact.address}</p>}
-      </div>
-
+  <div class="kontakt-block">
+    <div class="kontakt-group">
+      {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
       {
-        contact.socialLinks?.length ? (
-          <ul class="kontakt-socials">
-            {contact.socialLinks.map((social) => (
-              <li>
-                <a href={social.url} rel="noopener" target="_blank">
-                  {social.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : null
+        contact.phone && (
+          <a href={`tel:${contact.phone.replace(/\s/g, '')}`}>{contact.phone}</a>
+        )
       }
     </div>
 
     {
-      hasBilling && billing && (
-        <div class="scroll-panel kontakt-panel">
-          <h2 class="panel-label">Fakturační údaje</h2>
-          <div class="kontakt-billing">
-            {billing.companyName && <p>{billing.companyName}</p>}
-            {billing.registeredAddress && <p>{billing.registeredAddress}</p>}
-            {billing.ico && <p>IČO {billing.ico}</p>}
-            {billing.dic && <p>DIČ {billing.dic}</p>}
-          </div>
+      contact.address && (
+        <div class="kontakt-group">
+          <p>Kancelář:</p>
+          <p class="pre-line">{contact.address}</p>
         </div>
       )
     }
-  </ScrollRow>
 
-  <ProgressDots rowId="kontakt-row" count={hasBilling ? 2 : 1} />
+    {
+      contact.socialLinks?.length ? (
+        <ul class="kontakt-group kontakt-socials">
+          {contact.socialLinks.map((social) => (
+            <li>
+              <a href={social.url} rel="noopener" target="_blank">
+                {social.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null
+    }
+
+    {
+      billing && (billing.companyName || billing.registeredAddress) && (
+        <div class="kontakt-group kontakt-billing">
+          {billing.companyName && <p>{billing.companyName}</p>}
+          {billing.registeredAddress && <p class="pre-line">{billing.registeredAddress}</p>}
+        </div>
+      )
+    }
+
+    {
+      billing && (billing.ico || billing.dic) && (
+        <div class="kontakt-group">
+          {billing.ico && <p>IČO: {billing.ico}</p>}
+          {billing.dic && <p>DIČ: {billing.dic}</p>}
+        </div>
+      )
+    }
+  </div>
 </section>
 
 <style>
-  .kontakt-panel {
+  .kontakt {
+    display: flex;
+    align-items: center;
+  }
+
+  .kontakt-block {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: var(--space-lg);
-    padding: calc(var(--header-height) + var(--space-md)) var(--page-pad)
-      var(--space-xl);
+    gap: 1.2em;
+    padding-inline: var(--page-pad);
+    font-size: var(--text-body);
+    line-height: var(--leading-snug);
   }
 
-  .panel-label {
-    font-size: var(--text-sm);
-    color: var(--color-muted);
-    font-weight: 400;
-  }
-
-  .kontakt-main {
+  .kontakt-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
-    font-size: var(--text-lg);
-    line-height: var(--leading-tight);
   }
 
-  .kontakt-email {
-    font-size: var(--text-xl);
-    font-weight: 500;
-  }
-
-  .kontakt-address {
-    white-space: pre-line;
-    font-size: var(--text-base);
-    color: var(--color-muted);
-  }
-
-  .kontakt-socials {
-    display: flex;
-    gap: var(--space-md);
+  .kontakt-group a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
 
   .kontakt-billing {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-    color: var(--color-muted);
+    margin-top: 1.2em;
+  }
+
+  .pre-line {
+    white-space: pre-line;
   }
 </style>

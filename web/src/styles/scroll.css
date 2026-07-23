@@ -28,6 +28,7 @@ html:focus-within {
 
 /* horizontální snap dráha */
 .scroll-row {
+  position: relative;
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
@@ -51,4 +52,14 @@ html:focus-within {
 .scroll-panel {
   width: 100vw;
   min-height: 100dvh;
+}
+
+/* neviditelné snap cíle pro CSS multicol sloupce (vkládá scroll-engine.ts) —
+   samotný posun zůstává nativnímu snapu, JS jen po layoutu změří rozteč */
+.snap-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  pointer-events: none;
+  scroll-snap-align: start;
 }

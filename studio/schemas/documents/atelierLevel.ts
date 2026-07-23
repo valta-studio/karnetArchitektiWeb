@@ -14,10 +14,18 @@ export default defineType({
       of: [{ type: 'block', styles: [{ title: 'Odstavec', value: 'normal' }] }],
     }),
     defineField({
+      name: 'awardsIntro',
+      title: 'Úvodní věta k oceněním',
+      type: 'text',
+      rows: 2,
+      description: 'Např. „Naše práce se pravidelně objevuje v odborných a lifestyle magazínech."',
+    }),
+    defineField({
       name: 'awards',
       title: 'Ocenění',
       type: 'array',
       of: [{ type: 'award' }],
+      description: 'Text pište jako celou větu — na webu se zobrazuje jako odstavec.',
     }),
     defineField({
       name: 'publications',

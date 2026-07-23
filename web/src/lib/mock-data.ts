@@ -1,6 +1,6 @@
-// Fallback obsah pro provoz BEZ Sanity (chybí SANITY_PROJECT_ID).
-// Jediné místo, kde smí být obsah mimo CMS — slouží k vývoji a náhledu,
-// v produkci s nastaveným env se nikdy nepoužije.
+// Fallback obsah pro provoz BEZ Sanity / s prázdným CMS.
+// Texty převzaté z dodaných náhledů (web_náhled.pdf) — slouží k vývoji,
+// v produkci je nahradí obsah publikovaný ve Studiu.
 
 import type {
   AtelierLevel,
@@ -16,26 +16,31 @@ function ph(n: number, width = 1600, height = 1067, caption?: string): MockImage
   return { _type: 'mockImage', src: `/placeholders/ph-${n}.svg`, width, height, caption };
 }
 
+/** portrétní placeholder */
+function php(n: number, caption?: string): MockImage {
+  return { _type: 'mockImage', src: `/placeholders/ph-${n}.svg`, width: 1067, height: 1600, caption };
+}
+
 const vila1906: Project = {
   _id: 'mock-vila-1906',
   title: 'Vila 1906',
   slug: 'vila-1906',
   order: 1,
-  years: '2018 – 2021',
+  years: '2018 - 2021',
   location: 'Dobřichovice',
   credits: [
     { role: 'Foto', name: 'Petr Polák' },
-    { role: 'Zahrada', name: 'Atelier Partero' },
+    { role: 'Zahrada', name: 'Atelier Flera' },
   ],
   perex:
-    'Moderní bydlení v měšťanské vile. Rekonstrukce vily z roku 1906 vrací domu jeho původní důstojnost a zároveň jej otevírá současnému způsobu života rodiny.',
+    'Moderní bydlení v měšťanské vile.\n\nPro nové majitele navrhujeme soudobou vrstvu, překreslujeme dispozice, organizujeme plynutí prostorů a ladíme kombinace materiálů tak, abychom zachovali původní prvky vily a splnili požadavky současného bydlení.',
   columns: [
-    'Vila byla postavena roku 1906 podle návrhu neznámého stavitele jako letní sídlo pražské rodiny. Během dvacátého století prošla řadou necitlivých úprav, které setřely většinu původních detailů. Průzkum nicméně odhalil zachované konstrukce krovu, původní schodiště a fragmenty štukové výzdoby.',
-    'Návrh odstraňuje pozdější přístavky a vrstvy, obnovuje původní hmotu domu a doplňuje ji soudobým zázemím zapuštěným do svahu zahrady. Nové zásahy jsou materiálově odlišené — pohledový beton a dub — aby zůstalo čitelné, co je původní a co nové.',
+    'Historie vily sahá až do roku 1906, kdy byla stavba dokončena dle návrhu architekta Františka Buldra. Od roku 1934 vilu obýval spisovatel F. X. Šalda. V roce 1939 prošla vila výraznou rekonstrukcí dle návrhu Karla Šťastného. Tehdy byla provedena celková úprava průčelí včetně vybudování věže se stanovou střechou. Součástí úprav bylo i litinové zábradlí a vstupní brána, což jsou prvky zachované dodnes. Na konci roku 2018 se vila dostala na náš stůl. A proto, že dnes se žije jinak než na počátku minulého století, bylo potřeba přizpůsobit bydlení novým požadavkům.',
+    'Hlavním cílem všech našich zásahů bylo jasně odlišit nové od původního.\n\nZásadním krokem pro celé fungování domu bylo přesunutí původního hlavního vstupu do přízemí. Díky tomu jsme získali mnohem více prostoru jak pro šatní skříně a botníky, tak pro pohyb ve vstupní hale. Zároveň vznikly přidružené místnosti, jako je technická místnost či druhá šatna. V původní dispozici se vcházelo na schodišťovou podestu, což do značné míry limitovalo úložné prostory. Zároveň to ale vytvářelo autentickou atmosféru a krásný průhled obývacím pokojem až na balkon. Podestu jsme se proto rozhodli zachovat, nyní slouží jako vchod pro návštěvy. Materiály jsme volili tak, aby každý, kdo do vily vstoupí, pocítil její vznešenost a výjimečnou atmosféru. Na podlahách je mramorová dlažba, jejíž kresba plynule navazuje na ořechovou dýhu vestavěných skříní. Světla jsou vzhledem k nízkému stropu přisazená. Zpoza skříní pronikají tenké paprsky světla, které zdůrazňují kontrast nového s původním.',
   ],
-  cover: ph(1),
-  photos: [ph(1), ph(2), ph(3), ph(4), ph(5)],
-  drawings: [ph(6, 1600, 1100), ph(7, 1600, 1100), ph(8, 1600, 1100)],
+  cover: php(1),
+  photos: [php(1), ph(2), php(3), ph(4), php(5)],
+  drawings: [ph(6, 1600, 1000), ph(7, 1600, 1000), ph(8, 1200, 1400)],
 };
 
 function mockProject(
@@ -43,8 +48,10 @@ function mockProject(
   title: string,
   slug: string,
   location: string,
-  years: string
+  years: string,
+  portrait = false
 ): Project {
+  const cover = portrait ? php(((n - 1) % 8) + 1) : ph(((n - 1) % 8) + 1);
   return {
     _id: `mock-${slug}`,
     title,
@@ -52,31 +59,30 @@ function mockProject(
     order: n,
     years,
     location,
-    perex: `${title} — ukázkový projekt pro vývoj bez napojení na Sanity.`,
+    perex: `${title}.\n\nUkázkový text projektu pro vývoj — obsah se po naplnění načítá výhradně ze Sanity.`,
     columns: [
-      'Ukázkový text prvního sloupce. Po napojení Sanity se obsah načítá výhradně z CMS.',
-      'Ukázkový text druhého sloupce. Po napojení Sanity se obsah načítá výhradně z CMS.',
+      'Ukázkový text prvního sloupce. Po napojení a naplnění Sanity se obsah načítá výhradně z CMS.',
+      'Ukázkový text druhého sloupce. Po napojení a naplnění Sanity se obsah načítá výhradně z CMS.',
     ],
-    cover: ph(((n - 1) % 8) + 1),
-    photos: [ph(((n) % 8) + 1), ph(((n + 1) % 8) + 1), ph(((n + 2) % 8) + 1)],
-    drawings: [ph(6, 1600, 1100), ph(7, 1600, 1100)],
+    cover,
+    photos: [php((n % 8) + 1), ph(((n + 1) % 8) + 1), php(((n + 2) % 8) + 1)],
+    drawings: [ph(6, 1600, 1000), ph(7, 1600, 1000)],
   };
 }
 
 export const projects: Project[] = [
   vila1906,
-  mockProject(2, 'Dům pod lesem', 'dum-pod-lesem', 'Černošice', '2020 – 2023'),
-  mockProject(3, 'Byt Letná', 'byt-letna', 'Praha 7', '2022'),
-  mockProject(4, 'Chata Kokořínsko', 'chata-kokorinsko', 'Kokořínsko', '2019 – 2021'),
-  mockProject(5, 'Ateliér Karlín', 'atelier-karlin', 'Praha 8', '2021 – 2022'),
-  mockProject(6, 'Dům se dvorem', 'dum-se-dvorem', 'Kutná Hora', '2017 – 2020'),
-  mockProject(7, 'Rekonstrukce mlýna', 'rekonstrukce-mlyna', 'Posázaví', '2023 –'),
-  mockProject(8, 'Vila na skále', 'vila-na-skale', 'Vrané nad Vltavou', '2016 – 2019'),
+  mockProject(2, 'Na úpatí Brd', 'na-upati-brd', 'Příbram', '2022 - 2024'),
+  mockProject(3, 'Spolkový dům', 'spolkovy-dum', 'Brdy', '2023'),
+  mockProject(4, 'Zapomenutá stodola', 'zapomenuta-stodola', 'Brdy', '2021 - 2024'),
+  mockProject(5, 'Vila v údolí', 'vila-v-udoli', 'Příbram', '2022', true),
+  mockProject(6, 'Vila na kopci', 'vila-na-kopci', 'Brdy', '2023'),
+  mockProject(7, 'Školka', 'skolka', 'Příbram', '2024', true),
 ];
 
 export const introLevel: IntroLevel = {
   mode: 'photo',
-  photo: ph(1, 2400, 1600),
+  photo: php(1),
 };
 
 export const atelierLevel: AtelierLevel = {
@@ -87,7 +93,7 @@ export const atelierLevel: AtelierLevel = {
       children: [
         {
           _type: 'span',
-          text: 'Jsme architektonický ateliér. Navrhujeme domy, interiéry a veřejný prostor — od prvních skic po realizaci. Věříme v přesnost, trvanlivost a ticho dobré architektury.',
+          text: 'Jsme architektonické studio se základy v Příbrami. Záměrně stojíme mimo centrum.',
         },
       ],
     },
@@ -97,44 +103,52 @@ export const atelierLevel: AtelierLevel = {
       children: [
         {
           _type: 'span',
-          text: 'Každý projekt začíná místem a jeho příběhem. Pracujeme pomalu a důkladně, s malým počtem zakázek najednou.',
+          text: 'Jsme tam, kde se potkávají brdské lesy a uranové doly. Ze tmy přicházíme ošlehaní větrem. Fáráme pod povrch do hlubin vašich stavebních snů.',
         },
       ],
     },
   ],
+  awardsIntro: 'Naše práce se pravidelně objevuje v odborných a lifestyle magazínech.',
   awards: [
-    { year: '2023', text: 'Česká cena za architekturu — nominace, Vila 1906' },
-    { year: '2021', text: 'Grand Prix architektů — čestné uznání' },
-    { year: '2019', text: 'Stavba roku Středočeského kraje' },
+    {
+      year: '2024',
+      text: 'V roce 2024 jsme si zasloužili nominaci na Grand Prix Architektů za návrh Zapomenuté stodoly.',
+    },
+    {
+      year: '2023',
+      text: 'V roce 2023 nás Časopis Architect+ zařadil do svého každoročního výběru TOP 100 mezi 10 emerging architects.',
+    },
+    {
+      year: '2020',
+      text: 'V roce 2020 jsme obdrželi BigSEE interior Design Award za návrh kavárny Cafe Smoo v Příbrami.',
+    },
   ],
-  publications: [ph(2, 1200, 1500), ph(3, 1200, 1500), ph(4, 1200, 1500), ph(5, 1200, 1500)],
-  founding: 'Ateliér byl založen v roce 2012 v Praze.',
+  publications: [php(2), ph(3, 1600, 1200), php(4), ph(5, 1600, 1200)],
+  founding: 'Ateliér byl založen v roce 2019 v Příbrami.',
   people: [
     { degree: 'Ing. arch.', name: 'Jan Karnet' },
     { degree: 'Ing. arch.', name: 'Marie Karnetová' },
-    { degree: 'Ing.', name: 'Tomáš Dvořák' },
   ],
 };
 
 export const portfolioLevel: PortfolioLevel = {
-  heading: 'Vybrané projekty',
   projects,
 };
 
 export const contact: Contact = {
-  email: 'info@karnet.archi',
-  phone: '+420 777 000 000',
-  address: 'Příčná 12\n110 00 Praha 1',
+  email: 'office@karnet.archi',
+  phone: '+420 728 431 406',
+  address: 'Komenského náměstí 389\n261 01 Příbram\nCzech republic',
   socialLinks: [
-    { label: 'Instagram', url: 'https://instagram.com/' },
     { label: 'Facebook', url: 'https://facebook.com/' },
+    { label: 'Instagram', url: 'https://instagram.com/' },
     { label: 'Pinterest', url: 'https://pinterest.com/' },
   ],
   billing: {
-    companyName: 'Karnet architekti s.r.o.',
-    registeredAddress: 'Příčná 12, 110 00 Praha 1',
-    ico: '00000000',
-    dic: 'CZ00000000',
+    companyName: 'Karnet architekt, s.r.o.',
+    registeredAddress: 'Plzeňská 60,\nPříbram, 261 01',
+    ico: '08650632',
+    dic: 'CZ08650632',
   },
 };
 
@@ -143,6 +157,6 @@ export const seoSettings: SeoSettings = {
   titleTemplate: '%s — Karnet, architekti',
   defaultTitle: 'Karnet, architekti',
   defaultDescription:
-    'Architektonický ateliér v Praze. Domy, interiéry a veřejný prostor — od prvních skic po realizaci.',
+    'Architektonické studio se základy v Příbrami. Domy, interiéry a veřejný prostor — od prvních skic po realizaci.',
   noindex: true,
 };

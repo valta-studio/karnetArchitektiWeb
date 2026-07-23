@@ -100,6 +100,7 @@ export interface IntroLevel {
 
 export interface AtelierLevel {
   intro?: PortableTextBlock[];
+  awardsIntro?: string;
   awards?: Award[];
   publications?: ImageSource[];
   founding?: string;

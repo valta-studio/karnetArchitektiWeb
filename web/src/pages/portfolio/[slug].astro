@@ -3,6 +3,7 @@
 import Base from '../../layouts/Base.astro';
 import Header from '../../components/Header.astro';
 import ScrollDeck from '../../components/ScrollDeck.astro';
+import LevelDots from '../../components/LevelDots.astro';
 import BurgerScreen from '../../components/BurgerScreen.astro';
 import PhotoRow from '../../components/project/PhotoRow.astro';
 import TextRow from '../../components/project/TextRow.astro';
@@ -28,6 +29,7 @@ const [contact, settings] = await Promise.all([getContact(), getSeoSettings()]);
 
 <Base title={project.title} description={project.perex} seo={project.seo}>
   <Header siteName={settings.siteName} />
+  <LevelDots count={project.drawings?.length ? 4 : 3} />
 
   <ScrollDeck>
     <PhotoRow project={project} />

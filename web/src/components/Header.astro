@@ -1,6 +1,7 @@
 ---
-// Logo + textová navigace (desktop) + burger ikona (mobil).
-// Aktivní položku podtrhává scroll-engine.ts (class .is-active).
+// Velké logo vlevo + textová navigace „Atelier, Portfolio, Kontakt" vpravo
+// (dle náhledů — položky oddělené čárkami, aktivní podtržená).
+// Aktivní položku přepíná scroll-engine.ts (class .is-active).
 import { HEADER_LINKS } from '../lib/nav';
 
 interface Props {
@@ -15,10 +16,12 @@ const { siteName } = Astro.props;
 
   <nav class="header-nav" aria-label="Hlavní navigace">
     {
-      HEADER_LINKS.map((link) => (
-        <a href={link.href} data-scroll-to={link.id} data-nav-link={link.id}>
-          {link.label}
-        </a>
+      HEADER_LINKS.map((link, i) => (
+        <span class="nav-item"
+          ><a href={link.href} data-scroll-to={link.id} data-nav-link={link.id}
+            >{link.label}</a
+          >{i < HEADER_LINKS.length - 1 && ', '}</span
+        >
       ))
     }
   </nav>
@@ -35,23 +38,32 @@ const { siteName } = Astro.props;
     inset: 0 0 auto 0;
     z-index: 10;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    height: var(--header-height);
-    padding: 0 var(--page-pad);
-    /* čitelnost nad fotkami i světlým pozadím */
-    mix-blend-mode: difference;
-    color: #fff;
+    padding: var(--space-md) var(--page-pad) 0;
   }
 
   .logo {
-    font-weight: 500;
-    letter-spacing: 0.01em;
+    font-size: var(--text-xl);
+    font-weight: var(--weight-heavy);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .logo:hover {
+    text-decoration: none;
   }
 
   .header-nav {
     display: none;
-    gap: var(--space-lg);
+    font-size: var(--text-md);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    padding-top: 0.35em;
+  }
+
+  .nav-item {
+    white-space: nowrap;
   }
 
   .header-nav a {
@@ -67,8 +79,8 @@ const { siteName } = Astro.props;
     position: absolute;
     left: 0;
     right: 100%;
-    bottom: -0.2em;
-    height: 1px;
+    bottom: -0.12em;
+    height: 0.06em;
     background: currentColor;
     transition: right var(--duration) var(--ease);
   }
@@ -81,20 +93,20 @@ const { siteName } = Astro.props;
   .burger {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
     padding: var(--space-xs) 0;
   }
 
   .burger span {
     display: block;
-    width: 28px;
-    height: 1.5px;
+    width: 30px;
+    height: 2px;
     background: currentColor;
   }
 
   @media (min-width: 768px) {
     .header-nav {
-      display: flex;
+      display: block;
     }
 
     .burger {
