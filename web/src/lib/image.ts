@@ -27,9 +27,25 @@ export function srcsetFor(image: SanityImageRef, maxWidth = 2560): string {
     .join(', ');
 }
 
-/** Rozměry z asset ref: image-<id>-<width>x<height>-<format> */
+/** Rozměry z asset ref: image-<id>-<width>x<height>-<format>.
+ *  Ořez ze Studia se musí započítat — CDN vydává oříznutou bitmapu
+ *  a nesouhlasící width/height atributy by obrázek deformovaly. */
 export function dimensionsFor(image: SanityImageRef): { width: number; height: number } {
   const match = image.asset._ref.match(/-(\d+)x(\d+)-/);
   if (!match) return { width: 1600, height: 1067 };
-  return { width: Number(match[1]), height: Number(match[2]) };
+  let width = Number(match[1]);
+  let height = Number(match[2]);
+  if (image.crop) {
+    width = Math.round(width * (1 - image.crop.left - image.crop.right));
+    height = Math.round(height * (1 - image.crop.top - image.crop.bottom));
+  }
+  return { width, height };
+}
+
+/** Poměr stran (šířka/výška) zobrazované bitmapy — včetně ořezu. */
+export function aspectRatioFor(image: ImageSource): number {
+  const { width, height } = isMockImage(image)
+    ? { width: image.width, height: image.height }
+    : dimensionsFor(image);
+  return width / height;
 }

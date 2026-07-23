@@ -7,12 +7,21 @@ export interface SanityImageHotspot {
   width: number;
 }
 
+/** Ořez nastavený ve Studiu — podíly odříznuté z každé strany (0–1). */
+export interface SanityImageCrop {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 /** Obrázek ze Sanity CDN (asset reference). */
 export interface SanityImageRef {
   _type: 'image';
   _key?: string;
   asset: { _ref: string; _type: 'reference' };
   hotspot?: SanityImageHotspot;
+  crop?: SanityImageCrop;
   caption?: string;
 }
 
