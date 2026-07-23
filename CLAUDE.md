@@ -29,9 +29,10 @@ Nikdy necommituj `.env` ani tokeny.
    knihovny (fullPage.js, GSAP ScrollTrigger, Lenis…) — JS smí jen pozorovat
    (IntersectionObserver) a synchronizovat UI stav, nikdy nepřebírat řízení
    scrollu.
-2. Na horizontálních drahách vždy `touch-action: pan-x` a
-   `overscroll-behavior-x: contain`, jinak swipe protéká do vertikální osy
-   (iOS Safari).
+2. Na horizontálních drahách vždy `touch-action: pan-x pan-y` a
+   `overscroll-behavior-x: contain`. Samotné `pan-x` NEPOUŽÍVEJ — dráha
+   vyplňuje celou úroveň a zablokovala by vertikální swipe mezi úrovněmi;
+   s `pan-x pan-y` si prohlížeč zamkne dominantní osu gesta sám.
 3. Úroveň 1 (úvod) horizontální posun NEMÁ. Ostatní úrovně ano.
 4. Používej `dvh`, nikdy `vh` (address bar na mobilech).
 5. Žádný obsah natvrdo v komponentách — všechno přes Sanity. Pokud ti chybí

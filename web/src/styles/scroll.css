@@ -1,7 +1,8 @@
 /* Scroll systém — nativní CSS scroll snap, JS pouze pozoruje.
    Vertikální osa: root scroller, y mandatory, úrovně 100dvh.
-   Horizontální dráhy: x mandatory + touch-action: pan-x
-   + overscroll-behavior-x: contain (iOS Safari — swipe nesmí protéct). */
+   Horizontální dráhy: x mandatory + touch-action: pan-x pan-y
+   + overscroll-behavior-x: contain (iOS Safari — vodorovný swipe nesmí
+   protéct do historie, svislý musí projít na root scroller). */
 
 html {
   scroll-snap-type: y mandatory;
@@ -33,7 +34,10 @@ html:focus-within {
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  touch-action: pan-x;
+  /* pan-x pan-y: prohlížeč si při začátku gesta zamkne dominantní osu —
+     vodorovný swipe řídí dráhu, svislý propadá root scrolleru (samotné
+     pan-x by svislý swipe nad dráhou úplně zablokovalo) */
+  touch-action: pan-x pan-y;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
