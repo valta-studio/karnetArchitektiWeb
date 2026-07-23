@@ -1,18 +1,15 @@
 // Navigace: burger ikona scrolluje na burger obrazovku (poslední úroveň),
-// položky menu scrollují na cílovou úroveň. Scroll zůstává nativní.
+// položky menu scrollují na cílovou úroveň. Scroll zůstává nativní —
+// skoky přes více úrovní jdou přes scrollToTarget (viz scroll-engine.ts).
 
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-function scrollBehavior(): ScrollBehavior {
-  return reducedMotion.matches ? 'auto' : 'smooth';
-}
+import { scrollToTarget } from './scroll-engine';
 
 export function initMenu(): void {
   // burger → poslední úroveň (BurgerScreen)
   for (const button of document.querySelectorAll<HTMLElement>('[data-burger]')) {
     button.addEventListener('click', () => {
       const screen = document.querySelector<HTMLElement>('[data-level="menu"]');
-      screen?.scrollIntoView({ behavior: scrollBehavior() });
+      if (screen) scrollToTarget(screen);
     });
   }
 
@@ -23,7 +20,7 @@ export function initMenu(): void {
       const target = id ? document.querySelector<HTMLElement>(`[data-level="${id}"]`) : null;
       if (!target) return; // odkaz vede na jinou stránku — nech projít
       event.preventDefault();
-      target.scrollIntoView({ behavior: scrollBehavior() });
+      scrollToTarget(target);
     });
   }
 }

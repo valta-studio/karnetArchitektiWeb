@@ -8,6 +8,13 @@ html {
   scroll-snap-type: y mandatory;
 }
 
+/* programový skok mezi úrovněmi (scroll-engine.ts): mandatory snap se
+   scroll-snap-stop: always umí plynulý scrollIntoView na mobilech přerušit
+   a vrátit zpět — po dobu skoku se snap vypíná, po ustálení se vrací */
+html.is-jumping {
+  scroll-snap-type: none;
+}
+
 html:focus-within {
   scroll-behavior: smooth;
 }

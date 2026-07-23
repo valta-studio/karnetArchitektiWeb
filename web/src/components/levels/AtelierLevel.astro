@@ -78,8 +78,8 @@ const panelCount =
     {
       publications.length > 0 && (
         <div class="atelier-panel atelier-publications">
-          {publications.map((publication, i) => (
-            <div class:list={['atelier-publication', { 'is-offset': i % 2 === 1 }]}>
+          {publications.map((publication) => (
+            <div class="atelier-publication">
               <SanityImage
                 image={publication}
                 alt={publication.caption ?? 'Publikace'}
@@ -201,25 +201,28 @@ const panelCount =
   }
 
   /* publikace = jedna souvislá koláž (jeden snap cíl); je širší než viewport,
-     takže se uvnitř posouvá volně a snapuje jen na svých okrajích */
+     takže se uvnitř posouvá volně a snapuje jen na svých okrajích.
+     Fotky plní dvě řady (sloupec po sloupci) — sudé nahoře, liché dole. */
   .atelier-publications {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, auto);
+    align-content: center;
+    justify-content: start;
+    column-gap: clamp(0.75rem, 1.75vw, 2rem);
+    row-gap: clamp(0.75rem, 2vw, 2rem);
   }
 
   .atelier-publication {
-    flex: none;
-    padding-inline: clamp(0.75rem, 1.75vw, 2rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .atelier-publication :global(img) {
     width: auto;
     max-width: min(34vw, 620px);
-    max-height: 46dvh;
-  }
-
-  .atelier-publication.is-offset {
-    transform: translateY(18dvh);
+    max-height: 34dvh;
   }
 
   .degree {
@@ -244,11 +247,7 @@ const panelCount =
 
     .atelier-publication :global(img) {
       max-width: 78vw;
-      max-height: 52dvh;
-    }
-
-    .atelier-publication.is-offset {
-      transform: translateY(8dvh);
+      max-height: 38dvh;
     }
   }
 </style>
