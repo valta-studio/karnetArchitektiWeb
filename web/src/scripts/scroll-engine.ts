@@ -24,24 +24,57 @@ function levels(): HTMLElement[] {
  * `y mandatory` doresolvuje snap během načítání (po layoutu obrázků) a umí
  * stránku ukotvit uprostřed — na kartě projektu typicky na výkresové úrovni.
  * Snap je proto od prvního vykreslení vypnutý (html.snap-pending, vkládá
- * inline skript v <head>) a zapíná se po window.load, kdy stránka stabilně
- * stojí na vršku (= platný snap bod, aktivace nikam neposune). Pokud uživatel
- * začne scrollovat dřív, snap se zapne hned — gesto pak normálně dosnapuje.
- * Nebojujeme se Safari o pozici žádným scrollTo (viz revert 27a426f).
+ * inline skript v <head>) a zapíná se po window.load. Pokud uživatel začne
+ * scrollovat dřív, snap se zapne hned — gesto pak normálně dosnapuje.
+ *
+ * Aktivace předpokládá, že stránka stojí na vršku (= platný snap bod).
+ * iOS Safari ale umí při navigaci přenést scroll offset předchozí stránky
+ * (odscrollovaná homepage → karta projektu) — snap by se pak ukotvil
+ * uprostřed. U čerstvé navigace bez kotvy proto během snap-pending fáze
+ * držíme vršek okamžitým scrollTo; snap je vypnutý, takže se s ním nebojuje
+ * (flikr z revertu 27a426f vznikal korekcí proti aktivnímu snapu). Reload
+ * a back/forward nechávají obnovu pozice prohlížeči.
  */
 function initSnapActivation(): void {
   const html = document.documentElement;
   if (!html.classList.contains('snap-pending')) return;
 
-  const enable = () => html.classList.remove('snap-pending');
+  const navType =
+    (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
+      ?.type ?? 'navigate';
+  const mustStartAtTop = navType === 'navigate' && !deepLinkIds.has(location.hash.slice(1));
+
+  let interacted = false;
+
+  const toTop = () => {
+    if (!mustStartAtTop || interacted) return;
+    if (window.scrollY !== 0) window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  };
+
+  const enable = () => {
+    if (!html.classList.contains('snap-pending')) return;
+    toTop();
+    html.classList.remove('snap-pending');
+    window.removeEventListener('scroll', toTop);
+  };
+
+  const interact = () => {
+    interacted = true;
+    enable();
+  };
+
+  toTop();
+  // scroll bez předchozí interakce = pozice od prohlížeče, ne od uživatele
+  window.addEventListener('scroll', toTop, { passive: true });
 
   if (document.readyState === 'complete') {
     requestAnimationFrame(enable);
   } else {
     window.addEventListener('load', () => requestAnimationFrame(enable), { once: true });
   }
-  window.addEventListener('touchstart', enable, { once: true, passive: true });
-  window.addEventListener('wheel', enable, { once: true, passive: true });
+  window.addEventListener('touchstart', interact, { once: true, passive: true });
+  window.addEventListener('wheel', interact, { once: true, passive: true });
+  window.addEventListener('keydown', interact, { once: true });
 }
 
 /** Sleduje aktivní vertikální úroveň → podtržení v menu, tečky vpravo, hash. */
