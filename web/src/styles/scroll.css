@@ -27,10 +27,12 @@ html.is-jumping {
 /* během načítání je snap vypnutý: iOS Safari doresolvuje mandatory snap až
    po layoutu obrázků a umí stránku ukotvit uprostřed (na kartě projektu
    typicky na výkresové úrovni). Třídu vkládá inline skript v <head> před
-   prvním vykreslením, odebírá ji scroll-engine.ts po window.load — u čerstvé
-   navigace předtím srovná stránku na vršek a dráhy na začátek (Safari umí
-   přenést/obnovit scroll offsety), takže se snap aktivuje na platném snap
-   bodě. Platí pro obě osy — vertikální root scroller i horizontální dráhy. */
+   prvním vykreslením, odebírá ji scroll-engine.ts — po window.load u reloadu
+   a back/forward, u čerstvé navigace až při první interakci uživatele
+   (Safari umí přenesený scroll offset předchozí stránky aplikovat i po
+   window.load); do té doby drží stránku na vršku a dráhy na začátku, takže
+   se snap aktivuje na platném snap bodě. Platí pro obě osy — vertikální
+   root scroller i horizontální dráhy. */
 html.snap-pending,
 html.snap-pending .scroll-row {
   scroll-snap-type: none;

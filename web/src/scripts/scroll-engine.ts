@@ -30,12 +30,16 @@ function levels(): HTMLElement[] {
  * Aktivace předpokládá, že stránka stojí na vršku (= platný snap bod).
  * iOS Safari ale umí při navigaci přenést scroll offset předchozí stránky
  * (odscrollovaná homepage → karta projektu) — snap by se pak ukotvil
- * uprostřed. Totéž platí pro horizontální dráhy: snap-pending vypíná i jejich
+ * uprostřed (portfolio = 3. úroveň homepage → karta skočí na výkresy).
+ * Totéž platí pro horizontální dráhy: snap-pending vypíná i jejich
  * `x mandatory` a stray scrollLeft se sráží na začátek. U čerstvé navigace
  * bez kotvy proto během snap-pending fáze držíme vršek/začátek okamžitým
  * scrollTo; snap je vypnutý, takže se s ním nebojuje (flikr z revertu 27a426f
- * vznikal korekcí proti aktivnímu snapu). Reload a back/forward nechávají
- * obnovu pozice prohlížeči.
+ * vznikal korekcí proti aktivnímu snapu). Safari umí přenesený offset
+ * aplikovat i PO window.load, takže u čerstvé navigace snap-pending + hlídání
+ * vršku drží až do první interakce uživatele — v klidu snap stejně nic nedělá
+ * a první dotek/kolečko ho zapne dřív, než se gesto rozjede. Reload a
+ * back/forward nechávají obnovu pozice prohlížeči a aktivují po window.load.
  */
 function initSnapActivation(): void {
   const html = document.documentElement;
@@ -73,11 +77,17 @@ function initSnapActivation(): void {
   // capture — scroll na dráze nebubluje, na window přijde jen v capture fázi
   window.addEventListener('scroll', toStart, { capture: true, passive: true });
 
-  if (document.readyState === 'complete') {
-    requestAnimationFrame(enable);
-  } else {
-    window.addEventListener('load', () => requestAnimationFrame(enable), { once: true });
+  if (!mustStartAtTop) {
+    // reload / back-forward / deep-link: pozici obnovuje prohlížeč, snap se
+    // zapíná po načtení; u čerstvé navigace se čeká až na interakci (Safari
+    // umí přenesený offset aplikovat i po window.load)
+    if (document.readyState === 'complete') {
+      requestAnimationFrame(enable);
+    } else {
+      window.addEventListener('load', () => requestAnimationFrame(enable), { once: true });
+    }
   }
+  window.addEventListener('pointerdown', interact, { once: true, passive: true });
   window.addEventListener('touchstart', interact, { once: true, passive: true });
   window.addEventListener('wheel', interact, { once: true, passive: true });
   window.addEventListener('keydown', interact, { once: true });
