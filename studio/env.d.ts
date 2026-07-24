@@ -1,5 +1,1 @@
 /// <reference types="vite/client" />
-
-interface ImportMetaEnv {
-  readonly SANITY_STUDIO_NETLIFY_BUILD_HOOK?: string;
-}
