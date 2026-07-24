@@ -6,10 +6,12 @@ import {
   EnvelopeIcon,
   HomeIcon,
   ImagesIcon,
+  RocketIcon,
   SearchIcon,
   UsersIcon,
 } from '@sanity/icons';
 import { schemaTypes } from './schemas';
+import { DeployTool } from './tools/DeployTool';
 
 const SINGLETONS = [
   { type: 'introLevel', title: 'Úroveň 1 — Úvod', icon: HomeIcon },
@@ -42,6 +44,15 @@ export default defineConfig({
   projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'placeholder',
   dataset: process.env.SANITY_STUDIO_DATASET || 'production',
   plugins: [structureTool({ structure }), visionTool()],
+  tools: (prev) => [
+    ...prev,
+    {
+      name: 'deploy',
+      title: 'Nasadit',
+      icon: RocketIcon,
+      component: DeployTool,
+    },
+  ],
   schema: {
     types: schemaTypes,
     // singletony nelze zakládat přes „create new"

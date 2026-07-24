@@ -1,0 +1,22 @@
+# Netlify web — Sanity Studio (samostatný web, vlastní doména).
+# V Netlify UI nastav u tohoto webu Base directory = "studio" — Netlify pak
+# čte tenhle soubor, instaluje a buildí ve složce studio/.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Studio je SPA — všechny cesty přepiš na index.html (statické soubory ve
+# /static/* mají přednost, servírují se přímo).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Hashované assety Studia (sanity build → static/)
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
