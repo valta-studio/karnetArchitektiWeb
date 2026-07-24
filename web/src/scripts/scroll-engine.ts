@@ -30,10 +30,12 @@ function levels(): HTMLElement[] {
  * Aktivace předpokládá, že stránka stojí na vršku (= platný snap bod).
  * iOS Safari ale umí při navigaci přenést scroll offset předchozí stránky
  * (odscrollovaná homepage → karta projektu) — snap by se pak ukotvil
- * uprostřed. U čerstvé navigace bez kotvy proto během snap-pending fáze
- * držíme vršek okamžitým scrollTo; snap je vypnutý, takže se s ním nebojuje
- * (flikr z revertu 27a426f vznikal korekcí proti aktivnímu snapu). Reload
- * a back/forward nechávají obnovu pozice prohlížeči.
+ * uprostřed. Totéž platí pro horizontální dráhy: snap-pending vypíná i jejich
+ * `x mandatory` a stray scrollLeft se sráží na začátek. U čerstvé navigace
+ * bez kotvy proto během snap-pending fáze držíme vršek/začátek okamžitým
+ * scrollTo; snap je vypnutý, takže se s ním nebojuje (flikr z revertu 27a426f
+ * vznikal korekcí proti aktivnímu snapu). Reload a back/forward nechávají
+ * obnovu pozice prohlížeči.
  */
 function initSnapActivation(): void {
   const html = document.documentElement;
@@ -46,16 +48,19 @@ function initSnapActivation(): void {
 
   let interacted = false;
 
-  const toTop = () => {
+  const toStart = () => {
     if (!mustStartAtTop || interacted) return;
     if (window.scrollY !== 0) window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    for (const row of document.querySelectorAll<HTMLElement>('.scroll-row')) {
+      if (row.scrollLeft !== 0) row.scrollTo({ left: 0, behavior: 'instant' });
+    }
   };
 
   const enable = () => {
     if (!html.classList.contains('snap-pending')) return;
-    toTop();
+    toStart();
     html.classList.remove('snap-pending');
-    window.removeEventListener('scroll', toTop);
+    window.removeEventListener('scroll', toStart, { capture: true });
   };
 
   const interact = () => {
@@ -63,9 +68,10 @@ function initSnapActivation(): void {
     enable();
   };
 
-  toTop();
-  // scroll bez předchozí interakce = pozice od prohlížeče, ne od uživatele
-  window.addEventListener('scroll', toTop, { passive: true });
+  toStart();
+  // scroll bez předchozí interakce = pozice od prohlížeče, ne od uživatele;
+  // capture — scroll na dráze nebubluje, na window přijde jen v capture fázi
+  window.addEventListener('scroll', toStart, { capture: true, passive: true });
 
   if (document.readyState === 'complete') {
     requestAnimationFrame(enable);
