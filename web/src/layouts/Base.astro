@@ -77,6 +77,7 @@ const isPlausible = Boolean(analyticsId && !analyticsId.startsWith('G-'));
     {metaDescription && <meta name="description" content={metaDescription} />}
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
+    <link rel="preconnect" href="https://cdn.sanity.io" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 

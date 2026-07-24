@@ -6,6 +6,15 @@
 
 html {
   scroll-snap-type: y mandatory;
+  /* žádný rubber-band na krajích: gumový přehup nad první / pod poslední
+     úrovní by po odpružení nechal mandatory snap chytit sousední úroveň
+     (iOS Safari) — swipe mimo obsah teď na úrovni prostě zůstane stát */
+  overscroll-behavior-y: none;
+}
+
+/* Chrome/Android čte overscroll-behavior root scrolleru z <body> */
+body {
+  overscroll-behavior-y: none;
 }
 
 /* programový skok mezi úrovněmi (scroll-engine.ts): mandatory snap se
