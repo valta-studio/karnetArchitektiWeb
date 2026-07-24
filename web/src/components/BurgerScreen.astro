@@ -100,4 +100,14 @@ const { contact, siteName } = Astro.props;
     color: var(--color-muted);
     font-size: var(--text-sm);
   }
+
+  /* Menu obrazovka je poslední úroveň — nad ní jsou samé svh úrovně s pevnou
+     výškou, takže její horní hrana (snap cíl) se skrýváním adresního řádku
+     neposune. Může proto využít celou skutečnou výšku (dvh) a footer usadit
+     na reálný spodek obrazovky. */
+  @media (max-width: 767px) {
+    .burger-screen {
+      min-height: 100dvh;
+    }
+  }
 </style>
