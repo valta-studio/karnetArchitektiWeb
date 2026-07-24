@@ -19,48 +19,6 @@ function levels(): HTMLElement[] {
   return Array.from(document.querySelectorAll<HTMLElement>('.level[data-level]'));
 }
 
-/**
- * Počáteční pozice = vždy vršek stránky. iOS Safari při navigaci na kartu
- * projektu (i při obnově tabu z bfcache) skrz mandatory snap se
- * scroll-snap-stop: always občas doresolvuje snap až po layoutu obrázků a
- * ukotví stránku uprostřed — typicky na výkresové úrovni. Držíme proto vršek
- * prvních pár snímků po načtení, dokud uživatel sám nezasáhne. Deep-link na
- * homepage (#atelier…) necháváme být — tam cíl řeší nativní kotva.
- */
-function initInitialScrollReset(): void {
-  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-
-  const hasDeepLink = () => deepLinkIds.has(location.hash.slice(1));
-  const toTop = () => {
-    if (hasDeepLink()) return;
-    // 'instant' — žádná smooth animace, do které by se vrátil snap
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  };
-
-  let interacted = false;
-  const stop = () => {
-    interacted = true;
-  };
-  window.addEventListener('touchstart', stop, { once: true, passive: true });
-  window.addEventListener('wheel', stop, { once: true, passive: true });
-  window.addEventListener('keydown', stop, { once: true });
-
-  toTop();
-
-  const started = performance.now();
-  const hold = () => {
-    if (interacted) return;
-    if (window.scrollY !== 0) toTop();
-    if (performance.now() - started < 700) requestAnimationFrame(hold);
-  };
-  requestAnimationFrame(hold);
-
-  // obnova z bfcache (mobilní prohlížeče běžně obnovují taby)
-  window.addEventListener('pageshow', (event) => {
-    if (event.persisted && !interacted) toTop();
-  });
-}
-
 /** Sleduje aktivní vertikální úroveň → podtržení v menu, tečky vpravo, hash. */
 function observeLevels(): void {
   const navLinks = Array.from(
@@ -287,7 +245,6 @@ function initKeyboard(): void {
 }
 
 export function initScrollEngine(): void {
-  initInitialScrollReset();
   observeLevels();
   observeRows();
   initColumnSnap();
