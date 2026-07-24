@@ -39,6 +39,7 @@ const dimensions = mock
       height={dimensions.height}
       alt={alt}
       loading={loading}
+      fetchpriority={loading === 'eager' ? 'high' : undefined}
       decoding="async"
       class={className}
       data-skeleton={skeleton || undefined}
@@ -52,6 +53,7 @@ const dimensions = mock
       height={dimensions.height}
       alt={alt}
       loading={loading}
+      fetchpriority={loading === 'eager' ? 'high' : undefined}
       decoding="async"
       class={className}
       data-skeleton={skeleton || undefined}

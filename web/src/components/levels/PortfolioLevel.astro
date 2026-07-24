@@ -42,7 +42,11 @@ for (let i = 0; i < items.length; i += 2) {
       columns.map((column) => (
         <div class="portfolio-col">
           {column.map(({ project, shape }) => (
-            <a class:list={['portfolio-item', `is-${shape}`]} href={`/portfolio/${project.slug}/`}>
+            <a
+              class:list={['portfolio-item', `is-${shape}`]}
+              href={`/portfolio/${project.slug}/`}
+              data-astro-prefetch="viewport"
+            >
               <SanityImage
                 image={project.cover}
                 alt={project.title}
