@@ -19,6 +19,31 @@ function levels(): HTMLElement[] {
   return Array.from(document.querySelectorAll<HTMLElement>('.level[data-level]'));
 }
 
+/**
+ * Aktivace scroll snapu až po načtení stránky. iOS Safari s aktivním
+ * `y mandatory` doresolvuje snap během načítání (po layoutu obrázků) a umí
+ * stránku ukotvit uprostřed — na kartě projektu typicky na výkresové úrovni.
+ * Snap je proto od prvního vykreslení vypnutý (html.snap-pending, vkládá
+ * inline skript v <head>) a zapíná se po window.load, kdy stránka stabilně
+ * stojí na vršku (= platný snap bod, aktivace nikam neposune). Pokud uživatel
+ * začne scrollovat dřív, snap se zapne hned — gesto pak normálně dosnapuje.
+ * Nebojujeme se Safari o pozici žádným scrollTo (viz revert 27a426f).
+ */
+function initSnapActivation(): void {
+  const html = document.documentElement;
+  if (!html.classList.contains('snap-pending')) return;
+
+  const enable = () => html.classList.remove('snap-pending');
+
+  if (document.readyState === 'complete') {
+    requestAnimationFrame(enable);
+  } else {
+    window.addEventListener('load', () => requestAnimationFrame(enable), { once: true });
+  }
+  window.addEventListener('touchstart', enable, { once: true, passive: true });
+  window.addEventListener('wheel', enable, { once: true, passive: true });
+}
+
 /** Sleduje aktivní vertikální úroveň → podtržení v menu, tečky vpravo, hash. */
 function observeLevels(): void {
   const navLinks = Array.from(
@@ -245,6 +270,7 @@ function initKeyboard(): void {
 }
 
 export function initScrollEngine(): void {
+  initSnapActivation();
   observeLevels();
   observeRows();
   initColumnSnap();

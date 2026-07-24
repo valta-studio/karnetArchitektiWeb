@@ -70,6 +70,9 @@ const isPlausible = Boolean(analyticsId && !analyticsId.startsWith('G-'));
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- snap se aktivuje až po načtení (scroll-engine.ts) — iOS Safari jinak
+         během načítání ukotví mandatory snap uprostřed stránky (scroll.css) -->
+    <script is:inline>document.documentElement.classList.add('snap-pending');</script>
     <title>{fullTitle}</title>
     {metaDescription && <meta name="description" content={metaDescription} />}
     {noindex && <meta name="robots" content="noindex, nofollow" />}
