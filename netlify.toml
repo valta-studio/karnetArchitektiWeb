@@ -1,6 +1,10 @@
+# Netlify web — veřejný web (Astro). Studio má vlastní Netlify web (studio/netlify.toml).
 [build]
   command = "npm run build"
   publish = "web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
 
 [[headers]]
   for = "/fonts/*"
