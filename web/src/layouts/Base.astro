@@ -124,10 +124,12 @@ const isPlausible = Boolean(analyticsId && !analyticsId.startsWith('G-'));
       import { initScrollEngine } from '../scripts/scroll-engine';
       import { initMenu } from '../scripts/menu';
       import { initVideo } from '../scripts/video';
+      import { initImgSkeleton } from '../scripts/img-skeleton';
 
       initScrollEngine();
       initMenu();
       initVideo();
+      initImgSkeleton();
     </script>
   </body>
 </html>

@@ -90,6 +90,25 @@ h3 {
   outline-offset: 2px;
 }
 
+/* Skeleton obrázků — šedý podklad, dokud se fotka stahuje (img-skeleton.ts).
+   Jemný pulz; po načtení podklad zmizí, aby neprosvítal průhlednými PNG. */
+img[data-skeleton]:not(.is-loaded) {
+  background-color: var(--color-line);
+  animation: skeleton-pulse 2s var(--ease) infinite;
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    background-color: color-mix(in srgb, var(--color-line) 45%, var(--color-bg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  img[data-skeleton]:not(.is-loaded) {
+    animation: none;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

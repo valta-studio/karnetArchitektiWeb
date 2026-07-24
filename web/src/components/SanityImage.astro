@@ -11,6 +11,8 @@ interface Props {
   loading?: 'lazy' | 'eager';
   class?: string;
   maxWidth?: number;
+  /** Šedý podklad, dokud se obrázek nestáhne (viz img-skeleton.ts). */
+  skeleton?: boolean;
 }
 
 const {
@@ -20,6 +22,7 @@ const {
   loading = 'lazy',
   class: className,
   maxWidth = 2560,
+  skeleton = false,
 } = Astro.props;
 
 const mock = isMockImage(image);
@@ -38,6 +41,7 @@ const dimensions = mock
       loading={loading}
       decoding="async"
       class={className}
+      data-skeleton={skeleton || undefined}
     />
   ) : (
     <img
@@ -50,6 +54,7 @@ const dimensions = mock
       loading={loading}
       decoding="async"
       class={className}
+      data-skeleton={skeleton || undefined}
     />
   )
 }

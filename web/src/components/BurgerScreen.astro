@@ -60,6 +60,10 @@ const { contact, siteName } = Astro.props;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    /* poslední úroveň — nad ní jsou samé svh úrovně s pevnou výškou, takže
+       její horní hrana (snap cíl) se skrýváním adresního řádku neposune.
+       Může proto využít celou skutečnou výšku viewportu (dvh, ne vh). */
+    min-height: 100vh;
     padding: calc(var(--header-height) + var(--space-lg)) var(--page-pad)
       var(--space-lg);
     background: var(--color-inverse-bg);
@@ -101,13 +105,4 @@ const { contact, siteName } = Astro.props;
     font-size: var(--text-sm);
   }
 
-  /* Menu obrazovka je poslední úroveň — nad ní jsou samé svh úrovně s pevnou
-     výškou, takže její horní hrana (snap cíl) se skrýváním adresního řádku
-     neposune. Může proto využít celou skutečnou výšku (dvh) a footer usadit
-     na reálný spodek obrazovky. */
-  @media (max-width: 767px) {
-    .burger-screen {
-      min-height: 100dvh;
-    }
-  }
 </style>
