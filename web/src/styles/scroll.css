@@ -1,5 +1,5 @@
 /* Scroll systém — nativní CSS scroll snap, JS pouze pozoruje.
-   Vertikální osa: root scroller, y mandatory, úrovně 100dvh.
+   Vertikální osa: root scroller, y mandatory, úrovně 100svh.
    Horizontální dráhy: x mandatory + touch-action: pan-x pan-y
    + overscroll-behavior-x: contain (iOS Safari — vodorovný swipe nesmí
    protéct do historie, svislý musí projít na root scroller). */
@@ -44,9 +44,11 @@ html:focus-within {
   }
 }
 
-/* vertikální úroveň — vždy dvh, nikdy vh (address bar na mobilech) */
+/* vertikální úroveň — svh (small viewport), nikdy vh ani dvh: svh je pevná
+   nejmenší výška (jako by byl address bar vždy vidět), takže objevení/skrytí
+   toolbarů na mobilech nepřepočítá výšku úrovně a snap cíle neposkočí */
 .level {
-  min-height: 100dvh;
+  min-height: 100svh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
   position: relative;
@@ -81,7 +83,7 @@ html:focus-within {
 /* panel přes celou obrazovku (výchozí) */
 .scroll-panel {
   width: 100vw;
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 /* neviditelné snap cíle pro CSS multicol sloupce (vkládá scroll-engine.ts) —
