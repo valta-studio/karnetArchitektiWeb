@@ -47,6 +47,14 @@ function levels(): HTMLElement[] {
  * záměr uživatele — proto se ignoruje. Návrat z bfcache (iOS back swipe)
  * skripty znovu nespouští a stav stránky obnovuje beze změny, řeší ho
  * pageshow handler níže.
+ *
+ * Za interakci se počítá i pohyb myši (pointermove): tažení nativního
+ * scrollbaru žádný pointerdown/wheel nevystřelí (scrollbar není součást
+ * obsahu) a guard by na desktopu srážel uživatele na vršek při každém
+ * tahu — myš se ale ke scrollbaru vždy přesouvá přes obsah. Přenos offsetu
+ * je iOS věc (touch, žádné pointermove), tam guard drží dál. Obnovu pozice
+ * při back/forward navíc vypíná history.scrollRestoration = 'manual' —
+ * desktop Chrome ji jinak aplikuje asynchronně i po window.load.
  */
 function initSnapActivation(): void {
   const html = document.documentElement;
@@ -70,6 +78,10 @@ function initSnapActivation(): void {
   const mustStartAtTop =
     navType === 'back_forward' ||
     (navType === 'navigate' && !deepLinkIds.has(location.hash.slice(1)));
+
+  // back/forward má začínat od úvodu — vypnout obnovu pozice prohlížečem,
+  // aby se s guardem nepřetahovala (Chrome ji aplikuje i po window.load)
+  if (navType === 'back_forward') history.scrollRestoration = 'manual';
 
   let interacted = false;
 
@@ -109,6 +121,7 @@ function initSnapActivation(): void {
     }
   }
   window.addEventListener('pointerdown', interact, { once: true, passive: true });
+  window.addEventListener('pointermove', interact, { once: true, passive: true });
   window.addEventListener('touchstart', interact, { once: true, passive: true });
   window.addEventListener('wheel', interact, { once: true, passive: true });
   window.addEventListener('keydown', interact, { once: true });
