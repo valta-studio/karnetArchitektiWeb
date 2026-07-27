@@ -8,6 +8,12 @@ import type { ImageSource, MockImage, SanityImageRef } from '../types/sanity';
 
 export const SRCSET_WIDTHS = [480, 768, 1080, 1440, 1920, 2560];
 
+/** Úvodní médium se renderuje dvakrát — v úrovni 1 a jako podkres ateliéru.
+ *  Obě místa musí mít stejné `sizes` i `maxWidth`, jinak si prohlížeč vybere
+ *  jiného kandidáta ze srcsetu a stáhne tu samou fotku podruhé. */
+export const INTRO_MEDIA_SIZES = '(min-width: 768px) 34vw, 82vw';
+export const INTRO_MEDIA_MAX_WIDTH = 1440;
+
 const builder = client ? imageUrlBuilder(client) : null;
 
 export function isMockImage(image: ImageSource): image is MockImage {

@@ -3,7 +3,7 @@
 // (dle náhledů — médium NENÍ fullscreen). Jediná úroveň bez
 // horizontálního posunu.
 import SanityImage from '../SanityImage.astro';
-import { isMockImage, urlFor } from '../../lib/image';
+import { INTRO_MEDIA_MAX_WIDTH, INTRO_MEDIA_SIZES, isMockImage, urlFor } from '../../lib/image';
 import type { IntroLevel } from '../../types/sanity';
 
 interface Props {
@@ -44,8 +44,8 @@ const posterUrl = data.poster
         <SanityImage
           image={data.photo}
           alt=""
-          sizes="(min-width: 768px) 34vw, 82vw"
-          maxWidth={1440}
+          sizes={INTRO_MEDIA_SIZES}
+          maxWidth={INTRO_MEDIA_MAX_WIDTH}
           loading="eager"
           class="intro-media"
         />

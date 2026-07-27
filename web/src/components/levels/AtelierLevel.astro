@@ -6,7 +6,7 @@ import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
 import ScrollRow from '../ScrollRow.astro';
 import { portableTextToHtml } from '../../lib/portable-text';
-import { isMockImage, urlFor } from '../../lib/image';
+import { INTRO_MEDIA_MAX_WIDTH, INTRO_MEDIA_SIZES, isMockImage, urlFor } from '../../lib/image';
 import type { AtelierLevel, IntroLevel } from '../../types/sanity';
 
 interface Props {
@@ -43,11 +43,20 @@ const panelCount =
     (backdropIsVideo || backdropImage) && (
       <div class="atelier-backdrop" aria-hidden="true">
         {backdropIsVideo ? (
-          <video data-intro-video muted loop playsinline preload="none" poster={backdropPosterUrl}>
-            <source data-src={backdropVideoSrc} type="video/mp4" />
-          </video>
+          /* Ne druhý <video> se stejným URL — to je dvojí stažení i dvojí
+             dekodér. Zrcadlíme snímky elementu z úrovně 1 do canvasu
+             (viz scripts/video.ts); do prvního snímku drží poster. */
+          <canvas
+            data-intro-mirror
+            style={backdropPosterUrl ? `background-image: url("${backdropPosterUrl}")` : undefined}
+          />
         ) : (
-          <SanityImage image={backdropImage!} alt="" sizes="34vw" maxWidth={1080} />
+          <SanityImage
+            image={backdropImage!}
+            alt=""
+            sizes={INTRO_MEDIA_SIZES}
+            maxWidth={INTRO_MEDIA_MAX_WIDTH}
+          />
         )}
       </div>
     )
@@ -128,10 +137,16 @@ const panelCount =
   }
 
   .atelier-backdrop :global(img),
-  .atelier-backdrop :global(video) {
+  .atelier-backdrop :global(canvas) {
     width: min(34vw, 560px);
     height: 72dvh;
     object-fit: cover;
+  }
+
+  /* Poster pod zrcadlem — canvas je do prvního snímku průhledný. */
+  .atelier-backdrop :global(canvas) {
+    background-position: center;
+    background-size: cover;
   }
 
   /* Přechod z úvodu: médium přijíždí v plné síle a při usazení úrovně
@@ -158,6 +173,16 @@ const panelCount =
 
     to {
       opacity: 0.14;
+    }
+  }
+
+  /* Podkres drží geometrii úvodního média — na mobilu je úzkých 34vw
+     (viz IntroLevel), médium se musí protáhnout stejně. */
+  @media (max-width: 767px) {
+    .atelier-backdrop :global(img),
+    .atelier-backdrop :global(canvas) {
+      width: 82vw;
+      height: 66dvh;
     }
   }
 
