@@ -50,15 +50,18 @@ function levels(): HTMLElement[] {
  * proto stray scrolly sráží na vršek úrovně z hashe. Back/forward
  * i reload bez kotvy nechávají pozici prohlížeči.
  *
- * Guard pouští jen skutečné scroll gesto, ne tap: přenesený offset umí
+ * Zapnutí snapu a puštění guardu jsou dva oddělené kroky. Snap se
+ * zapíná už na touchstart — WebKit nepřepne snap-type doprostřed
+ * rozjetého gesta, takže první swipe by bez toho jel volně a bez
+ * magnetu. Korekce stray scrollů ale drží dál: přenesený offset umí
  * WebKit aplikovat i sekundy po loadu (po layoutu fotek) a tap mezitím
- * není projev scrollování — touchstart/pointerdown od dotyku proto
- * guard drží dál a uvolňuje ho až touchmove (rozjeté gesto), kolečko
- * nebo klávesa. Na desktopu se za zásah počítá i pohyb/klik myši
- * (pointerType 'mouse'): tažení nativního scrollbaru žádný
- * pointerdown/wheel nevystřelí a guard by srážel každý tah — myš se ale
- * ke scrollbaru vždy přesouvá přes obsah. Přenos offsetu je dotyková
- * věc, tam myší eventy nechodí a guard drží dál.
+ * není projev scrollování. Guard pouští až skutečné gesto — touchmove,
+ * kolečko, klávesa, nebo pohyb/klik myši (pointerType 'mouse';
+ * tažení nativního scrollbaru žádný pointerdown/wheel nevystřelí a myš
+ * se k němu vždy přesouvá přes obsah). Korekce se s uživatelem nemůže
+ * poprat: každý uživatelský scroll začíná touchmove/wheel/klávesou,
+ * samotný tap žádný scroll nevyvolá; korekce po zapnutém snapu skáče
+ * instantně na snap bod, takže se nepere ani se snapem.
  *
  * bfcache návrat (iOS back swipe) skripty nespouští a WebKit umí
  * obnovenou pozici přepsat přeneseným offsetem karty stejně jako při
@@ -114,16 +117,18 @@ function initSnapActivation(): void {
       cleanups.push(() => window.removeEventListener(type, handler, options));
     };
 
-    const enable = () => {
+    // zapne snap (srovnáno na cíl); korekce stray scrollů běží dál
+    const activateSnap = () => {
       if (!html.classList.contains('snap-pending')) return;
       toTarget();
       html.classList.remove('snap-pending');
-      for (const off of cleanups) off();
     };
 
-    const interact = () => {
+    // skutečné scroll gesto: zapnout snap a ukončit i korekce
+    const release = () => {
       interacted = true;
-      enable();
+      activateSnap();
+      for (const off of cleanups) off();
     };
 
     toTarget();
@@ -136,19 +141,21 @@ function initSnapActivation(): void {
       // zapíná po načtení; s cílem se čeká až na scroll gesto (WebKit umí
       // přenesený offset aplikovat i po window.load)
       if (document.readyState === 'complete') {
-        requestAnimationFrame(enable);
+        requestAnimationFrame(release);
       } else {
-        on('load', () => requestAnimationFrame(enable), { once: true });
+        on('load', () => requestAnimationFrame(release), { once: true });
       }
     }
-    on('touchmove', interact, { passive: true });
-    on('wheel', interact, { passive: true });
-    on('keydown', interact);
-    const mouseInteract = (event: Event) => {
-      if ((event as PointerEvent).pointerType === 'mouse') interact();
+    // dotek = snap hned (první swipe musí mít magnet), gesto = konec korekcí
+    on('touchstart', activateSnap, { passive: true });
+    on('touchmove', release, { passive: true });
+    on('wheel', release, { passive: true });
+    on('keydown', release);
+    const mouseRelease = (event: Event) => {
+      if ((event as PointerEvent).pointerType === 'mouse') release();
     };
-    on('pointerdown', mouseInteract, { passive: true });
-    on('pointermove', mouseInteract, { passive: true });
+    on('pointerdown', mouseRelease, { passive: true });
+    on('pointermove', mouseRelease, { passive: true });
   };
 
   arm(
