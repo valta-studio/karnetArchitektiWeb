@@ -59,8 +59,10 @@ export default defineType({
       title: 'Textové sloupce',
       type: 'array',
       of: [{ type: 'text' }],
-      description: 'Dva texty — historie a popis řešení (sloupce 2 a 3).',
-      validation: (rule) => rule.max(2).warning('Na webu se zobrazí max. 2 sloupce.'),
+      description:
+        'Texty navazující na perex — např. historie místa, popis řešení, materiály. ' +
+        'Každý text začíná v novém sloupci a delší text sám přeteče do dalších. ' +
+        'Počet sloupců na webu tak není omezený, řídí se délkou obsahu.',
     }),
     defineField({
       name: 'cover',
