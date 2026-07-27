@@ -36,9 +36,10 @@ function levels(): HTMLElement[] {
  * bez kotvy proto během snap-pending fáze držíme vršek/začátek okamžitým
  * scrollTo; snap je vypnutý, takže se s ním nebojuje (flikr z revertu 27a426f
  * vznikal korekcí proti aktivnímu snapu). Safari umí přenesený offset
- * aplikovat i PO window.load, takže hlídání vršku u čerstvé navigace drží
- * až do první interakce uživatele. Reload nechává obnovu pozice prohlížeči
- * a aktivuje po window.load.
+ * aplikovat i PO window.load, takže u čerstvé navigace snap-pending + hlídání
+ * vršku drží až do první interakce uživatele — v klidu snap stejně nic nedělá
+ * a první dotek/kolečko ho zapne dřív, než se gesto rozjede. Reload nechává
+ * obnovu pozice prohlížeči a aktivuje po window.load.
  *
  * Guard nedrží jen vršek, ale obecně cílovou úroveň: při back/forward
  * a u deep-linků určuje cíl kotva v hashi. Návrat z karty projektu má
@@ -50,13 +51,9 @@ function levels(): HTMLElement[] {
  * i reload bez kotvy nechávají pozici prohlížeči.
  *
  * Zapnutí snapu a puštění guardu jsou dva oddělené kroky. Snap se
- * zapíná už po window.load — stránka v tu chvíli stojí na cíli (guard
- * ji tam drží), tedy na platném snap bodě, a první swipe má magnet.
- * Aktivace až na touchstart nestačí: iOS Safari řídí pan gesto na
- * kompozitoru a změnu snap-type z hlavního vlákna na už započaté gesto
- * nevztáhne — první swipe by jel volně a bez magnetu. Touchstart
- * aktivace zůstává jako záloha pro dotek před dokončením načítání.
- * Korekce stray scrollů ale drží dál: přenesený offset umí
+ * zapíná už na touchstart — WebKit nepřepne snap-type doprostřed
+ * rozjetého gesta, takže první swipe by bez toho jel volně a bez
+ * magnetu. Korekce stray scrollů ale drží dál: přenesený offset umí
  * WebKit aplikovat i sekundy po loadu (po layoutu fotek) a tap mezitím
  * není projev scrollování. Guard pouští až skutečné gesto — touchmove,
  * kolečko, klávesa, nebo pohyb/klik myši (pointerType 'mouse';
@@ -147,16 +144,6 @@ function initSnapActivation(): void {
         requestAnimationFrame(release);
       } else {
         on('load', () => requestAnimationFrame(release), { once: true });
-      }
-    } else {
-      // s cílem: snap zapnout hned po načtení (guard drží stránku na platném
-      // snap bodě), aby už první swipe měl magnet — iOS neaplikuje změnu
-      // snap-type na gesto, které touchstart aktivací právě začalo; korekce
-      // strays běží dál až do skutečného gesta
-      if (document.readyState === 'complete') {
-        requestAnimationFrame(activateSnap);
-      } else {
-        on('load', () => requestAnimationFrame(activateSnap), { once: true });
       }
     }
     // dotek = snap hned (první swipe musí mít magnet), gesto = konec korekcí
