@@ -47,89 +47,122 @@ function levels(): HTMLElement[] {
  * z průběžného replaceState při scrollování. iOS Safari totiž při plném
  * načtení po back přenese offset KARTY, ne uloženou pozici homepage:
  * z 2. úrovně karty se homepage otevřela na 2. úrovni (ateliér). Guard
- * proto stray scrolly sráží na vršek úrovně z hashe. bfcache návrat
- * skripty nespouští a obnoví stránku beze změny (= na portfoliu) — to je
- * v pořádku. Back/forward i reload bez kotvy nechávají pozici prohlížeči.
+ * proto stray scrolly sráží na vršek úrovně z hashe. Back/forward
+ * i reload bez kotvy nechávají pozici prohlížeči.
  *
- * Za interakci se počítá i pohyb myši (pointermove): tažení nativního
- * scrollbaru žádný pointerdown/wheel nevystřelí (scrollbar není součást
- * obsahu) a guard by na desktopu srážel uživatele na vršek při každém
- * tahu — myš se ale ke scrollbaru vždy přesouvá přes obsah. Přenos offsetu
- * je iOS věc (touch, žádné pointermove), tam guard drží dál.
+ * Guard pouští jen skutečné scroll gesto, ne tap: přenesený offset umí
+ * WebKit aplikovat i sekundy po loadu (po layoutu fotek) a tap mezitím
+ * není projev scrollování — touchstart/pointerdown od dotyku proto
+ * guard drží dál a uvolňuje ho až touchmove (rozjeté gesto), kolečko
+ * nebo klávesa. Na desktopu se za zásah počítá i pohyb/klik myši
+ * (pointerType 'mouse'): tažení nativního scrollbaru žádný
+ * pointerdown/wheel nevystřelí a guard by srážel každý tah — myš se ale
+ * ke scrollbaru vždy přesouvá přes obsah. Přenos offsetu je dotyková
+ * věc, tam myší eventy nechodí a guard drží dál.
+ *
+ * bfcache návrat (iOS back swipe) skripty nespouští a WebKit umí
+ * obnovenou pozici přepsat přeneseným offsetem karty stejně jako při
+ * plném načtení — pageshow handler proto snap-pending vrátí a guard
+ * natáhne znovu s cílem z kotvy v hashi.
  */
 function initSnapActivation(): void {
   const html = document.documentElement;
-  if (!html.classList.contains('snap-pending')) return;
 
-  const navType =
-    (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
-      ?.type ?? 'navigate';
-
-  const hashId = location.hash.slice(1);
-  const hashLevel = deepLinkIds.has(hashId)
-    ? document.querySelector<HTMLElement>(`.level[data-level="${hashId}"]`)
-    : null;
-
-  // cíl držený během snap-pending fáze:
-  // - kotva v hashi (deep-link z hlavičky, návrat zpět z karty projektu)
-  //   → vršek její úrovně
-  // - čerstvá navigace bez kotvy → vršek stránky
-  // - reload a back/forward bez kotvy → null, pozice zůstává prohlížeči
-  let holdTarget: HTMLElement | 'top' | null = null;
-  if (navType !== 'reload' && hashLevel) {
-    holdTarget = hashLevel;
-  } else if (navType === 'navigate' && !deepLinkIds.has(hashId)) {
-    holdTarget = 'top';
-  }
-
-  let interacted = false;
-
-  const toTarget = () => {
-    if (!holdTarget || interacted) return;
-    const top = holdTarget === 'top' ? 0 : holdTarget.offsetTop;
-    if (Math.abs(window.scrollY - top) > 1) {
-      window.scrollTo({ top, left: 0, behavior: 'instant' });
-    }
-    // dráhy se srážejí na začátek jen u startu od vršku — při návratu na
-    // úroveň si prohlížeč smí obnovit vodorovnou pozici (portfolio pás)
-    if (holdTarget !== 'top') return;
-    for (const row of document.querySelectorAll<HTMLElement>('.scroll-row')) {
-      if (row.scrollLeft !== 0) row.scrollTo({ left: 0, behavior: 'instant' });
-    }
-  };
-
-  const enable = () => {
+  const arm = (navType: string): void => {
     if (!html.classList.contains('snap-pending')) return;
-    toTarget();
-    html.classList.remove('snap-pending');
-    window.removeEventListener('scroll', toTarget, { capture: true });
-  };
 
-  const interact = () => {
-    interacted = true;
-    enable();
-  };
+    const hashId = location.hash.slice(1);
+    const hashLevel = deepLinkIds.has(hashId)
+      ? document.querySelector<HTMLElement>(`.level[data-level="${hashId}"]`)
+      : null;
 
-  toTarget();
-  // scroll bez předchozí interakce = pozice od prohlížeče, ne od uživatele;
-  // capture — scroll na dráze nebubluje, na window přijde jen v capture fázi
-  window.addEventListener('scroll', toTarget, { capture: true, passive: true });
-
-  if (!holdTarget) {
-    // reload / back-forward bez kotvy: pozici obnovuje prohlížeč, snap se
-    // zapíná po načtení; s cílem se čeká až na interakci (Safari umí
-    // přenesený offset aplikovat i po window.load)
-    if (document.readyState === 'complete') {
-      requestAnimationFrame(enable);
-    } else {
-      window.addEventListener('load', () => requestAnimationFrame(enable), { once: true });
+    // cíl držený během snap-pending fáze:
+    // - kotva v hashi (deep-link z hlavičky, návrat zpět z karty projektu)
+    //   → vršek její úrovně
+    // - čerstvá navigace bez kotvy → vršek stránky
+    // - reload a back/forward bez kotvy → null, pozice zůstává prohlížeči
+    let holdTarget: HTMLElement | 'top' | null = null;
+    if (navType !== 'reload' && hashLevel) {
+      holdTarget = hashLevel;
+    } else if (navType === 'navigate' && !deepLinkIds.has(hashId)) {
+      holdTarget = 'top';
     }
-  }
-  window.addEventListener('pointerdown', interact, { once: true, passive: true });
-  window.addEventListener('pointermove', interact, { once: true, passive: true });
-  window.addEventListener('touchstart', interact, { once: true, passive: true });
-  window.addEventListener('wheel', interact, { once: true, passive: true });
-  window.addEventListener('keydown', interact, { once: true });
+
+    let interacted = false;
+
+    const toTarget = () => {
+      if (!holdTarget || interacted) return;
+      const top = holdTarget === 'top' ? 0 : holdTarget.offsetTop;
+      if (Math.abs(window.scrollY - top) > 1) {
+        window.scrollTo({ top, left: 0, behavior: 'instant' });
+      }
+      // dráhy se srážejí na začátek jen u startu od vršku — při návratu na
+      // úroveň si prohlížeč smí obnovit vodorovnou pozici (portfolio pás)
+      if (holdTarget !== 'top') return;
+      for (const row of document.querySelectorAll<HTMLElement>('.scroll-row')) {
+        if (row.scrollLeft !== 0) row.scrollTo({ left: 0, behavior: 'instant' });
+      }
+    };
+
+    const cleanups: Array<() => void> = [];
+    const on = (
+      type: string,
+      handler: EventListener,
+      options?: AddEventListenerOptions
+    ) => {
+      window.addEventListener(type, handler, options);
+      cleanups.push(() => window.removeEventListener(type, handler, options));
+    };
+
+    const enable = () => {
+      if (!html.classList.contains('snap-pending')) return;
+      toTarget();
+      html.classList.remove('snap-pending');
+      for (const off of cleanups) off();
+    };
+
+    const interact = () => {
+      interacted = true;
+      enable();
+    };
+
+    toTarget();
+    // scroll bez předchozí interakce = pozice od prohlížeče, ne od uživatele;
+    // capture — scroll na dráze nebubluje, na window přijde jen v capture fázi
+    on('scroll', toTarget, { capture: true, passive: true });
+
+    if (!holdTarget) {
+      // reload / back-forward bez kotvy: pozici obnovuje prohlížeč, snap se
+      // zapíná po načtení; s cílem se čeká až na scroll gesto (WebKit umí
+      // přenesený offset aplikovat i po window.load)
+      if (document.readyState === 'complete') {
+        requestAnimationFrame(enable);
+      } else {
+        on('load', () => requestAnimationFrame(enable), { once: true });
+      }
+    }
+    on('touchmove', interact, { passive: true });
+    on('wheel', interact, { passive: true });
+    on('keydown', interact);
+    const mouseInteract = (event: Event) => {
+      if ((event as PointerEvent).pointerType === 'mouse') interact();
+    };
+    on('pointerdown', mouseInteract, { passive: true });
+    on('pointermove', mouseInteract, { passive: true });
+  };
+
+  arm(
+    (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
+      ?.type ?? 'navigate'
+  );
+
+  // bfcache návrat: skripty se nespouští, jen se vrátí snap-pending a guard
+  // se natáhne znovu — chová se jako back/forward s kotvou z hashe
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    html.classList.add('snap-pending');
+    arm('back_forward');
+  });
 }
 
 /** Sleduje aktivní vertikální úroveň → podtržení v menu, tečky vpravo, hash. */
