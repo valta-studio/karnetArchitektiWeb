@@ -38,6 +38,9 @@ const columns = project.columns ?? [];
       {columns.map((column) => <p class="text-column pre-line">{column}</p>)}
     </div>
   </ScrollRow>
+
+  {/* tečky se plní v scroll-engine.ts (initColumnSnap) — jedna na snap sloupec */}
+  <div class="progress-dots" data-dots-for="text-row" aria-hidden="true"></div>
 </section>
 
 <style>

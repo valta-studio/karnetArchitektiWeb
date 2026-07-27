@@ -146,6 +146,9 @@ function observeLevels(): void {
 /** Sleduje pozici v horizontálních drahách → progress dots. */
 function observeRows(): void {
   for (const row of document.querySelectorAll<HTMLElement>('.scroll-row[data-row]')) {
+    // textová dráha má vlastní tečky (dynamické sloupce) — řeší initColumnSnap
+    if (row.querySelector('.text-columns')) continue;
+
     const rowId = row.dataset.row;
     const dots = Array.from(
       document.querySelectorAll<HTMLElement>(`[data-dots-for="${rowId}"] [data-dot]`)
@@ -178,38 +181,88 @@ function initColumnSnap(): void {
     const flow = row.querySelector<HTMLElement>('.text-columns');
     if (!flow) continue;
 
+    const dotsBox = document.querySelector<HTMLElement>(
+      `[data-dots-for="${row.dataset.row}"]`
+    );
+    let markers: HTMLElement[] = [];
+    let dots: HTMLElement[] = [];
+
+    // aktivní tečku určuje nejbližší snap marker k aktuální pozici dráhy
+    // (marker se snap-align: start dojíždí na scroll-padding-inline-start)
+    const syncActive = () => {
+      if (!dots.length || !markers.length) return;
+      const padStart = parseFloat(getComputedStyle(row).scrollPaddingLeft) || 0;
+      const pos = row.scrollLeft + padStart;
+      let index = 0;
+      let best = Infinity;
+      markers.forEach((marker, i) => {
+        const dist = Math.abs(marker.offsetLeft - pos);
+        if (dist < best) {
+          best = dist;
+          index = i;
+        }
+      });
+      dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+    };
+
     const build = () => {
       for (const marker of row.querySelectorAll('.snap-marker')) marker.remove();
+      markers = [];
 
       const columnWidth = parseFloat(getComputedStyle(flow).columnWidth);
-      if (!columnWidth) return;
+      if (columnWidth) {
+        // levé hrany sloupců se odečtou z client rectů řádků textu — plné
+        // (zalomené) řádky začínají vždy na levé hraně svého sloupce
+        const range = document.createRange();
+        range.selectNodeContents(flow);
+        const lineRects = Array.from(range.getClientRects()).filter(
+          (rect) => rect.width >= columnWidth * 0.6
+        );
+        const base = flow.getBoundingClientRect().left;
+        const lefts = lineRects.map((rect) => Math.round(rect.left - base)).sort((a, b) => a - b);
 
-      // levé hrany sloupců se odečtou z client rectů řádků textu — plné
-      // (zalomené) řádky začínají vždy na levé hraně svého sloupce
-      const range = document.createRange();
-      range.selectNodeContents(flow);
-      const lineRects = Array.from(range.getClientRects()).filter(
-        (rect) => rect.width >= columnWidth * 0.6
-      );
-      const base = flow.getBoundingClientRect().left;
-      const lefts = lineRects.map((rect) => Math.round(rect.left - base)).sort((a, b) => a - b);
+        const starts: number[] = [];
+        for (const x of lefts) {
+          if (!starts.length || x > starts[starts.length - 1] + columnWidth * 0.5) starts.push(x);
+        }
 
-      const starts: number[] = [];
-      for (const x of lefts) {
-        if (!starts.length || x > starts[starts.length - 1] + columnWidth * 0.5) starts.push(x);
+        // < 2 sloupce → vše se vejde, není co snapovat (ani co indikovat)
+        if (starts.length >= 2) {
+          for (const x of starts) {
+            const marker = document.createElement('span');
+            marker.className = 'snap-marker';
+            marker.style.left = `${flow.offsetLeft + x}px`;
+            marker.style.width = `${columnWidth}px`;
+            row.appendChild(marker);
+            markers.push(marker);
+          }
+        }
       }
-      if (starts.length < 2) return; // vše se vejde → není co snapovat
 
-      for (const x of starts) {
-        const marker = document.createElement('span');
-        marker.className = 'snap-marker';
-        marker.style.left = `${flow.offsetLeft + x}px`;
-        marker.style.width = `${columnWidth}px`;
-        row.appendChild(marker);
+      // tečky = počet snap sloupců (jedna na sloupec, nebo žádná)
+      if (dotsBox && dots.length !== markers.length) {
+        dotsBox.replaceChildren();
+        dots = markers.map(() => {
+          const dot = document.createElement('span');
+          dot.className = 'dot';
+          dotsBox.appendChild(dot);
+          return dot;
+        });
       }
+      syncActive();
     };
 
     build();
+
+    let scrollFrame = 0;
+    row.addEventListener(
+      'scroll',
+      () => {
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = requestAnimationFrame(syncActive);
+      },
+      { passive: true }
+    );
 
     let frame = 0;
     window.addEventListener('resize', () => {
