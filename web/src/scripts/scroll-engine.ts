@@ -41,12 +41,15 @@ function levels(): HTMLElement[] {
  * a první dotek/kolečko ho zapne dřív, než se gesto rozjede. Reload nechává
  * obnovu pozice prohlížeči a aktivuje po window.load.
  *
- * Back/forward pozici neresetuje: návrat z karty projektu má homepage
- * ukázat zpátky na portfoliu (odkud se karta otevřela). bfcache návrat
- * obnoví stránku beze změny; plný reload při back/forward nechá obnovu
- * prohlížeči (uloženou pozici drží i hash #portfolio z průběžného
- * replaceState) a případnou odchylku dorovná mandatory snap na nejbližší
- * úroveň.
+ * Guard nedrží jen vršek, ale obecně cílovou úroveň: při back/forward
+ * a u deep-linků určuje cíl kotva v hashi. Návrat z karty projektu má
+ * homepage ukázat zpátky na portfoliu — hash #portfolio tam zůstal
+ * z průběžného replaceState při scrollování. iOS Safari totiž při plném
+ * načtení po back přenese offset KARTY, ne uloženou pozici homepage:
+ * z 2. úrovně karty se homepage otevřela na 2. úrovni (ateliér). Guard
+ * proto stray scrolly sráží na vršek úrovně z hashe. bfcache návrat
+ * skripty nespouští a obnoví stránku beze změny (= na portfoliu) — to je
+ * v pořádku. Back/forward i reload bez kotvy nechávají pozici prohlížeči.
  *
  * Za interakci se počítá i pohyb myši (pointermove): tažení nativního
  * scrollbaru žádný pointerdown/wheel nevystřelí (scrollbar není součást
@@ -61,13 +64,35 @@ function initSnapActivation(): void {
   const navType =
     (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
       ?.type ?? 'navigate';
-  const mustStartAtTop = navType === 'navigate' && !deepLinkIds.has(location.hash.slice(1));
+
+  const hashId = location.hash.slice(1);
+  const hashLevel = deepLinkIds.has(hashId)
+    ? document.querySelector<HTMLElement>(`.level[data-level="${hashId}"]`)
+    : null;
+
+  // cíl držený během snap-pending fáze:
+  // - kotva v hashi (deep-link z hlavičky, návrat zpět z karty projektu)
+  //   → vršek její úrovně
+  // - čerstvá navigace bez kotvy → vršek stránky
+  // - reload a back/forward bez kotvy → null, pozice zůstává prohlížeči
+  let holdTarget: HTMLElement | 'top' | null = null;
+  if (navType !== 'reload' && hashLevel) {
+    holdTarget = hashLevel;
+  } else if (navType === 'navigate' && !deepLinkIds.has(hashId)) {
+    holdTarget = 'top';
+  }
 
   let interacted = false;
 
-  const toStart = () => {
-    if (!mustStartAtTop || interacted) return;
-    if (window.scrollY !== 0) window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  const toTarget = () => {
+    if (!holdTarget || interacted) return;
+    const top = holdTarget === 'top' ? 0 : holdTarget.offsetTop;
+    if (Math.abs(window.scrollY - top) > 1) {
+      window.scrollTo({ top, left: 0, behavior: 'instant' });
+    }
+    // dráhy se srážejí na začátek jen u startu od vršku — při návratu na
+    // úroveň si prohlížeč smí obnovit vodorovnou pozici (portfolio pás)
+    if (holdTarget !== 'top') return;
     for (const row of document.querySelectorAll<HTMLElement>('.scroll-row')) {
       if (row.scrollLeft !== 0) row.scrollTo({ left: 0, behavior: 'instant' });
     }
@@ -75,9 +100,9 @@ function initSnapActivation(): void {
 
   const enable = () => {
     if (!html.classList.contains('snap-pending')) return;
-    toStart();
+    toTarget();
     html.classList.remove('snap-pending');
-    window.removeEventListener('scroll', toStart, { capture: true });
+    window.removeEventListener('scroll', toTarget, { capture: true });
   };
 
   const interact = () => {
@@ -85,15 +110,15 @@ function initSnapActivation(): void {
     enable();
   };
 
-  toStart();
+  toTarget();
   // scroll bez předchozí interakce = pozice od prohlížeče, ne od uživatele;
   // capture — scroll na dráze nebubluje, na window přijde jen v capture fázi
-  window.addEventListener('scroll', toStart, { capture: true, passive: true });
+  window.addEventListener('scroll', toTarget, { capture: true, passive: true });
 
-  if (!mustStartAtTop) {
-    // reload / back-forward / deep-link: pozici obnovuje prohlížeč, snap se
-    // zapíná po načtení; u čerstvé navigace se čeká až na interakci (Safari
-    // umí přenesený offset aplikovat i po window.load)
+  if (!holdTarget) {
+    // reload / back-forward bez kotvy: pozici obnovuje prohlížeč, snap se
+    // zapíná po načtení; s cílem se čeká až na interakci (Safari umí
+    // přenesený offset aplikovat i po window.load)
     if (document.readyState === 'complete') {
       requestAnimationFrame(enable);
     } else {
