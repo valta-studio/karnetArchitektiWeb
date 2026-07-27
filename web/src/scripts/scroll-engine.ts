@@ -38,17 +38,38 @@ function levels(): HTMLElement[] {
  * vznikal korekcí proti aktivnímu snapu). Safari umí přenesený offset
  * aplikovat i PO window.load, takže u čerstvé navigace snap-pending + hlídání
  * vršku drží až do první interakce uživatele — v klidu snap stejně nic nedělá
- * a první dotek/kolečko ho zapne dřív, než se gesto rozjede. Reload a
- * back/forward nechávají obnovu pozice prohlížeči a aktivují po window.load.
+ * a první dotek/kolečko ho zapne dřív, než se gesto rozjede. Reload nechává
+ * obnovu pozice prohlížeči a aktivuje po window.load.
+ *
+ * Back/forward se chová jako čerstvý příchod: návrat z karty projektu má
+ * homepage ukázat od úvodu, ne odscrollovanou na portfoliu. Hash v URL je
+ * při back/forward jen zbytek průběžného replaceState ze scrollování, ne
+ * záměr uživatele — proto se ignoruje. Návrat z bfcache (iOS back swipe)
+ * skripty znovu nespouští a stav stránky obnovuje beze změny, řeší ho
+ * pageshow handler níže.
  */
 function initSnapActivation(): void {
   const html = document.documentElement;
+
+  // bfcache návrat: stránka se obnoví přesně jak se opustila (snap už aktivní,
+  // scroll na portfoliu) — srovnat na vršek; vršek je platný snap bod, takže
+  // se s aktivním snapem nebojuje
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    for (const row of document.querySelectorAll<HTMLElement>('.scroll-row')) {
+      if (row.scrollLeft !== 0) row.scrollTo({ left: 0, behavior: 'instant' });
+    }
+  });
+
   if (!html.classList.contains('snap-pending')) return;
 
   const navType =
     (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
       ?.type ?? 'navigate';
-  const mustStartAtTop = navType === 'navigate' && !deepLinkIds.has(location.hash.slice(1));
+  const mustStartAtTop =
+    navType === 'back_forward' ||
+    (navType === 'navigate' && !deepLinkIds.has(location.hash.slice(1)));
 
   let interacted = false;
 
@@ -78,9 +99,9 @@ function initSnapActivation(): void {
   window.addEventListener('scroll', toStart, { capture: true, passive: true });
 
   if (!mustStartAtTop) {
-    // reload / back-forward / deep-link: pozici obnovuje prohlížeč, snap se
-    // zapíná po načtení; u čerstvé navigace se čeká až na interakci (Safari
-    // umí přenesený offset aplikovat i po window.load)
+    // reload / deep-link: pozici obnovuje prohlížeč, snap se zapíná po
+    // načtení; čerstvá navigace a back/forward čekají až na interakci
+    // (Safari umí přenesený/obnovený offset aplikovat i po window.load)
     if (document.readyState === 'complete') {
       requestAnimationFrame(enable);
     } else {
