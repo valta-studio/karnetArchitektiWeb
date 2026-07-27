@@ -56,7 +56,10 @@ const columns = project.columns ?? [];
     /* snap cíle jsou vložené markery sloupců (scroll-engine.ts) — samotný
        multicol blok by jako obří snap area kolidoval s jejich pozicemi */
     scroll-snap-align: none;
-    height: 66dvh;
+    /* svh, ne dvh: výška řídí tok multicol sloupců — dvh se mění se
+       schováním address baru při svislém scrollu, text by se přeskládal
+       a vodorovná pozice čtení (scrollLeft + markery) by se ztratila */
+    height: 66svh;
     column-width: min(34vw, 560px);
     column-gap: clamp(2.5rem, 5vw, 5.5rem);
     column-fill: auto;
@@ -88,7 +91,7 @@ const columns = project.columns ?? [];
 
   @media (max-width: 767px) {
     .text-columns {
-      height: 72dvh;
+      height: 72svh;
       column-width: calc(100vw - 2 * var(--page-pad));
       column-gap: calc(2 * var(--page-pad));
     }

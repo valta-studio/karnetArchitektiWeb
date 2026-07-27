@@ -252,10 +252,9 @@ function initColumnSnap(): void {
     let markers: HTMLElement[] = [];
     let dots: HTMLElement[] = [];
 
-    // aktivní tečku určuje nejbližší snap marker k aktuální pozici dráhy
-    // (marker se snap-align: start dojíždí na scroll-padding-inline-start)
-    const syncActive = () => {
-      if (!dots.length || !markers.length) return;
+    // nejbližší snap marker k aktuální pozici dráhy (marker se
+    // snap-align: start dojíždí na scroll-padding-inline-start)
+    const nearestIndex = () => {
       const padStart = parseFloat(getComputedStyle(row).scrollPaddingLeft) || 0;
       const pos = row.scrollLeft + padStart;
       let index = 0;
@@ -267,14 +266,22 @@ function initColumnSnap(): void {
           index = i;
         }
       });
+      return index;
+    };
+
+    const syncActive = () => {
+      if (!dots.length || !markers.length) return;
+      const index = nearestIndex();
       dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
     };
 
     const build = () => {
-      for (const marker of row.querySelectorAll('.snap-marker')) marker.remove();
-      markers = [];
-
+      // nové pozice se počítají PŘED odstraněním starých markerů: rebuild
+      // běží i na resize při schování address baru (iOS) a bez porovnání by
+      // odstranění vzalo x mandatory dráze snap cíle — scrollLeft (pozice
+      // čtení) by spadl na 0
       const columnWidth = parseFloat(getComputedStyle(flow).columnWidth);
+      let lefts: number[] = [];
       if (columnWidth) {
         // levé hrany sloupců se odečtou z client rectů řádků textu — plné
         // (zalomené) řádky začínají vždy na levé hraně svého sloupce
@@ -284,24 +291,44 @@ function initColumnSnap(): void {
           (rect) => rect.width >= columnWidth * 0.6
         );
         const base = flow.getBoundingClientRect().left;
-        const lefts = lineRects.map((rect) => Math.round(rect.left - base)).sort((a, b) => a - b);
+        const xs = lineRects.map((rect) => Math.round(rect.left - base)).sort((a, b) => a - b);
 
         const starts: number[] = [];
-        for (const x of lefts) {
+        for (const x of xs) {
           if (!starts.length || x > starts[starts.length - 1] + columnWidth * 0.5) starts.push(x);
         }
 
         // < 2 sloupce → vše se vejde, není co snapovat (ani co indikovat)
-        if (starts.length >= 2) {
-          for (const x of starts) {
-            const marker = document.createElement('span');
-            marker.className = 'snap-marker';
-            marker.style.left = `${flow.offsetLeft + x}px`;
-            marker.style.width = `${columnWidth}px`;
-            row.appendChild(marker);
-            markers.push(marker);
-          }
-        }
+        if (starts.length >= 2) lefts = starts.map((x) => flow.offsetLeft + x);
+      }
+
+      // layout beze změny → žádná přestavba (a žádné hnutí s pozicí)
+      const unchanged =
+        lefts.length === markers.length &&
+        markers.every((marker, i) => Math.abs(marker.offsetLeft - lefts[i]) <= 1);
+      if (unchanged) {
+        syncActive();
+        return;
+      }
+
+      const keepIndex = markers.length ? nearestIndex() : 0;
+
+      for (const marker of row.querySelectorAll('.snap-marker')) marker.remove();
+      markers = lefts.map((left) => {
+        const marker = document.createElement('span');
+        marker.className = 'snap-marker';
+        marker.style.left = `${left}px`;
+        marker.style.width = `${columnWidth}px`;
+        row.appendChild(marker);
+        return marker;
+      });
+
+      // po skutečné změně layoutu se dráha vrací na stejný sloupec — starý
+      // scrollLeft v novém layoutu neplatí
+      if (keepIndex > 0 && markers.length) {
+        const padStart = parseFloat(getComputedStyle(row).scrollPaddingLeft) || 0;
+        const target = markers[Math.min(keepIndex, markers.length - 1)];
+        row.scrollTo({ left: Math.max(0, target.offsetLeft - padStart), behavior: 'instant' });
       }
 
       // tečky = počet snap sloupců (jedna na sloupec, nebo žádná)
