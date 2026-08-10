@@ -144,6 +144,7 @@ const panelCount =
     justify-content: center;
     pointer-events: none;
     opacity: 0.14;
+    z-index: 1;
     will-change: opacity;
     backface-visibility: hidden;
   }
@@ -213,6 +214,7 @@ const panelCount =
 
   .atelier :global(.scroll-row) {
     position: relative;
+    z-index: 2;
     min-height: 100svh;
     align-items: center;
     gap: var(--page-pad);

@@ -93,7 +93,9 @@ const posterUrl = data.poster
       .intro-frame {
         animation: intro-hand-off linear both;
         animation-timeline: --uvod;
-        animation-range: exit 0% exit 25%;
+        /* Originál zmizí ještě ve chvíli, kdy ho fixovaný podkres
+           Ateliéru plně kryje. Jeho přirozený pohyb nahoru tak neprosvítá. */
+        animation-range: exit 0% exit 0%;
       }
     }
   }
