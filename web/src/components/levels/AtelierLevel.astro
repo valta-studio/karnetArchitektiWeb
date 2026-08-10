@@ -199,7 +199,7 @@ const panelCount =
   }
 
   .atelier-text-panel {
-    /* textový blok stojí ve středu stránky, další panel „nakukuje" zprava */
+    /* Na desktopu zůstává textový blok uprostřed panelu. */
     display: flex;
     justify-content: center;
     width: min(80vw, 1200px);
@@ -260,13 +260,20 @@ const panelCount =
       height: 66dvh;
     }
 
+    .atelier-panel {
+      scroll-margin-left: 0;
+    }
+
     .atelier-text-panel {
-      width: 100vw;
+      justify-content: flex-start;
+      width: var(--mobile-text-step);
+      padding: 0 0 0 var(--page-pad);
     }
 
     .atelier-intro,
     .awards,
     .atelier-people {
+      width: var(--mobile-text-width);
       max-width: none;
     }
 

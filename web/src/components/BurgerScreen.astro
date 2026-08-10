@@ -102,4 +102,11 @@ const { contact, siteName } = Astro.props;
     opacity: 0.55;
   }
 
+  @media (max-width: 767px) {
+    .burger-nav ul,
+    .burger-footer {
+      width: var(--mobile-text-width);
+    }
+  }
+
 </style>

@@ -50,3 +50,13 @@
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --duration: 200ms;
 }
+
+@media (max-width: 767px) {
+  :root {
+    /* Mobilní textový panel je kratší než viewport: pravý okraj vychází
+       přibližně doprostřed mezery mezi koncem loga a ikonou menu a za ním
+       už vykukuje začátek dalšího panelu. */
+    --mobile-text-step: 72vw;
+    --mobile-text-width: calc(var(--mobile-text-step) - var(--page-pad));
+  }
+}

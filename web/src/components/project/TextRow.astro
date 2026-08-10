@@ -97,8 +97,10 @@ const columns = project.columns ?? [];
   @media (max-width: 767px) {
     .text-columns {
       height: 72svh;
-      column-width: calc(100vw - 2 * var(--page-pad));
-      column-gap: calc(2 * var(--page-pad));
+      /* Sloupec + mezera = 72vw. Další text proto vykukuje zprava,
+         ale po snapu se znovu zarovná na levou hranu loga. */
+      column-width: var(--mobile-text-width);
+      column-gap: var(--page-pad);
     }
   }
 </style>
