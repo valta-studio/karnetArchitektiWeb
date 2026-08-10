@@ -18,8 +18,8 @@ function syncDots(dots: HTMLElement[], activeIndex: number): void {
   });
 }
 
-/** Posune vodorovnou dráhu na snap pozici prvku bez svislého pohybu stránky. */
-function scrollRowTo(row: HTMLElement, target: HTMLElement): void {
+/** Vypočítá skutečnou scrollLeft pozici CSS snap cíle. */
+function rowTargetLeft(row: HTMLElement, target: HTMLElement): number {
   const rowStyle = getComputedStyle(row);
   const targetStyle = getComputedStyle(target);
   const snapAlign = targetStyle.scrollSnapAlign;
@@ -38,7 +38,13 @@ function scrollRowTo(row: HTMLElement, target: HTMLElement): void {
       (parseFloat(rowStyle.scrollPaddingRight) || 0);
   }
 
-  row.scrollTo({ left: Math.max(0, left), behavior: scrollBehavior() });
+  const maxLeft = Math.max(0, row.scrollWidth - row.clientWidth);
+  return Math.max(0, Math.min(maxLeft, left));
+}
+
+/** Posune vodorovnou dráhu na snap pozici prvku bez svislého pohybu stránky. */
+function scrollRowTo(row: HTMLElement, target: HTMLElement): void {
+  row.scrollTo({ left: rowTargetLeft(row, target), behavior: scrollBehavior() });
 }
 
 // hash se píše jen pro hlavní úrovně homepage (deep-linky z hlavičky);
@@ -267,17 +273,36 @@ function observeRows(): void {
       });
     });
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const index = panels.indexOf(entry.target as HTMLElement);
-          syncDots(dots, index);
+    // Na desktopu je často viditelných více užších panelů najednou,
+    // takže IntersectionObserver neumí spolehlivě určit aktivní snap cíl.
+    // Aktivní je panel, jehož skutečná snap pozice je nejblíž scrollLeft.
+    const syncActive = () => {
+      let activeIndex = 0;
+      let bestDistance = Infinity;
+      panels.forEach((panel, index) => {
+        const distance = Math.abs(row.scrollLeft - rowTargetLeft(row, panel));
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          activeIndex = index;
         }
+      });
+      syncDots(dots, activeIndex);
+    };
+
+    let scrollFrame = 0;
+    row.addEventListener(
+      'scroll',
+      () => {
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = requestAnimationFrame(syncActive);
       },
-      { root: row, threshold: 0.6 }
+      { passive: true }
     );
-    for (const panel of panels) observer.observe(panel);
+
+    const resizeObserver = new ResizeObserver(syncActive);
+    resizeObserver.observe(row);
+    panels.forEach((panel) => resizeObserver.observe(panel));
+    syncActive();
   }
 }
 
