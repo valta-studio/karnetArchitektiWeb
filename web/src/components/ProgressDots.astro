@@ -1,6 +1,6 @@
 ---
-// Čárkový indikátor pozice na horizontální dráze (dole uprostřed, dle náhledů).
-// Aktivní čárku přepíná scroll-engine.ts podle IntersectionObserveru.
+// Tečkový indikátor pozice na horizontální dráze (dole uprostřed).
+// Aktivní tečku přepíná scroll-engine.ts podle IntersectionObserveru.
 interface Props {
   rowId: string;
   count: number;
@@ -12,9 +12,20 @@ const { rowId, count, class: className } = Astro.props;
 
 {
   count > 1 && (
-    <div class:list={['progress-dots', className]} data-dots-for={rowId} aria-hidden="true">
+    <div
+      class:list={['progress-dots', className]}
+      data-dots-for={rowId}
+      role="group"
+      aria-label="Posun v obsahu"
+    >
       {Array.from({ length: count }).map((_, i) => (
-        <span class:list={['dot', { 'is-active': i === 0 }]} data-dot />
+        <button
+          type="button"
+          class:list={['dot', { 'is-active': i === 0 }]}
+          data-dot
+          aria-label={`Přejít na pozici ${i + 1} z ${count}`}
+          aria-current={i === 0 ? 'true' : undefined}
+        />
       ))}
     </div>
   )

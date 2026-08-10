@@ -10,9 +10,15 @@ const { count } = Astro.props;
 
 {
   count > 1 && (
-    <div class="level-dots" aria-hidden="true">
+    <div class="level-dots" role="navigation" aria-label="Posun mezi sekcemi">
       {Array.from({ length: count }).map((_, i) => (
-        <span class:list={['level-dot', { 'is-active': i === 0 }]} data-level-dot />
+        <button
+          type="button"
+          class:list={['level-dot', { 'is-active': i === 0 }]}
+          data-level-dot
+          aria-label={`Přejít na sekci ${i + 1} z ${count}`}
+          aria-current={i === 0 ? 'true' : undefined}
+        />
       ))}
     </div>
   )
@@ -28,17 +34,28 @@ const { count } = Astro.props;
     flex-direction: column;
     gap: 10px;
     z-index: 5;
+    color: var(--color-chrome);
+    mix-blend-mode: difference;
   }
 
   .level-dot {
     width: 8px;
     height: 8px;
+    position: relative;
+    flex: none;
     border-radius: 50%;
-    background: var(--color-line);
-    transition: background var(--duration) var(--ease);
+    background: currentColor;
+    opacity: 0.45;
+    transition: opacity var(--duration) var(--ease);
   }
 
   .level-dot.is-active {
-    background: var(--color-text);
+    opacity: 1;
+  }
+
+  .level-dot::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
   }
 </style>

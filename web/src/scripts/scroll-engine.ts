@@ -9,6 +9,38 @@ function scrollBehavior(): ScrollBehavior {
   return reducedMotion.matches ? 'auto' : 'smooth';
 }
 
+function syncDots(dots: HTMLElement[], activeIndex: number): void {
+  dots.forEach((dot, index) => {
+    const isActive = index === activeIndex;
+    dot.classList.toggle('is-active', isActive);
+    if (isActive) dot.setAttribute('aria-current', 'true');
+    else dot.removeAttribute('aria-current');
+  });
+}
+
+/** Posune vodorovnou dráhu na snap pozici prvku bez svislého pohybu stránky. */
+function scrollRowTo(row: HTMLElement, target: HTMLElement): void {
+  const rowStyle = getComputedStyle(row);
+  const targetStyle = getComputedStyle(target);
+  const snapAlign = targetStyle.scrollSnapAlign;
+  let left =
+    target.offsetLeft -
+    (parseFloat(rowStyle.scrollPaddingLeft) || 0) -
+    (parseFloat(targetStyle.scrollMarginLeft) || 0);
+
+  if (snapAlign.includes('center')) {
+    left = target.offsetLeft - (row.clientWidth - target.offsetWidth) / 2;
+  } else if (snapAlign.includes('end')) {
+    left =
+      target.offsetLeft -
+      row.clientWidth +
+      target.offsetWidth +
+      (parseFloat(rowStyle.scrollPaddingRight) || 0);
+  }
+
+  row.scrollTo({ left: Math.max(0, left), behavior: scrollBehavior() });
+}
+
 // hash se píše jen pro hlavní úrovně homepage (deep-linky z hlavičky);
 // implicitní hash na kartě projektu (#text, #menu…) by po reloadu nebo
 // obnovení tabu otevřel stránku uprostřed — mobilní prohlížeče taby
@@ -182,6 +214,13 @@ function observeLevels(): void {
   );
   const allLevels = levels();
 
+  levelDots.forEach((dot, index) => {
+    dot.addEventListener('click', () => {
+      const target = allLevels[index];
+      if (target) scrollToTarget(target);
+    });
+  });
+
   const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
@@ -195,7 +234,7 @@ function observeLevels(): void {
           else link.removeAttribute('aria-current');
         }
         const index = allLevels.indexOf(target);
-        levelDots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+        syncDots(levelDots, index);
         const hash = deepLinkIds.has(id) ? `#${id}` : '';
         if (location.hash !== hash) {
           history.replaceState(null, '', hash || location.pathname);
@@ -221,12 +260,19 @@ function observeRows(): void {
     if (!dots.length) continue;
 
     const panels = Array.from(row.children) as HTMLElement[];
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        const target = panels[index];
+        if (target) scrollRowTo(row, target);
+      });
+    });
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
           const index = panels.indexOf(entry.target as HTMLElement);
-          dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+          syncDots(dots, index);
         }
       },
       { root: row, threshold: 0.6 }
@@ -272,7 +318,7 @@ function initColumnSnap(): void {
     const syncActive = () => {
       if (!dots.length || !markers.length) return;
       const index = nearestIndex();
-      dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+      syncDots(dots, index);
     };
 
     const build = () => {
@@ -334,9 +380,18 @@ function initColumnSnap(): void {
       // tečky = počet snap sloupců (jedna na sloupec, nebo žádná)
       if (dotsBox && dots.length !== markers.length) {
         dotsBox.replaceChildren();
-        dots = markers.map(() => {
-          const dot = document.createElement('span');
+        dots = markers.map((_, index) => {
+          const dot = document.createElement('button');
+          dot.type = 'button';
           dot.className = 'dot';
+          dot.setAttribute(
+            'aria-label',
+            `Přejít na textový sloupec ${index + 1} z ${markers.length}`
+          );
+          dot.addEventListener('click', () => {
+            const target = markers[index];
+            if (target) scrollRowTo(row, target);
+          });
           dotsBox.appendChild(dot);
           return dot;
         });

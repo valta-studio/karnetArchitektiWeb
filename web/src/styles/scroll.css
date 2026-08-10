@@ -100,8 +100,8 @@ html:focus-within {
   scroll-snap-align: start;
 }
 
-/* čárkový indikátor pozice na horizontální dráze (dole uprostřed, dle
-   náhledů). Globálně, ne scoped v ProgressDots.astro: tečky textové dráhy
+/* tečkový indikátor pozice na horizontální dráze (dole uprostřed).
+   Globálně, ne scoped v ProgressDots.astro: tečky textové dráhy
    vkládá scroll-engine.ts dynamicky (počet sloupců zná až po layoutu) a
    scoped styl by na injektované elementy nedosáhl. */
 .progress-dots {
@@ -112,15 +112,33 @@ html:focus-within {
   display: flex;
   gap: 10px;
   z-index: 2;
+  color: var(--color-chrome);
+  mix-blend-mode: difference;
 }
 
 .dot {
-  width: 16px;
-  height: 3px;
-  background: var(--color-line);
-  transition: background var(--duration) var(--ease);
+  width: 8px;
+  height: 8px;
+  position: relative;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+  transition: opacity var(--duration) var(--ease);
 }
 
 .dot.is-active {
-  background: var(--color-text);
+  opacity: 1;
+}
+
+.dot::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+@media (max-width: 767px) {
+  .progress-dots {
+    bottom: var(--space-sm);
+  }
 }

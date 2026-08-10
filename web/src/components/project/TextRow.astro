@@ -40,7 +40,12 @@ const columns = project.columns ?? [];
   </ScrollRow>
 
   {/* tečky se plní v scroll-engine.ts (initColumnSnap) — jedna na snap sloupec */}
-  <div class="progress-dots" data-dots-for="text-row" aria-hidden="true"></div>
+  <div
+    class="progress-dots"
+    data-dots-for="text-row"
+    role="group"
+    aria-label="Posun v textu"
+  ></div>
 </section>
 
 <style>
