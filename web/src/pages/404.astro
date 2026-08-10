@@ -20,8 +20,10 @@ const settings = await getSeoSettings();
   .not-found {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    width: var(--text-step);
+    padding-left: var(--page-pad);
     gap: var(--space-sm);
     min-height: 100dvh;
   }
@@ -37,11 +39,4 @@ const settings = await getSeoSettings();
     text-underline-offset: 0.2em;
   }
 
-  @media (max-width: 767px) {
-    .not-found {
-      align-items: flex-start;
-      width: var(--mobile-text-step);
-      padding-left: var(--page-pad);
-    }
-  }
 </style>

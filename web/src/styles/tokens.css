@@ -45,6 +45,10 @@
   /* layout */
   --page-pad: clamp(1.25rem, 3vw, 3.25rem);
   --header-height: clamp(4rem, 9dvh, 6rem);
+  /* Text začíná na ose loga a končí přibližně v polovině prostoru
+     k pravé navigaci. Stejný krok odhalí začátek dalšího textu. */
+  --text-step: 46vw;
+  --content-text-width: calc(var(--text-step) - var(--page-pad));
 
   /* motion */
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -56,7 +60,6 @@
     /* Mobilní textový panel je kratší než viewport: pravý okraj vychází
        přibližně doprostřed mezery mezi koncem loga a ikonou menu a za ním
        už vykukuje začátek dalšího panelu. */
-    --mobile-text-step: 72vw;
-    --mobile-text-width: calc(var(--mobile-text-step) - var(--page-pad));
+    --text-step: 72vw;
   }
 }

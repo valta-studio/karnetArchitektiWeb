@@ -74,8 +74,9 @@ const billing = contact.billing;
   .kontakt-block {
     display: flex;
     flex-direction: column;
+    width: var(--text-step);
     gap: 1.2em;
-    padding-inline: var(--page-pad);
+    padding-left: var(--page-pad);
     font-size: var(--text-body);
     line-height: var(--leading-snug);
   }
@@ -98,10 +99,4 @@ const billing = contact.billing;
     white-space: pre-line;
   }
 
-  @media (max-width: 767px) {
-    .kontakt-block {
-      width: var(--mobile-text-step);
-      padding-right: 0;
-    }
-  }
 </style>

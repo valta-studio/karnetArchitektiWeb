@@ -215,26 +215,35 @@ const panelCount =
     position: relative;
     min-height: 100svh;
     align-items: center;
+    gap: var(--page-pad);
+    padding-inline: var(--page-pad);
+    scroll-padding-inline-start: var(--page-pad);
+  }
+
+  /* Skutečný flex spacer dovolí poslednímu panelu dosnapovat pod logo.
+     Funguje spolehlivěji než koncový padding overflow flexboxu v Safari. */
+  .atelier :global(.scroll-row)::after {
+    content: '';
+    flex: 0 0 calc(100vw - var(--text-step) - var(--page-pad));
   }
 
   .atelier-panel {
     scroll-snap-align: start;
-    scroll-margin-left: var(--page-pad);
     flex: none;
   }
 
   .atelier-text-panel {
-    /* Na desktopu zůstává textový blok uprostřed panelu. */
+    /* Stejná geometrie jako textové sloupce projektu: šířka textu +
+       page-pad mezera tvoří jeden vodorovný krok. */
     display: flex;
-    justify-content: center;
-    width: min(80vw, 1200px);
-    padding-inline: var(--page-pad);
+    justify-content: flex-start;
+    width: var(--content-text-width);
   }
 
   .atelier-intro,
   .awards,
   .atelier-people {
-    max-width: 21em;
+    width: var(--content-text-width);
     font-size: var(--text-body);
     line-height: var(--leading-snug);
   }
@@ -282,23 +291,6 @@ const panelCount =
     .atelier-backdrop :global(img) {
       width: 82vw;
       height: 66svh;
-    }
-
-    .atelier-panel {
-      scroll-margin-left: 0;
-    }
-
-    .atelier-text-panel {
-      justify-content: flex-start;
-      width: var(--mobile-text-step);
-      padding: 0 0 0 var(--page-pad);
-    }
-
-    .atelier-intro,
-    .awards,
-    .atelier-people {
-      width: var(--mobile-text-width);
-      max-width: none;
     }
 
     .atelier-publication :global(img) {
