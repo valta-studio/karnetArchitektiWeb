@@ -92,10 +92,13 @@ for (let i = 0; i < items.length; i += 2) {
   .portfolio-item {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    width: fit-content;
+    max-width: 100%;
+    justify-self: center;
+    gap: 0.3rem;
     /* fotka si drží vlastní šířku z poměru stran (jinak by ji flex/grid
-       roztáhl na šířku sloupce a při pevné výšce zdeformoval), vystředěná */
-    align-items: center;
+       roztáhl na šířku sloupce a při pevné výšce zdeformoval). */
+    align-items: flex-start;
   }
 
   .portfolio-item:hover {
@@ -124,26 +127,38 @@ for (let i = 0; i < items.length; i += 2) {
   }
 
   @media (max-width: 767px) {
+    .portfolio {
+      --mobile-portfolio-width: 76vw;
+    }
+
     .portfolio-track {
       gap: var(--page-pad);
       padding-left: var(--page-pad);
+      padding-right: calc(100vw - var(--page-pad) - var(--mobile-portfolio-width));
+      scroll-padding-inline-start: var(--page-pad);
     }
 
-    /* jeden sloupec na obrazovku → 2 projekty na stránku */
+    /* Užší krok nechá zprava vykukovat další sloupec. Po snapu se
+       aktivní obrázky vždy vrátí na levou osu loga. */
     .portfolio-col {
-      width: calc(100vw - 2 * var(--page-pad));
+      width: var(--mobile-portfolio-width);
+      scroll-snap-align: start;
+    }
+
+    .portfolio-item {
+      justify-self: start;
     }
 
     .portfolio :global(.portfolio-cover) {
       width: auto;
       height: auto;
       max-width: 100%;
-      max-height: 36dvh;
+      max-height: 33dvh;
     }
 
     .portfolio-item.is-tall :global(.portfolio-cover),
     .portfolio-item.is-square :global(.portfolio-cover) {
-      max-height: 40dvh;
+      max-height: 37dvh;
     }
   }
 </style>
