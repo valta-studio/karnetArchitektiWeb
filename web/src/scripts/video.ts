@@ -23,6 +23,11 @@ export function initVideo(): void {
   const mirrors = Array.from(
     document.querySelectorAll<HTMLCanvasElement>('canvas[data-intro-mirror]')
   );
+  const mirrorOwners = new Map<Element, HTMLCanvasElement[]>();
+  for (const mirror of mirrors) {
+    const owner = mirror.closest<HTMLElement>('[data-level="atelier"]') ?? mirror;
+    mirrorOwners.set(owner, [...(mirrorOwners.get(owner) ?? []), mirror]);
+  }
 
   // Video hraje, dokud ho chce aspoň jeden pozorovatel — buď vlastní úroveň,
   // nebo viditelné zrcadlo v úrovni jiné.
@@ -52,22 +57,25 @@ export function initVideo(): void {
     (entries) => {
       for (const entry of entries) {
         const target = entry.target;
-        const mirror = target instanceof HTMLCanvasElement ? target : null;
-        const video = mirror ? source : (target as HTMLVideoElement);
+        const video = target instanceof HTMLVideoElement ? target : source;
+        const targetMirrors =
+          target instanceof HTMLVideoElement ? mirrors : (mirrorOwners.get(target) ?? []);
         if (entry.isIntersecting) {
           request(video, target);
-          if (mirror) startMirror(mirror, video);
+          for (const mirror of targetMirrors) startMirror(mirror, video);
         } else {
-          if (mirror) painting.delete(mirror);
           release(video, target);
+          if (!wanted.get(video)?.size) {
+            for (const mirror of mirrors) painting.delete(mirror);
+          }
         }
       }
     },
-    { threshold: 0.3 }
+    { threshold: 0.01 }
   );
 
   for (const video of videos) observer.observe(video);
-  for (const mirror of mirrors) observer.observe(mirror);
+  for (const owner of mirrorOwners.keys()) observer.observe(owner);
 }
 
 function startMirror(canvas: HTMLCanvasElement, video: HTMLVideoElement): void {

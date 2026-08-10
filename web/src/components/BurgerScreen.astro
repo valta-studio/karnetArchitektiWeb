@@ -70,13 +70,13 @@ const { contact, siteName } = Astro.props;
   .burger-nav ul {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
   }
 
   .burger-nav a {
-    font-size: var(--text-xl);
-    line-height: var(--leading-tight);
-    font-weight: 500;
+    display: block;
+    font-size: var(--text-body);
+    line-height: var(--leading-snug);
+    font-weight: var(--weight-heavy);
   }
 
   .burger-footer {

@@ -29,12 +29,16 @@ const backdropPosterUrl = intro?.poster
 
 const introHtml = portableTextToHtml(data.intro);
 const publications = data.publications ?? [];
+const publicationPages = Array.from(
+  { length: Math.ceil(publications.length / 2) },
+  (_, index) => publications.slice(index * 2, index * 2 + 2)
+);
 const hasAwards = Boolean(data.awardsIntro || data.awards?.length);
 
 const panelCount =
   (introHtml ? 1 : 0) +
   (hasAwards ? 1 : 0) +
-  (publications.length ? 1 : 0) +
+  publicationPages.length +
   (data.founding || data.people?.length ? 1 : 0);
 ---
 
@@ -85,9 +89,9 @@ const panelCount =
     }
 
     {
-      publications.length > 0 && (
+      publicationPages.map((page) => (
         <div class="atelier-panel atelier-publications">
-          {publications.map((publication) => (
+          {page.map((publication) => (
             <div class="atelier-publication">
               <SanityImage
                 image={publication}
@@ -98,7 +102,7 @@ const panelCount =
             </div>
           ))}
         </div>
-      )
+      ))
     }
 
     {
@@ -126,6 +130,12 @@ const panelCount =
 </section>
 
 <style>
+  .atelier {
+    /* Podkres se při vstupu přesune nad předchozí úroveň; nesmí ho
+       oříznout výchozí overflow na .level. */
+    overflow: visible;
+  }
+
   .atelier-backdrop {
     position: absolute;
     inset: 0;
@@ -134,12 +144,15 @@ const panelCount =
     justify-content: center;
     pointer-events: none;
     opacity: 0.14;
+    will-change: opacity;
+    backface-visibility: hidden;
   }
 
   .atelier-backdrop :global(img),
   .atelier-backdrop :global(canvas) {
     width: min(34vw, 560px);
-    height: 72dvh;
+    /* Musí mít stejnou stabilní geometrii jako médium v úvodu. */
+    height: 72svh;
     object-fit: cover;
   }
 
@@ -149,9 +162,11 @@ const panelCount =
     background-size: cover;
   }
 
-  /* Přechod z úvodu: médium přijíždí v plné síle a při usazení úrovně
-     zeslábne do podkresu. Čistě CSS scroll-driven animace — JS scroll
-     neřídí; prohlížeče bez podpory zůstanou u statického stavu. */
+  /* Přechod z úvodu: podkres je skutečně fixovaný ve stabilním svh
+     viewportu. Scroll-driven animace mění pouze opacity — opačná transformace
+     proti scrollu v Safari mezi snímky vertikálně kmitala. První čtvrtinu
+     vstupu je médium plně viditelné, v Ateliéru zůstane na 14 % a při
+     odjezdu do Portfolia zmizí. */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
       .atelier {
@@ -159,20 +174,30 @@ const panelCount =
       }
 
       .atelier-backdrop {
+        position: fixed;
+        inset: 0 auto auto 0;
+        width: 100vw;
+        height: 100svh;
         animation: backdrop-settle linear both;
         animation-timeline: --atelier;
-        animation-range: entry 0% entry 100%;
+        animation-range: entry 0% exit 100%;
       }
     }
   }
 
   @keyframes backdrop-settle {
-    from {
+    0%,
+    12.5% {
       opacity: 1;
     }
 
-    to {
+    50%,
+    75% {
       opacity: 0.14;
+    }
+
+    to {
+      opacity: 0;
     }
   }
 
@@ -182,7 +207,7 @@ const panelCount =
     .atelier-backdrop :global(img),
     .atelier-backdrop :global(canvas) {
       width: 82vw;
-      height: 66dvh;
+      height: 66svh;
     }
   }
 
@@ -225,9 +250,8 @@ const panelCount =
     margin-top: 1.2em;
   }
 
-  /* publikace = jedna souvislá koláž (jeden snap cíl); je širší než viewport,
-     takže se uvnitř posouvá volně a snapuje jen na svých okrajích.
-     Fotky plní dvě řady (sloupec po sloupci) — sudé nahoře, liché dole. */
+  /* Publikace jsou rozdělené do samostatných snap panelů po dvou
+     fotografiích. Každý vodorovný krok tak ukáže další dvojici. */
   .atelier-publications {
     display: grid;
     grid-auto-flow: column;
@@ -257,7 +281,7 @@ const panelCount =
   @media (max-width: 767px) {
     .atelier-backdrop :global(img) {
       width: 82vw;
-      height: 66dvh;
+      height: 66svh;
     }
 
     .atelier-panel {

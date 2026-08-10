@@ -65,7 +65,10 @@ const posterUrl = data.poster
 
   .intro-frame {
     width: min(34vw, 560px);
-    height: 72dvh;
+    /* svh je v Safari stabilní i při skrývání adresního řádku. */
+    height: 72svh;
+    will-change: opacity;
+    backface-visibility: hidden;
   }
 
   .intro :global(.intro-media) {
@@ -78,9 +81,9 @@ const posterUrl = data.poster
     background: var(--color-line);
   }
 
-  /* Předání média do ateliéru: při odjezdu úvodu médium lehce zeslábne
-     a zmenší se — navazuje na backdrop-settle v AtelierLevel. Čistě CSS
-     scroll-driven animace, bez podpory zůstane statický stav. */
+  /* Předání média do ateliéru: originál rychle zmizí pod totožným
+     podkresem následující úrovně. Ten pak zůstane opticky na místě,
+     zatímco přes něj přejede text (viz AtelierLevel). */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
       .intro {
@@ -90,22 +93,21 @@ const posterUrl = data.poster
       .intro-frame {
         animation: intro-hand-off linear both;
         animation-timeline: --uvod;
-        animation-range: exit 0% exit 100%;
+        animation-range: exit 0% exit 25%;
       }
     }
   }
 
   @keyframes intro-hand-off {
     to {
-      opacity: 0.35;
-      transform: scale(0.97);
+      opacity: 0;
     }
   }
 
   @media (max-width: 767px) {
     .intro-frame {
       width: 82vw;
-      height: 66dvh;
+      height: 66svh;
     }
   }
 </style>

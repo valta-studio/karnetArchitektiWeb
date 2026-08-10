@@ -8,7 +8,7 @@ export interface NavLink {
 }
 
 export const NAV_LINKS: NavLink[] = [
-  { id: 'uvod', label: 'Úvod', href: '/#uvod' },
+  { id: 'uvod', label: 'Intro', href: '/#uvod' },
   { id: 'atelier', label: 'Atelier', href: '/#atelier' },
   { id: 'portfolio', label: 'Portfolio', href: '/#portfolio' },
   { id: 'kontakt', label: 'Kontakt', href: '/#kontakt' },
