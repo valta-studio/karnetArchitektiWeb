@@ -1,7 +1,7 @@
 // Scroll engine — POUZE pozoruje (IntersectionObserver) a synchronizuje UI.
 // Řízení scrollu zůstává nativnímu CSS scroll snapu.
 
-import { HEADER_LINKS } from '../lib/nav';
+import { DEEP_LINKS } from '../lib/nav';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -47,11 +47,11 @@ function scrollRowTo(row: HTMLElement, target: HTMLElement): void {
   row.scrollTo({ left: rowTargetLeft(row, target), behavior: scrollBehavior() });
 }
 
-// hash se píše jen pro hlavní úrovně homepage (deep-linky z hlavičky);
+// hash se píše jen pro hlavní úrovně homepage (úvod ne — vršek bez kotvy);
 // implicitní hash na kartě projektu (#text, #menu…) by po reloadu nebo
 // obnovení tabu otevřel stránku uprostřed — mobilní prohlížeče taby
 // běžně zahazují a obnovují reloadem
-const deepLinkIds = new Set(HEADER_LINKS.map((link) => link.id));
+const deepLinkIds = new Set(DEEP_LINKS.map((link) => link.id));
 
 function levels(): HTMLElement[] {
   return Array.from(document.querySelectorAll<HTMLElement>('.level[data-level]'));

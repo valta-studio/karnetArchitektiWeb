@@ -1,8 +1,8 @@
 ---
-// Velké logo vlevo + textová navigace „Atelier, Portfolio, Kontakt" vpravo
-// (dle náhledů — položky oddělené čárkami, aktivní podtržená).
+// Velké logo vlevo + textová navigace „Intro, Atelier, Portfolio, Kontakt"
+// vpravo (dle náhledů — položky oddělené čárkami, aktivní podtržená).
 // Aktivní položku přepíná scroll-engine.ts (class .is-active).
-import { HEADER_LINKS } from '../lib/nav';
+import { NAV_LINKS } from '../lib/nav';
 
 interface Props {
   siteName: string;
@@ -16,11 +16,11 @@ const { siteName } = Astro.props;
 
   <nav class="header-nav" aria-label="Hlavní navigace">
     {
-      HEADER_LINKS.map((link, i) => (
+      NAV_LINKS.map((link, i) => (
         <span class="nav-item"
           ><a href={link.href} data-scroll-to={link.id} data-nav-link={link.id}
             >{link.label}</a
-          >{i < HEADER_LINKS.length - 1 && ', '}</span
+          >{i < NAV_LINKS.length - 1 && ', '}</span
         >
       ))
     }
