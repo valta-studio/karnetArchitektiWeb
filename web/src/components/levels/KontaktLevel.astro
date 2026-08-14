@@ -1,17 +1,54 @@
 ---
 // Úroveň 4 — kontakt (dle náhledů): jeden blok vlevo — e-mail a telefon,
 // adresa kanceláře, sociální sítě pod sebou, fakturační údaje.
-import type { Contact } from '../../types/sanity';
+// Na desktopu za blokem prosvítá úvodní médium stejně jako v ateliéru.
+import SanityImage from '../SanityImage.astro';
+import { INTRO_MEDIA_MAX_WIDTH, INTRO_MEDIA_SIZES, isMockImage, urlFor } from '../../lib/image';
+import type { Contact, IntroLevel } from '../../types/sanity';
 
 interface Props {
   contact: Contact;
+  /** Úvodní médium — na desktopu prosvítá za kontakty (video, nebo foto). */
+  intro?: IntroLevel;
 }
 
-const { contact } = Astro.props;
+const { contact, intro } = Astro.props;
 const billing = contact.billing;
+
+const backdropVideoSrc = intro?.videoFileUrl ?? intro?.videoUrl;
+const backdropIsVideo = intro?.mode === 'video' && Boolean(backdropVideoSrc);
+const backdropImage = intro?.photo ?? intro?.poster;
+
+const backdropPosterUrl = intro?.poster
+  ? isMockImage(intro.poster)
+    ? intro.poster.src
+    : urlFor(intro.poster).width(1200).url()
+  : undefined;
 ---
 
 <section class="level kontakt" data-level="kontakt" id="kontakt">
+  {
+    (backdropIsVideo || backdropImage) && (
+      <div class="kontakt-backdrop" aria-hidden="true">
+        {backdropIsVideo ? (
+          /* Stejně jako v ateliéru: žádný druhý <video>, zrcadlíme snímky
+             elementu z úrovně 1 do canvasu (viz scripts/video.ts). */
+          <canvas
+            data-intro-mirror
+            style={backdropPosterUrl ? `background-image: url("${backdropPosterUrl}")` : undefined}
+          />
+        ) : (
+          <SanityImage
+            image={backdropImage!}
+            alt=""
+            sizes={INTRO_MEDIA_SIZES}
+            maxWidth={INTRO_MEDIA_MAX_WIDTH}
+          />
+        )}
+      </div>
+    )
+  }
+
   <div class="kontakt-block">
     <div class="kontakt-group">
       {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
@@ -72,7 +109,84 @@ const billing = contact.billing;
     min-height: 100svh;
   }
 
+  /* Podkres jen na desktopu — mobil zůstává bez média (viz náhledy).
+     Skrytý canvas má nulovou velikost, video.ts ho pak vůbec neaktivuje. */
+  .kontakt-backdrop {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .kontakt-backdrop {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0.14;
+      z-index: 1;
+    }
+
+    .kontakt-backdrop :global(img),
+    .kontakt-backdrop :global(canvas) {
+      /* Stejná geometrie jako médium v úvodu a podkres v ateliéru. */
+      width: min(34vw, 560px);
+      height: 72svh;
+      object-fit: cover;
+    }
+
+    /* Poster pod zrcadlem — canvas je do prvního snímku průhledný. */
+    .kontakt-backdrop :global(canvas) {
+      background-position: center;
+      background-size: cover;
+    }
+  }
+
+  /* Vjezd z portfolia: médium NEJEDE spolu s úrovní — je fixované ve
+     stabilním svh viewportu a scroll-driven animace ho proloží až po
+     usazení úrovně. Obrácený průběh odjezdu ateliér → portfolio (tam
+     0.14 → 0, tady 0 → 0.14). Bez podpory / s reduced-motion zůstává
+     statický absolutní podkres výše. */
+  @supports (animation-timeline: view()) {
+    @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+      /* Timeline drží 200svh slot (.stick-under-menu), ne sticky úroveň:
+         sticky posouvá view range o dobu přilnutí, entry by tak končilo
+         až s najetým menu a médium by se do té doby neproložilo. Slot
+         jede s dokumentem — entry 100 % = přesně okamžik dosnapování. */
+      :global(.stick-under-menu:has(.kontakt)) {
+        view-timeline: --kontakt block;
+      }
+
+      .kontakt-backdrop {
+        position: fixed;
+        inset: 0 auto auto 0;
+        width: 100vw;
+        height: 100svh;
+        animation: kontakt-backdrop-reveal linear both;
+        animation-timeline: --kontakt;
+        animation-range: entry 0% entry 100%;
+        will-change: opacity;
+        backface-visibility: hidden;
+      }
+    }
+  }
+
+  /* Úroveň je vysoká přesně 100svh, takže entry 100% = okamžik dosnapování.
+     První polovinu vjezdu je médium neviditelné, pak se proloží na 0.14. */
+  @keyframes kontakt-backdrop-reveal {
+    0%,
+    50% {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 0.14;
+    }
+  }
+
   .kontakt-block {
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     width: var(--text-step);

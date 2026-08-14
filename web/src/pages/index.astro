@@ -35,7 +35,7 @@ const [intro, atelier, portfolio, contact, settings] = await Promise.all([
     <AtelierLevelComponent data={atelier} intro={intro} />
     <PortfolioLevelComponent data={portfolio} />
     <div class="stick-under-menu">
-      <KontaktLevelComponent contact={contact} />
+      <KontaktLevelComponent contact={contact} intro={intro} />
     </div>
     <BurgerScreen contact={contact} />
   </ScrollDeck>

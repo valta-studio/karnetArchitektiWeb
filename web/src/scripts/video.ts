@@ -1,5 +1,5 @@
-// Úvodní video: lazy autoplay až když je úroveň viditelná. V podkresu
-// ateliéru NEBĚŽÍ druhý <video> se stejným URL (dvojí stažení i dvojí
+// Úvodní video: lazy autoplay až když je úroveň viditelná. V podkresech
+// dalších úrovní NEBĚŽÍ druhý <video> se stejným URL (dvojí stažení i dvojí
 // dekodér) — je tam canvas, do kterého zrcadlíme snímky téhož elementu.
 // Respektuje prefers-reduced-motion a Save-Data — pak zůstane poster/fotka.
 
@@ -25,7 +25,7 @@ export function initVideo(): void {
   );
   const mirrorOwners = new Map<Element, HTMLCanvasElement[]>();
   for (const mirror of mirrors) {
-    const owner = mirror.closest<HTMLElement>('[data-level="atelier"]') ?? mirror;
+    const owner = mirror.closest<HTMLElement>('[data-level]') ?? mirror;
     mirrorOwners.set(owner, [...(mirrorOwners.get(owner) ?? []), mirror]);
   }
 
@@ -61,8 +61,13 @@ export function initVideo(): void {
         const targetMirrors =
           target instanceof HTMLVideoElement ? mirrors : (mirrorOwners.get(target) ?? []);
         if (entry.isIntersecting) {
-          request(video, target);
-          for (const mirror of targetMirrors) startMirror(mirror, video);
+          // Skryté zrcadlo (display: none, např. mobilní breakpoint) video
+          // nepotřebuje — nespouštěj kvůli němu ani přehrávání, ani kreslení.
+          const visibleMirrors = targetMirrors.filter((mirror) => mirror.clientWidth > 0);
+          if (target instanceof HTMLVideoElement || visibleMirrors.length) {
+            request(video, target);
+          }
+          for (const mirror of visibleMirrors) startMirror(mirror, video);
         } else {
           release(video, target);
           if (!wanted.get(video)?.size) {
