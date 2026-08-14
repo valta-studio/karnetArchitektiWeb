@@ -102,9 +102,6 @@ html:focus-within {
 
   .scroll-deck > .burger-screen {
     margin-top: -100svh;
-    /* nad fixed hlavičkou (10) — menu najíždí i přes logo a navigaci;
-       hlavička jinak zůstává nad úrovněmi, aby byla klikací */
-    z-index: 11;
   }
 }
 

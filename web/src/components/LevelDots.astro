@@ -69,12 +69,4 @@ const { count } = Astro.props;
       display: none;
     }
   }
-
-  /* desktop: tečky zůstávají nad menu úrovní (z-index 11 v scroll.css),
-     aby se jimi šlo z menu odskákat zpět */
-  @media (min-width: 768px) {
-    .level-dots {
-      z-index: 12;
-    }
-  }
 </style>
