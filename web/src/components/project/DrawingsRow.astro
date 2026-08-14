@@ -44,13 +44,7 @@ const drawings = project.drawings ?? [];
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 115svh;
-  }
-
-  @media (min-width: 768px) {
-    .drawings-row {
-      min-height: 100svh;
-    }
+    min-height: 100svh;
   }
 
   .drawings-band {
@@ -94,8 +88,5 @@ const drawings = project.drawings ?? [];
       max-width: 82vw;
     }
 
-    .drawings-row :global(.progress-dots) {
-      bottom: 10rem;
-    }
   }
 </style>
