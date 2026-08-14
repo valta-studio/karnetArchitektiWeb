@@ -67,12 +67,14 @@ const menuLinks = NAV_LINKS.filter((link) => link.id !== 'uvod');
     width: var(--content-text-width);
   }
 
+  /* Položky ve velikosti loga (dle náhledu) — velká polotučná typografie */
   .burger-nav a,
   .burger-socials a {
     display: block;
-    font-size: var(--text-body);
+    font-size: var(--text-xl);
     line-height: var(--leading-snug);
     font-weight: var(--weight-heavy);
+    letter-spacing: -0.02em;
   }
 
   /* Mobil: obrazovka není ve scroll toku — je fixed overlay nad aktuální
