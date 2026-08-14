@@ -44,7 +44,13 @@ const drawings = project.drawings ?? [];
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 100svh;
+    min-height: 110svh;
+  }
+
+  @media (min-width: 768px) {
+    .drawings-row {
+      min-height: 100svh;
+    }
   }
 
   .drawings-band {
