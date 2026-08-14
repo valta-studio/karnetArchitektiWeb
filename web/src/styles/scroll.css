@@ -63,16 +63,31 @@ html:focus-within {
    a ta jí prosvítá poloprůhledným pozadím. Předchozí úroveň je sticky
    UVNITŘ 200svh slotu (.stick-under-menu, markup stránek) a menu se přes
    druhou polovinu slotu přetahuje záporným marginem — pozice snap bodů
-   se tím nemění. Sticky box sám snap cílem být NESMÍ: přilnutý je
-   „zarovnaný" v každé scroll pozici a mandatory snap se při scrollu zpět
-   z menu nemá čeho chytit (ověřeno v Chrome — návrat se zasekával).
-   Snap cíl úrovně je proto statický slot. Menu se kreslí nad sticky
-   úrovní řazením v DOM (pozdější positioned sourozenec).
+   se tím nemění. Menu se kreslí nad sticky úrovní řazením v DOM
+   (pozdější positioned sourozenec).
+
+   Snap cíl úrovně NENÍ sticky box ani slot, ale absolutní ::before
+   o výšce přesně 100svh v první půlce slotu:
+   - sticky box je přilnutý „zarovnaný" v každé scroll pozici a mandatory
+     snap se při scrollu zpět z menu neměl čeho chytit (Chrome se sekal);
+   - snap plocha vyšší než viewport (200svh slot) je dle spec zarovnaná
+     v KAŽDÉ pozici, kde viewport překrývá — Safari pak celý poslední
+     úsek scrolloval volně bez magnetu.
+
    Na mobilu je menu fixed overlay mimo tok (BurgerScreen.astro) — slot
    je tam neutrální <div> a pravidla platí jen pro desktop. */
 @media (min-width: 768px) {
   .stick-under-menu {
+    position: relative;
     height: 200svh;
+  }
+
+  .stick-under-menu::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 100svh;
+    pointer-events: none;
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
@@ -87,6 +102,9 @@ html:focus-within {
 
   .scroll-deck > .burger-screen {
     margin-top: -100svh;
+    /* nad fixed hlavičkou (10) — menu najíždí i přes logo a navigaci;
+       hlavička jinak zůstává nad úrovněmi, aby byla klikací */
+    z-index: 11;
   }
 }
 
