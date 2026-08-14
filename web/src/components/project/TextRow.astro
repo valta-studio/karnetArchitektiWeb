@@ -57,6 +57,14 @@ const columns = project.columns ?? [];
     scroll-padding-inline-start: var(--page-pad);
   }
 
+  /* Desktop jako atelier: sloupce začínají a snapují na ose 35vw. */
+  @media (min-width: 768px) {
+    .text-row :global(.text-scroll) {
+      padding-inline: 35vw;
+      scroll-padding-inline-start: 35vw;
+    }
+  }
+
   .text-columns {
     /* snap cíle jsou vložené markery sloupců (scroll-engine.ts) — samotný
        multicol blok by jako obří snap area kolidoval s jejich pozicemi */

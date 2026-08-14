@@ -222,6 +222,16 @@ const panelCount =
     scroll-padding-inline-start: var(--page-pad);
   }
 
+  /* Desktop jako portfolio: obsah začíná na 35vw (prázdno vlevo) a aktivní
+     panel se na tuto osu i vrací — levý padding drží prostor, scroll-padding
+     dělá ze scrollLeft 0 první snap bod. */
+  @media (min-width: 768px) {
+    .atelier :global(.scroll-row) {
+      padding-inline: 35vw;
+      scroll-padding-inline-start: 35vw;
+    }
+  }
+
   /* Skutečný flex spacer dovolí poslednímu panelu dosnapovat pod logo.
      Funguje spolehlivěji než koncový padding overflow flexboxu v Safari. */
   .atelier :global(.scroll-row)::after {
