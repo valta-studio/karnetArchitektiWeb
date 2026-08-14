@@ -136,6 +136,11 @@ const { siteName } = Astro.props;
   }
 
   @media (min-width: 768px) {
+    /* Hlavička pod obsahem — menu úroveň na desktopu najíždí přes ni */
+    .site-header {
+      z-index: 0;
+    }
+
     .header-nav {
       display: block;
     }
