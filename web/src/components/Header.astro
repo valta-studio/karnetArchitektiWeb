@@ -26,7 +26,13 @@ const { siteName } = Astro.props;
     }
   </nav>
 
-  <button class="burger" data-burger aria-label="Menu">
+  <button
+    class="burger"
+    data-burger
+    aria-label="Menu"
+    aria-expanded="false"
+    aria-controls="menu"
+  >
     <span></span>
     <span></span>
   </button>
@@ -104,6 +110,29 @@ const { siteName } = Astro.props;
     width: 30px;
     height: 2px;
     background: currentColor;
+    transition: transform var(--duration) var(--ease);
+  }
+
+  /* otevřený menu overlay: čárky burgeru se složí do křížku (zavření) */
+  :global(html.menu-open) .burger span:first-child {
+    transform: translateY(4.5px) rotate(45deg);
+  }
+
+  :global(html.menu-open) .burger span:last-child {
+    transform: translateY(-4.5px) rotate(-45deg);
+  }
+
+  /* otevřený menu overlay (mobil): logo ustupuje pod poloprůhledné menu
+     jako zbytek stránky (dle náhledu); zůstává ale klikací — v overlayi
+     Intro není, vede na něj právě logo */
+  @media (max-width: 767px) {
+    .logo {
+      transition: opacity var(--duration) var(--ease);
+    }
+
+    :global(html.menu-open) .logo {
+      opacity: 0.35;
+    }
   }
 
   @media (min-width: 768px) {
@@ -117,7 +146,9 @@ const { siteName } = Astro.props;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .header-nav a::after {
+    .header-nav a::after,
+    .burger span,
+    .logo {
       transition: none;
     }
   }

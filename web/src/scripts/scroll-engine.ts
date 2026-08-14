@@ -232,6 +232,10 @@ function observeLevels(): void {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         const target = entry.target as HTMLElement;
+        // menu overlay na mobilu: fixed přes celý viewport, takže „protíná"
+        // i zavřený (visibility geometrii nemění) — do snap toku nepatří,
+        // aktivní úroveň (podtržení, tečky, hash) zůstává ta pod ním
+        if (getComputedStyle(target).position === 'fixed') continue;
         const id = target.dataset.level ?? '';
         for (const link of navLinks) {
           const isActive = link.dataset.navLink === id;
@@ -525,6 +529,8 @@ function scrollToLevel(index: number): void {
 function initKeyboard(): void {
   window.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;
+    // otevřený menu overlay (mobil): stránka pod ním stojí
+    if (document.documentElement.classList.contains('menu-open')) return;
     const target = event.target as HTMLElement | null;
     if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
 

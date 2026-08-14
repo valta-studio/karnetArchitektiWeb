@@ -1,6 +1,7 @@
 ---
-// Závěrečná menu obrazovka — poslední snap úroveň každé stránky.
-// Dosažitelná scrollem i klikem na burger ikonu (menu.ts).
+// Menu obrazovka. Na desktopu poslední snap úroveň každé stránky
+// (dosažitelná scrollem), na mobilu overlay přes aktuální úroveň
+// otevíraný burgerem (menu.ts přepíná html.menu-open).
 import { NAV_LINKS } from '../lib/nav';
 import type { Contact } from '../types/sanity';
 
@@ -17,7 +18,7 @@ const { contact, siteName } = Astro.props;
     <ul>
       {
         NAV_LINKS.map((link) => (
-          <li>
+          <li class:list={{ 'nav-intro': link.id === 'uvod' }}>
             <a href={link.href} data-scroll-to={link.id}>
               {link.label}
             </a>
@@ -104,4 +105,61 @@ const { contact, siteName } = Astro.props;
     opacity: 0.55;
   }
 
+  /* Mobil: obrazovka není ve scroll toku — je fixed overlay nad aktuální
+     úrovní, otevírá se burgerem. Stránka pod ním zůstává, kde byla a
+     prosvítá poloprůhledným pozadím (dle náhledu). Obsah overlaye je jen
+     navigace + sociální sítě velkou typografií; kontakt a název studia
+     zůstávají desktopové menu úrovni. */
+  @media (max-width: 767px) {
+    .burger-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9; /* pod hlavičkou (10) — burger zůstává klikací pro zavření */
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background: color-mix(in srgb, var(--color-bg) 80%, transparent);
+      color: var(--color-text);
+      visibility: hidden;
+      opacity: 0;
+      transition:
+        opacity var(--duration) var(--ease),
+        visibility 0s var(--duration);
+    }
+
+    :global(html.menu-open) .burger-screen {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity var(--duration) var(--ease);
+    }
+
+    /* Intro v overlayi není (dle náhledu) — vede na něj logo */
+    .nav-intro {
+      display: none;
+    }
+
+    /* jednotný obsahový text 17px (--text-body) jako zbytek webu;
+       navigace ho dědí ze základního pravidla výš */
+    .burger-socials a {
+      font-size: var(--text-body);
+      line-height: var(--leading-snug);
+      font-weight: var(--weight-heavy);
+    }
+
+    .burger-contact,
+    .burger-sitename {
+      display: none;
+    }
+
+    .burger-socials {
+      flex-direction: column;
+      gap: 0;
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .burger-screen {
+      transition: none;
+    }
+  }
 </style>

@@ -61,4 +61,12 @@ const { count } = Astro.props;
     position: absolute;
     inset: -5px;
   }
+
+  /* mobil: menu obrazovka (vždy poslední úroveň) není ve scroll toku —
+     otevírá se jako overlay burgerem, její tečka se skrývá */
+  @media (max-width: 767px) {
+    .level-dot:last-child {
+      display: none;
+    }
+  }
 </style>
