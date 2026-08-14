@@ -50,10 +50,22 @@
      k pravé navigaci. Stejný krok odhalí začátek dalšího textu. */
   --text-step: 46vw;
   --content-text-width: calc(var(--text-step) - var(--page-pad));
+  /* Sloupce textu na horizontálních drahách (karta projektu, ateliér) —
+     na mobilu kopírují obecnou šířku obsahu, na desktopu jsou užší
+     (čtecí míra), viz media query níže. */
+  --text-column-width: var(--content-text-width);
 
   /* motion */
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --duration: 200ms;
+}
+
+@media (min-width: 768px) {
+  :root {
+    /* Užší textové sloupce na desktopu — cca 53–68 znaků na řádek,
+       strop v rem drží míru i na velmi širokých obrazovkách. */
+    --text-column-width: min(30vw, 30rem);
+  }
 }
 
 @media (max-width: 767px) {
