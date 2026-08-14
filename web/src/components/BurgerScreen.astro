@@ -1,6 +1,6 @@
 ---
 // Menu obrazovka — poloprůhledný overlay se stejným obsahem na všech
-// šířkách (navigace bez Intra + sociální sítě; Intro vede přes logo).
+// šířkách (kompletní navigace + sociální sítě).
 // Na desktopu je poslední snap úrovní: úroveň před ní je sticky
 // (scroll.css), takže menu při doscrollování najede PŘES ni a ta jí
 // prosvítá pozadím. Na mobilu ve scroll toku není — otevírá ji burger
@@ -14,8 +14,7 @@ interface Props {
 
 const { contact } = Astro.props;
 
-// Intro v menu není (dle náhledu) — vede na něj logo v hlavičce
-const menuLinks = NAV_LINKS.filter((link) => link.id !== 'uvod');
+const menuLinks = NAV_LINKS;
 ---
 
 <section class="level burger-screen" data-level="menu" id="menu">
@@ -71,7 +70,7 @@ const menuLinks = NAV_LINKS.filter((link) => link.id !== 'uvod');
   .burger-nav a,
   .burger-socials a {
     display: block;
-    font-size: var(--text-xl);
+    font-size: var(--text-body);
     line-height: var(--leading-snug);
     font-weight: var(--weight-heavy);
     letter-spacing: -0.02em;
