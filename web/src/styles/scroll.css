@@ -159,8 +159,6 @@ html:focus-within {
   align-items: center;
   gap: 10px;
   z-index: 2;
-  color: var(--color-chrome);
-  mix-blend-mode: difference;
 }
 
 .dot {
