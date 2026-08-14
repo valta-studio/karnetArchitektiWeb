@@ -1,6 +1,6 @@
 ---
-// Svislý indikátor vertikálních úrovní u pravého okraje:
-// neaktivní pozice jsou tečky, aktivní pointer je čárka.
+// Svislý tečkovaný indikátor vertikálních úrovní u pravého okraje
+// (dle náhledů). Aktivní tečku přepíná scroll-engine.ts.
 interface Props {
   count: number;
 }
@@ -40,24 +40,20 @@ const { count } = Astro.props;
   }
 
   .level-dot {
-    width: 16px;
-    height: 2px;
+    width: 8px;
+    height: 8px;
     position: relative;
     flex: none;
+    border-radius: 50%;
     background: currentColor;
-    opacity: 0.45;
     transition:
       width var(--duration) var(--ease),
-      height var(--duration) var(--ease),
-      border-radius var(--duration) var(--ease),
-      opacity var(--duration) var(--ease);
+      height var(--duration) var(--ease);
   }
 
   .level-dot.is-active {
-    width: 16px;
-    height: 4px;
-    border-radius: 0;
-    opacity: 1;
+    width: 12px;
+    height: 12px;
   }
 
   .level-dot::after {
