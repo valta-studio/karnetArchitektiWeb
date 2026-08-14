@@ -59,6 +59,52 @@ html:focus-within {
   overflow: hidden;
 }
 
+/* Desktop: menu obrazovka (poslední úroveň) najíždí PŘES předchozí úroveň
+   a ta jí prosvítá poloprůhledným pozadím. Předchozí úroveň je sticky
+   UVNITŘ 200svh slotu (.stick-under-menu, markup stránek) a menu se přes
+   druhou polovinu slotu přetahuje záporným marginem — pozice snap bodů
+   se tím nemění. Menu se kreslí nad sticky úrovní řazením v DOM
+   (pozdější positioned sourozenec).
+
+   Snap cíl úrovně NENÍ sticky box ani slot, ale absolutní ::before
+   o výšce přesně 100svh v první půlce slotu:
+   - sticky box je přilnutý „zarovnaný" v každé scroll pozici a mandatory
+     snap se při scrollu zpět z menu neměl čeho chytit (Chrome se sekal);
+   - snap plocha vyšší než viewport (200svh slot) je dle spec zarovnaná
+     v KAŽDÉ pozici, kde viewport překrývá — Safari pak celý poslední
+     úsek scrolloval volně bez magnetu.
+
+   Na mobilu je menu fixed overlay mimo tok (BurgerScreen.astro) — slot
+   je tam neutrální <div> a pravidla platí jen pro desktop. */
+@media (min-width: 768px) {
+  .stick-under-menu {
+    position: relative;
+    height: 200svh;
+  }
+
+  .stick-under-menu::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 100svh;
+    pointer-events: none;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .stick-under-menu > .level {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+  }
+
+  .scroll-deck > .burger-screen {
+    margin-top: -100svh;
+  }
+}
+
 /* horizontální snap dráha */
 .scroll-row {
   position: relative;
@@ -100,8 +146,8 @@ html:focus-within {
   scroll-snap-align: start;
 }
 
-/* čárkový indikátor pozice na horizontální dráze (dole uprostřed).
-   Globálně, ne scoped v ProgressDots.astro: indikátory textové dráhy
+/* tečkový indikátor pozice na horizontální dráze (dole uprostřed).
+   Globálně, ne scoped v ProgressDots.astro: tečky textové dráhy
    vkládá scroll-engine.ts dynamicky (počet sloupců zná až po layoutu) a
    scoped styl by na injektované elementy nedosáhl. */
 .progress-dots {
@@ -118,18 +164,20 @@ html:focus-within {
 }
 
 .dot {
-  width: 16px;
-  height: 2px;
+  width: 8px;
+  height: 8px;
   position: relative;
   flex: none;
+  border-radius: 50%;
   background: currentColor;
-  opacity: 0.45;
-  transition: opacity var(--duration) var(--ease);
+  transition:
+    width var(--duration) var(--ease),
+    height var(--duration) var(--ease);
 }
 
 .dot.is-active {
-  opacity: 1;
-  height: 4px;
+  width: 12px;
+  height: 12px;
 }
 
 .dot::after {

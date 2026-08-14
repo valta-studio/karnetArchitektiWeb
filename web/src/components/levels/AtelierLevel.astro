@@ -217,9 +217,19 @@ const panelCount =
     z-index: 2;
     min-height: 100svh;
     align-items: center;
-    gap: var(--page-pad);
+    gap: 5dvh;
     padding-inline: var(--page-pad);
     scroll-padding-inline-start: var(--page-pad);
+  }
+
+  /* Desktop jako portfolio: obsah začíná na 35vw (prázdno vlevo) a aktivní
+     panel se na tuto osu i vrací — levý padding drží prostor, scroll-padding
+     dělá ze scrollLeft 0 první snap bod. */
+  @media (min-width: 768px) {
+    .atelier :global(.scroll-row) {
+      padding-inline: 35vw;
+      scroll-padding-inline-start: 35vw;
+    }
   }
 
   /* Skutečný flex spacer dovolí poslednímu panelu dosnapovat pod logo.
@@ -239,13 +249,13 @@ const panelCount =
        page-pad mezera tvoří jeden vodorovný krok. */
     display: flex;
     justify-content: flex-start;
-    width: var(--content-text-width);
+    width: var(--text-column-width);
   }
 
   .atelier-intro,
   .awards,
   .atelier-people {
-    width: var(--content-text-width);
+    width: var(--text-column-width);
     font-size: var(--text-body);
     line-height: var(--leading-snug);
   }

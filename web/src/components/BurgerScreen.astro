@@ -1,22 +1,27 @@
 ---
-// Závěrečná menu obrazovka — poslední snap úroveň každé stránky.
-// Dosažitelná scrollem i klikem na burger ikonu (menu.ts).
+// Menu obrazovka — poloprůhledný overlay se stejným obsahem na všech
+// šířkách (kompletní navigace + sociální sítě).
+// Na desktopu je poslední snap úrovní: úroveň před ní je sticky
+// (scroll.css), takže menu při doscrollování najede PŘES ni a ta jí
+// prosvítá pozadím. Na mobilu ve scroll toku není — otevírá ji burger
+// nad aktuální úrovní (menu.ts přepíná html.menu-open).
 import { NAV_LINKS } from '../lib/nav';
 import type { Contact } from '../types/sanity';
 
 interface Props {
   contact: Contact;
-  siteName: string;
 }
 
-const { contact, siteName } = Astro.props;
+const { contact } = Astro.props;
+
+const menuLinks = NAV_LINKS;
 ---
 
 <section class="level burger-screen" data-level="menu" id="menu">
   <nav class="burger-nav" aria-label="Menu">
     <ul>
       {
-        NAV_LINKS.map((link) => (
+        menuLinks.map((link) => (
           <li>
             <a href={link.href} data-scroll-to={link.id}>
               {link.label}
@@ -27,32 +32,19 @@ const { contact, siteName } = Astro.props;
     </ul>
   </nav>
 
-  <div class="burger-footer">
-    <div class="burger-contact">
-      {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
-      {
-        contact.phone && (
-          <a href={`tel:${contact.phone.replace(/\s/g, '')}`}>{contact.phone}</a>
-        )
-      }
-    </div>
-
-    {
-      contact.socialLinks?.length ? (
-        <ul class="burger-socials">
-          {contact.socialLinks.map((social) => (
-            <li>
-              <a href={social.url} rel="noopener" target="_blank">
-                {social.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : null
-    }
-
-    <p class="burger-sitename">{siteName}</p>
-  </div>
+  {
+    contact.socialLinks?.length ? (
+      <ul class="burger-socials">
+        {contact.socialLinks.map((social) => (
+          <li>
+            <a href={social.url} rel="noopener" target="_blank">
+              {social.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : null
+  }
 </section>
 
 <style>
@@ -63,45 +55,53 @@ const { contact, siteName } = Astro.props;
     min-height: 100dvh;
     padding: calc(var(--header-height) + var(--space-lg)) var(--page-pad)
       var(--space-lg);
-    background: var(--color-inverse-bg);
-    color: var(--color-chrome);
+    background: color-mix(in srgb, var(--color-bg) 80%, transparent);
+    color: var(--color-text);
   }
 
-  .burger-nav ul {
+  .burger-nav ul,
+  .burger-socials {
     display: flex;
     flex-direction: column;
     width: var(--content-text-width);
   }
 
-  .burger-nav a {
+  /* Položky ve velikosti loga (dle náhledu) — velká polotučná typografie */
+  .burger-nav a,
+  .burger-socials a {
     display: block;
     font-size: var(--text-body);
     line-height: var(--leading-snug);
     font-weight: var(--weight-heavy);
+    letter-spacing: -0.02em;
   }
 
-  .burger-footer {
-    display: flex;
-    flex-direction: column;
-    width: var(--content-text-width);
-    gap: var(--space-md);
+  /* Mobil: obrazovka není ve scroll toku — je fixed overlay nad aktuální
+     úrovní, otevírá se burgerem. Stránka pod ním zůstává, kde byla. */
+  @media (max-width: 767px) {
+    .burger-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9; /* pod hlavičkou (10) — burger zůstává klikací pro zavření */
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      visibility: hidden;
+      opacity: 0;
+      transition:
+        opacity var(--duration) var(--ease),
+        visibility 0s var(--duration);
+    }
+
+    :global(html.menu-open) .burger-screen {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity var(--duration) var(--ease);
+    }
   }
 
-  .burger-contact {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
+  @media (prefers-reduced-motion: reduce) {
+    .burger-screen {
+      transition: none;
+    }
   }
-
-  .burger-socials {
-    display: flex;
-    gap: var(--space-md);
-    opacity: 0.55;
-  }
-
-  .burger-sitename {
-    font-size: var(--text-sm);
-    opacity: 0.55;
-  }
-
 </style>

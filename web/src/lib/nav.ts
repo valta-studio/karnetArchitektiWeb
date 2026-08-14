@@ -14,5 +14,5 @@ export const NAV_LINKS: NavLink[] = [
   { id: 'kontakt', label: 'Kontakt', href: '/#kontakt' },
 ];
 
-/** Položky textové navigace v hlavičce (bez úvodu — ten zastupuje logo). */
-export const HEADER_LINKS = NAV_LINKS.filter((link) => link.id !== 'uvod');
+/** Úrovně, pro které se při scrollu píše hash — úvod ne, vršek stránky zůstává bez kotvy. */
+export const DEEP_LINKS = NAV_LINKS.filter((link) => link.id !== 'uvod');
