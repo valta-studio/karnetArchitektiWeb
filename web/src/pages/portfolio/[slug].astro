@@ -33,8 +33,22 @@ const [contact, settings] = await Promise.all([getContact(), getSeoSettings()]);
 
   <ScrollDeck>
     <PhotoRow project={project} />
-    <TextRow project={project} />
-    <DrawingsRow project={project} />
-    <BurgerScreen contact={contact} siteName={settings.siteName} />
+    {
+      /* slot .stick-under-menu drží úroveň, přes kterou na desktopu
+         najíždí menu (scroll.css) — vždy poslední obsahovou */
+      project.drawings?.length ? (
+        <>
+          <TextRow project={project} />
+          <div class="stick-under-menu">
+            <DrawingsRow project={project} />
+          </div>
+        </>
+      ) : (
+        <div class="stick-under-menu">
+          <TextRow project={project} />
+        </div>
+      )
+    }
+    <BurgerScreen contact={contact} />
   </ScrollDeck>
 </Base>

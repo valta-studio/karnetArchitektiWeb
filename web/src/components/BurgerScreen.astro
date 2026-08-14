@@ -1,24 +1,29 @@
 ---
-// Menu obrazovka. Na desktopu poslední snap úroveň každé stránky
-// (dosažitelná scrollem), na mobilu overlay přes aktuální úroveň
-// otevíraný burgerem (menu.ts přepíná html.menu-open).
+// Menu obrazovka — poloprůhledný overlay se stejným obsahem na všech
+// šířkách (navigace bez Intra + sociální sítě; Intro vede přes logo).
+// Na desktopu je poslední snap úrovní: úroveň před ní je sticky
+// (scroll.css), takže menu při doscrollování najede PŘES ni a ta jí
+// prosvítá pozadím. Na mobilu ve scroll toku není — otevírá ji burger
+// nad aktuální úrovní (menu.ts přepíná html.menu-open).
 import { NAV_LINKS } from '../lib/nav';
 import type { Contact } from '../types/sanity';
 
 interface Props {
   contact: Contact;
-  siteName: string;
 }
 
-const { contact, siteName } = Astro.props;
+const { contact } = Astro.props;
+
+// Intro v menu není (dle náhledu) — vede na něj logo v hlavičce
+const menuLinks = NAV_LINKS.filter((link) => link.id !== 'uvod');
 ---
 
 <section class="level burger-screen" data-level="menu" id="menu">
   <nav class="burger-nav" aria-label="Menu">
     <ul>
       {
-        NAV_LINKS.map((link) => (
-          <li class:list={{ 'nav-intro': link.id === 'uvod' }}>
+        menuLinks.map((link) => (
+          <li>
             <a href={link.href} data-scroll-to={link.id}>
               {link.label}
             </a>
@@ -28,32 +33,19 @@ const { contact, siteName } = Astro.props;
     </ul>
   </nav>
 
-  <div class="burger-footer">
-    <div class="burger-contact">
-      {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
-      {
-        contact.phone && (
-          <a href={`tel:${contact.phone.replace(/\s/g, '')}`}>{contact.phone}</a>
-        )
-      }
-    </div>
-
-    {
-      contact.socialLinks?.length ? (
-        <ul class="burger-socials">
-          {contact.socialLinks.map((social) => (
-            <li>
-              <a href={social.url} rel="noopener" target="_blank">
-                {social.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : null
-    }
-
-    <p class="burger-sitename">{siteName}</p>
-  </div>
+  {
+    contact.socialLinks?.length ? (
+      <ul class="burger-socials">
+        {contact.socialLinks.map((social) => (
+          <li>
+            <a href={social.url} rel="noopener" target="_blank">
+              {social.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : null
+  }
 </section>
 
 <style>
@@ -64,52 +56,27 @@ const { contact, siteName } = Astro.props;
     min-height: 100dvh;
     padding: calc(var(--header-height) + var(--space-lg)) var(--page-pad)
       var(--space-lg);
-    background: var(--color-inverse-bg);
-    color: var(--color-chrome);
+    background: color-mix(in srgb, var(--color-bg) 80%, transparent);
+    color: var(--color-text);
   }
 
-  .burger-nav ul {
+  .burger-nav ul,
+  .burger-socials {
     display: flex;
     flex-direction: column;
     width: var(--content-text-width);
   }
 
-  .burger-nav a {
+  .burger-nav a,
+  .burger-socials a {
     display: block;
     font-size: var(--text-body);
     line-height: var(--leading-snug);
     font-weight: var(--weight-heavy);
   }
 
-  .burger-footer {
-    display: flex;
-    flex-direction: column;
-    width: var(--content-text-width);
-    gap: var(--space-md);
-  }
-
-  .burger-contact {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-  }
-
-  .burger-socials {
-    display: flex;
-    gap: var(--space-md);
-    opacity: 0.55;
-  }
-
-  .burger-sitename {
-    font-size: var(--text-sm);
-    opacity: 0.55;
-  }
-
   /* Mobil: obrazovka není ve scroll toku — je fixed overlay nad aktuální
-     úrovní, otevírá se burgerem. Stránka pod ním zůstává, kde byla a
-     prosvítá poloprůhledným pozadím (dle náhledu). Obsah overlaye je jen
-     navigace + sociální sítě velkou typografií; kontakt a název studia
-     zůstávají desktopové menu úrovni. */
+     úrovní, otevírá se burgerem. Stránka pod ním zůstává, kde byla. */
   @media (max-width: 767px) {
     .burger-screen {
       position: fixed;
@@ -117,8 +84,6 @@ const { contact, siteName } = Astro.props;
       z-index: 9; /* pod hlavičkou (10) — burger zůstává klikací pro zavření */
       overflow-y: auto;
       overscroll-behavior: contain;
-      background: color-mix(in srgb, var(--color-bg) 80%, transparent);
-      color: var(--color-text);
       visibility: hidden;
       opacity: 0;
       transition:
@@ -130,30 +95,6 @@ const { contact, siteName } = Astro.props;
       visibility: visible;
       opacity: 1;
       transition: opacity var(--duration) var(--ease);
-    }
-
-    /* Intro v overlayi není (dle náhledu) — vede na něj logo */
-    .nav-intro {
-      display: none;
-    }
-
-    /* jednotný obsahový text 17px (--text-body) jako zbytek webu;
-       navigace ho dědí ze základního pravidla výš */
-    .burger-socials a {
-      font-size: var(--text-body);
-      line-height: var(--leading-snug);
-      font-weight: var(--weight-heavy);
-    }
-
-    .burger-contact,
-    .burger-sitename {
-      display: none;
-    }
-
-    .burger-socials {
-      flex-direction: column;
-      gap: 0;
-      opacity: 1;
     }
   }
 

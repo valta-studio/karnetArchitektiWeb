@@ -59,6 +59,37 @@ html:focus-within {
   overflow: hidden;
 }
 
+/* Desktop: menu obrazovka (poslední úroveň) najíždí PŘES předchozí úroveň
+   a ta jí prosvítá poloprůhledným pozadím. Předchozí úroveň je sticky
+   UVNITŘ 200svh slotu (.stick-under-menu, markup stránek) a menu se přes
+   druhou polovinu slotu přetahuje záporným marginem — pozice snap bodů
+   se tím nemění. Sticky box sám snap cílem být NESMÍ: přilnutý je
+   „zarovnaný" v každé scroll pozici a mandatory snap se při scrollu zpět
+   z menu nemá čeho chytit (ověřeno v Chrome — návrat se zasekával).
+   Snap cíl úrovně je proto statický slot. Menu se kreslí nad sticky
+   úrovní řazením v DOM (pozdější positioned sourozenec).
+   Na mobilu je menu fixed overlay mimo tok (BurgerScreen.astro) — slot
+   je tam neutrální <div> a pravidla platí jen pro desktop. */
+@media (min-width: 768px) {
+  .stick-under-menu {
+    height: 200svh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .stick-under-menu > .level {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+  }
+
+  .scroll-deck > .burger-screen {
+    margin-top: -100svh;
+  }
+}
+
 /* horizontální snap dráha */
 .scroll-row {
   position: relative;

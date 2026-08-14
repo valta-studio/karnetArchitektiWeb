@@ -227,28 +227,41 @@ function observeLevels(): void {
     });
   });
 
+  const setActive = (target: HTMLElement): void => {
+    const id = target.dataset.level ?? '';
+    for (const link of navLinks) {
+      const isActive = link.dataset.navLink === id;
+      link.classList.toggle('is-active', isActive);
+      if (isActive) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+    }
+    const index = allLevels.indexOf(target);
+    syncDots(levelDots, index);
+    const hash = deepLinkIds.has(id) ? `#${id}` : '';
+    if (location.hash !== hash) {
+      history.replaceState(null, '', hash || location.pathname);
+    }
+  };
+
   const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
         const target = entry.target as HTMLElement;
+        if (!entry.isIntersecting) {
+          // návrat z menu úrovně (desktop): úroveň pod ní je sticky a
+          // z viewportu neodchází, takže žádný vstupní záznam nepřijde —
+          // aktivní úroveň se dopočítá z pozice ve viewportu
+          if (target.dataset.level === 'menu') {
+            const active = allLevels[activeLevelIndex()];
+            if (active) setActive(active);
+          }
+          continue;
+        }
         // menu overlay na mobilu: fixed přes celý viewport, takže „protíná"
         // i zavřený (visibility geometrii nemění) — do snap toku nepatří,
         // aktivní úroveň (podtržení, tečky, hash) zůstává ta pod ním
         if (getComputedStyle(target).position === 'fixed') continue;
-        const id = target.dataset.level ?? '';
-        for (const link of navLinks) {
-          const isActive = link.dataset.navLink === id;
-          link.classList.toggle('is-active', isActive);
-          if (isActive) link.setAttribute('aria-current', 'true');
-          else link.removeAttribute('aria-current');
-        }
-        const index = allLevels.indexOf(target);
-        syncDots(levelDots, index);
-        const hash = deepLinkIds.has(id) ? `#${id}` : '';
-        if (location.hash !== hash) {
-          history.replaceState(null, '', hash || location.pathname);
-        }
+        setActive(target);
       }
     },
     { threshold: 0.5 }
@@ -451,7 +464,11 @@ function initColumnSnap(): void {
 function activeLevelIndex(): number {
   const all = levels();
   const mid = window.innerHeight / 2;
-  for (let i = 0; i < all.length; i += 1) {
+  // odzadu: sticky úroveň pod menu překrývá střed viewportu i tehdy,
+  // když už přes ni menu najelo — vyhrává pozdější úroveň v DOM.
+  // Fixed menu overlay (mobil) střed překrývá vždy, do toku nepatří.
+  for (let i = all.length - 1; i >= 0; i -= 1) {
+    if (getComputedStyle(all[i]).position === 'fixed') continue;
     const rect = all[i].getBoundingClientRect();
     if (rect.top <= mid && rect.bottom > mid) return i;
   }
@@ -469,6 +486,12 @@ let jumpToken = 0;
  * skokem na cíl. Zásah uživatele (touch, kolečko) skok okamžitě pouští.
  */
 export function scrollToTarget(target: HTMLElement): void {
+  // sticky úroveň pod menu (desktop): přilnutá je „vidět" pořád, takže
+  // scrollIntoView by nikam nejel — cílem je její statický slot
+  if (getComputedStyle(target).position === 'sticky' && target.parentElement) {
+    target = target.parentElement;
+  }
+
   if (reducedMotion.matches) {
     target.scrollIntoView();
     return;
