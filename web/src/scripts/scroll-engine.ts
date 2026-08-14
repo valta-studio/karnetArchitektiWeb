@@ -57,6 +57,16 @@ function levels(): HTMLElement[] {
   return Array.from(document.querySelectorAll<HTMLElement>('.level[data-level]'));
 }
 
+/** Svislý scroller — vnitřní kontejner, ne kořenový dokument (viz scroll.css). */
+function deck(): HTMLElement {
+  return document.querySelector<HTMLElement>('.scroll-deck') ?? document.documentElement;
+}
+
+/** scrollTop decku, který dostane vršek prvku na vršek viewportu. */
+function levelTopInDeck(el: HTMLElement, scroller: HTMLElement): number {
+  return el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+}
+
 /**
  * Aktivace scroll snapu až po načtení stránky. iOS Safari s aktivním
  * `y mandatory` doresolvuje snap během načítání (po layoutu obrázků) a umí
@@ -108,6 +118,7 @@ function levels(): HTMLElement[] {
  */
 function initSnapActivation(): void {
   const html = document.documentElement;
+  const scroller = deck();
 
   const arm = (navType: string): void => {
     if (!html.classList.contains('snap-pending')) return;
@@ -133,9 +144,9 @@ function initSnapActivation(): void {
 
     const toTarget = () => {
       if (!holdTarget || interacted) return;
-      const top = holdTarget === 'top' ? 0 : holdTarget.offsetTop;
-      if (Math.abs(window.scrollY - top) > 1) {
-        window.scrollTo({ top, left: 0, behavior: 'instant' });
+      const top = holdTarget === 'top' ? 0 : levelTopInDeck(holdTarget, scroller);
+      if (Math.abs(scroller.scrollTop - top) > 1) {
+        scroller.scrollTo({ top, left: 0, behavior: 'instant' });
       }
       // dráhy se srážejí na začátek jen u startu od vršku — při návratu na
       // úroveň si prohlížeč smí obnovit vodorovnou pozici (portfolio pás)
@@ -264,7 +275,9 @@ function observeLevels(): void {
         setActive(target);
       }
     },
-    { threshold: 0.5 }
+    // root = deck (svislý scroller), ne viewport: intersekce se počítá
+    // proti scrollovanému kontejneru
+    { root: deck(), threshold: 0.5 }
   );
 
   for (const level of allLevels) observer.observe(level);
@@ -499,11 +512,12 @@ export function scrollToTarget(target: HTMLElement): void {
 
   const token = ++jumpToken;
   const html = document.documentElement;
+  const scroller = deck();
   html.classList.add('is-jumping');
   target.scrollIntoView({ behavior: 'smooth' });
 
   const started = performance.now();
-  let lastY = window.scrollY;
+  let lastY = scroller.scrollTop;
   let everMoved = false;
   let stillFrames = 0;
   let aborted = false;
@@ -522,7 +536,7 @@ export function scrollToTarget(target: HTMLElement): void {
       cleanup(); // převzal to novější skok
       return;
     }
-    const y = window.scrollY;
+    const y = scroller.scrollTop;
     if (y !== lastY) everMoved = true;
     stillFrames = y === lastY ? stillFrames + 1 : 0;
     lastY = y;

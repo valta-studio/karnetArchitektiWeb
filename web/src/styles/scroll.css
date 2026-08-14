@@ -4,23 +4,35 @@
    + overscroll-behavior-x: contain (iOS Safari — vodorovný swipe nesmí
    protéct do historie, svislý musí projít na root scroller). */
 
-html {
+/* Vertikální scroller je vnitřní kontejner .scroll-deck, NE kořenový
+   dokument. Důvod: iOS Safari schovává/zvětšuje spodní toolbar jen při
+   scrollu kořenového dokumentu — když scrolluje vnitřní element, toolbar
+   zůstává stabilní. html i body proto stojí (100svh, overflow: hidden)
+   a veškerý svislý posun bere .scroll-deck. */
+html,
+body {
+  height: 100svh;
+  overflow: hidden;
+}
+
+.scroll-deck {
+  height: 100svh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
   scroll-snap-type: y mandatory;
   /* žádný rubber-band na krajích: gumový přehup nad první / pod poslední
      úrovní by po odpružení nechal mandatory snap chytit sousední úroveň
      (iOS Safari) — swipe mimo obsah teď na úrovni prostě zůstane stát */
   overscroll-behavior-y: none;
-}
-
-/* Chrome/Android čte overscroll-behavior root scrolleru z <body> */
-body {
-  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* programový skok mezi úrovněmi (scroll-engine.ts): mandatory snap se
    scroll-snap-stop: always umí plynulý scrollIntoView na mobilech přerušit
-   a vrátit zpět — po dobu skoku se snap vypíná, po ustálení se vrací */
-html.is-jumping {
+   a vrátit zpět — po dobu skoku se snap vypíná, po ustálení se vrací.
+   Třída je na <html> (mění ji JS), snap ale sedí na .scroll-deck */
+html.is-jumping .scroll-deck {
   scroll-snap-type: none;
 }
 
@@ -30,20 +42,20 @@ html.is-jumping {
    prvním vykreslením, odebírá ji scroll-engine.ts — po window.load u reloadu
    a back/forward bez kotvy, jinak až při první interakci uživatele (Safari
    umí přenesený scroll offset předchozí stránky aplikovat i po window.load);
-   do té doby drží stránku na vršku, resp. na úrovni z kotvy v hashi (návrat
+   do té doby drží deck na vršku, resp. na úrovni z kotvy v hashi (návrat
    z karty projektu → #portfolio), takže se snap aktivuje na platném snap
-   bodě. Platí pro obě osy — vertikální root scroller i horizontální dráhy. */
-html.snap-pending,
+   bodě. Platí pro obě osy — vertikální deck scroller i horizontální dráhy. */
+html.snap-pending .scroll-deck,
 html.snap-pending .scroll-row {
   scroll-snap-type: none;
 }
 
-html:focus-within {
+html:focus-within .scroll-deck {
   scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html:focus-within {
+  html:focus-within .scroll-deck {
     scroll-behavior: auto;
   }
 }

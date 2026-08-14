@@ -1,6 +1,7 @@
 ---
-// Vertikální snap kontejner. Snap samotný je na <html> (scroll.css),
-// deck je sémantický obal úrovní.
+// Vertikální snap scroller. Scroll i snap sedí na tomto kontejneru
+// (scroll.css), ne na kořenovém dokumentu — kvůli stabilnímu toolbaru
+// v iOS Safari (html/body stojí, overflow: hidden).
 ---
 
 <main class="scroll-deck">
