@@ -83,8 +83,11 @@ export default defineType({
       name: 'drawings',
       title: 'Výkresy (úroveň 3 karty)',
       type: 'array',
-      of: [{ type: 'image' }],
-      description: 'Pohledy a půdorysy — ideálně SVG nebo komprimované PNG.',
+      // hotspot: true zapíná ve Studiu i ořez (crop) — web ho respektuje
+      // (urlFor + dimensionsFor v web/src/lib/image.ts)
+      of: [{ type: 'image', options: { hotspot: true } }],
+      description:
+        'Pohledy a půdorysy — ideálně SVG nebo komprimované PNG. Ořez: otevřít výkres → ikona ořezu.',
     }),
     defineField({
       name: 'seo',
