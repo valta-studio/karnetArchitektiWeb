@@ -63,6 +63,9 @@ const { siteName } = Astro.props;
   .burger {
     --burger-line: 5px;
     --burger-gap: 4px;
+    /* cyklus začíná rovnou plně vytočenou hvězdičkou (35 % z 8 s) —
+       po načtení je první vidět hvězdička, ne čárky */
+    --burger-start: -2.8s;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -78,7 +81,7 @@ const { siteName } = Astro.props;
     transition:
       transform var(--duration) var(--ease),
       opacity var(--duration) var(--ease);
-    animation: burger-lines 8s var(--ease) infinite;
+    animation: burger-lines 8s var(--ease) var(--burger-start) infinite;
   }
 
   .burger-star {
@@ -91,20 +94,20 @@ const { siteName } = Astro.props;
     fill: currentColor;
     opacity: 0;
     pointer-events: none;
-    animation: burger-star 8s var(--ease) infinite;
+    animation: burger-star 8s var(--ease) var(--burger-start) infinite;
   }
 
-  /* Interval: ~4.5 s burger → čárky se stáhnou do středu a vytočí se
-     hvězdička → ~2.5 s hvězdička → zpět. Čárky i hvězdička běží na
+  /* Interval (8 s): ~2 s burger → čárky se stáhnou do středu a vytočí
+     se hvězdička → ~4.5 s hvězdička → zpět. Čárky i hvězdička běží na
      stejném cyklu, takže se prolnou. */
   @keyframes burger-lines {
     0%,
-    55%,
+    26%,
     100% {
       transform: scaleX(1);
     }
 
-    62%,
+    33%,
     92% {
       transform: scaleX(0);
     }
@@ -112,13 +115,13 @@ const { siteName } = Astro.props;
 
   @keyframes burger-star {
     0%,
-    56%,
+    27%,
     100% {
       opacity: 0;
       transform: scale(0.4) rotate(-90deg);
     }
 
-    64%,
+    35%,
     90% {
       opacity: 1;
       transform: scale(1) rotate(0deg);
