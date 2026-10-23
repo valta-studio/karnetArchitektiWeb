@@ -58,10 +58,10 @@ const { siteName } = Astro.props;
   }
 
   /* Tloušťka čárky = tah hvězdičky (glyf: 145–152 z 920 jednotek šířky
-     → při 44px ≈ 7px). Tři čárky + dvě mezery ≈ výška hvězdičky (33.5px). */
+     → při 32px ≈ 5px). Tři čárky + dvě mezery ≈ výška hvězdičky (24.3px). */
   .burger {
-    --burger-line: 7px;
-    --burger-gap: 6px;
+    --burger-line: 5px;
+    --burger-gap: 4px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -84,9 +84,9 @@ const { siteName } = Astro.props;
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 44px;
+    width: 32px;
     max-width: none; /* global.css omezuje svg na šířku rodiče (30px burger) */
-    margin: -16.75px 0 0 -22px; /* 44 × 700/920 → výška 33.5px, na střed */
+    margin: -12.17px 0 0 -16px; /* 32 × 700/920 → výška 24.3px, na střed */
     fill: currentColor;
     opacity: 0;
     pointer-events: none;

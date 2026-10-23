@@ -18,7 +18,7 @@ const photos = project.photos ?? [];
   <ScrollRow id="photo-row" loop>
     {
       photos.map((photo, index) => (
-        <div class="photo-panel">
+        <div class="photo-panel" data-cover={index === 0 || undefined}>
           <SanityImage
             image={photo}
             alt={`${project.title} — fotografie ${index + 1}`}
@@ -39,7 +39,8 @@ const photos = project.photos ?? [];
   .photo-row :global(.scroll-row) {
     min-height: 100svh;
     align-items: center;
-    gap: clamp(3rem, 8vw, 9rem);
+    /* stejná mezera jako mezi textovými panely (TextRow) */
+    gap: var(--page-pad);
     padding-inline: 35vw;
   }
 
@@ -48,6 +49,29 @@ const photos = project.photos ?? [];
     height: 72dvh;
     display: flex;
     align-items: center;
+    transition: opacity 300ms var(--ease);
+  }
+
+  /* jako portfolio: vzdálenost od aktivní fotky (data-row-distance,
+     scroll-engine) — okolní fotky blednou */
+  .photo-panel[data-row-distance='1'] {
+    opacity: 0.4;
+  }
+
+  .photo-panel[data-row-distance='2'] {
+    opacity: 0.3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .photo-panel {
+      transition: none;
+    }
+  }
+
+  /* cíl přechodu z portfolia (page-transition.ts) — jen originál, klony
+     smyčky jméno nést nesmí (duplicitní jméno přechod zruší) */
+  .photo-panel[data-cover]:not([data-loop-clone]) :global(.photo-img) {
+    view-transition-name: project-cover;
   }
 
   .photo-row :global(.photo-img) {
@@ -58,7 +82,6 @@ const photos = project.photos ?? [];
 
   @media (max-width: 767px) {
     .photo-row :global(.scroll-row) {
-      gap: var(--space-md);
       padding-inline: 9vw;
     }
 

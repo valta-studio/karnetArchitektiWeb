@@ -55,7 +55,8 @@ const drawings = project.drawings ?? [];
   .drawings-row :global(.scroll-row) {
     height: 100%;
     align-items: center;
-    gap: clamp(3rem, 9vw, 11rem);
+    /* stejná mezera jako mezi textovými panely (TextRow) */
+    gap: var(--page-pad);
     /* jako u fotek: dost velké odsazení, aby se každý výkres mohl
        magneticky vystředit (snap-align: center jinak nemá kam dojet) */
     padding-inline: 35vw;
@@ -65,6 +66,23 @@ const drawings = project.drawings ?? [];
     scroll-snap-align: center;
     display: flex;
     align-items: center;
+    transition: opacity 300ms var(--ease);
+  }
+
+  /* jako portfolio: vzdálenost od aktivního výkresu (data-row-distance,
+     scroll-engine) — okolní výkresy blednou */
+  .drawing-panel[data-row-distance='1'] {
+    opacity: 0.4;
+  }
+
+  .drawing-panel[data-row-distance='2'] {
+    opacity: 0.3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .drawing-panel {
+      transition: none;
+    }
   }
 
   .drawings-row :global(.drawing-img) {
@@ -80,7 +98,6 @@ const drawings = project.drawings ?? [];
     }
 
     .drawings-row :global(.scroll-row) {
-      gap: var(--space-md);
       padding-inline: 9vw;
     }
 

@@ -57,4 +57,167 @@ export function initMenu(): void {
       scrollToTarget(target);
     });
   }
+
+  initMenuAtEnd();
+}
+
+/**
+ * Menu posunem na konci stránky (.scroll-deck[data-menu-at-end], hlavní
+ * stránka i karta projektu): další posun dolů na usazené poslední úrovni
+ * menu otevře, posun nahoru s otevřeným menu ho zavře. Počítá se jen NOVÉ gesto —
+ * doběh setrvačnosti scrollu, který na konec teprve dojel, menu neotevře.
+ * Zbytek gesta, které menu zavřelo, se spolkne (jinak by stránka zároveň
+ * odjela o úroveň výš). Scroll sám se neovládá, jen se čte pozice a gesto.
+ */
+function initMenuAtEnd(): void {
+  const deck = document.querySelector<HTMLElement>('.scroll-deck[data-menu-at-end]');
+  if (!deck) return;
+  const html = document.documentElement;
+  const screen = document.querySelector<HTMLElement>('[data-level="menu"]');
+
+  const THRESHOLD = 60; // px tahu / součtu kolečka, než se menu otevře/zavře
+  const GESTURE_GAP = 250; // ms bez kolečka = další události jsou nové gesto
+  const SETTLE = 250; // ms bez scrollu decku = usazeno
+  // Jak dlouho po zavření se polyká zbytek zavíracího gesta. Krátce:
+  // setrvačnost trackpadu posílá události i sekundy a nové gesto do ní
+  // navazuje bez pauzy — zrušená (preventDefault) první událost gesta
+  // by v Chrome zablokovala celé další gesto („scroll nefunguje, dokud
+  // se neklikne").
+  const SWALLOW_MAX = 350;
+
+  let lastDeckScroll = 0;
+  deck.addEventListener('scroll', () => (lastDeckScroll = performance.now()), {
+    passive: true,
+  });
+
+  const isOpen = () => html.classList.contains(MENU_OPEN);
+  const atEnd = () => deck.scrollTop + deck.clientHeight >= deck.scrollHeight - 2;
+  const settledAtEnd = () =>
+    atEnd() &&
+    performance.now() - lastDeckScroll > SETTLE &&
+    !isOpen() &&
+    !html.classList.contains('is-jumping');
+  // zavírá se až s menu odscrollovaným na vršek (malé displeje — obsah
+  // menu se nevejde a posouvá se sám)
+  const menuAtTop = () => !screen || screen.scrollTop <= 0;
+
+  // kolečko / trackpad. Nové gesto se pozná i bez pauzy: setrvačnost
+  // trackpadu posílá události bez přestávky a jejich velikost jen klesá —
+  // nový tah ji přeruší a velikost znovu ROSTE; obrat směru je nové gesto
+  // vždy. Samotná pauza by nestačila: další tah navazuje na doběh
+  // předchozího a menu by šlo otevřít až po kliknutí (= pauze).
+  let lastWheel = 0;
+  let lastDelta = 0;
+  let mode: 'open' | 'close' | 'swallow' | null = null;
+  let wheelSum = 0;
+  let closedAt = 0;
+  window.addEventListener(
+    'wheel',
+    (event) => {
+      const now = performance.now();
+      const dy = event.deltaY;
+      // vodorovné gesto (dráha) se nepočítá
+      if (Math.abs(dy) <= Math.abs(event.deltaX)) {
+        lastWheel = now;
+        return;
+      }
+      const pause = now - lastWheel > GESTURE_GAP;
+      const flip = Math.sign(dy) !== Math.sign(lastDelta);
+      const rise = !flip && Math.abs(dy) > Math.abs(lastDelta) + 2;
+      lastWheel = now;
+      lastDelta = dy;
+
+      if (mode === 'swallow') {
+        if (now - closedAt <= SWALLOW_MAX && !flip) {
+          event.preventDefault();
+          return;
+        }
+        mode = null;
+      }
+      if (pause || flip) mode = null;
+      if (!mode && (pause || flip || rise)) {
+        wheelSum = 0;
+        if (isOpen()) mode = dy < 0 && menuAtTop() ? 'close' : null;
+        else mode = dy > 0 && settledAtEnd() ? 'open' : null;
+      }
+      if (!mode) return;
+
+      wheelSum += dy;
+      if (mode === 'open' && wheelSum > THRESHOLD) {
+        mode = null;
+        setMenuOpen(true);
+      } else if (mode === 'close' && wheelSum < -THRESHOLD) {
+        mode = 'swallow';
+        closedAt = now;
+        setMenuOpen(false);
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  // dotyk: tah prstem nahoru (= posun dolů) na usazeném konci otevře,
+  // tah dolů (= posun nahoru) s otevřeným menu zavře
+  let touchStart: { x: number; y: number; mode: 'open' | 'close' } | null = null;
+  let swallowTouch = false;
+  window.addEventListener(
+    'touchstart',
+    (event) => {
+      const touch = event.touches[0];
+      swallowTouch = false;
+      touchStart = null;
+      if (!touch) return;
+      if (isOpen()) {
+        if (menuAtTop()) touchStart = { x: touch.clientX, y: touch.clientY, mode: 'close' };
+      } else if (atEnd() && !html.classList.contains('is-jumping')) {
+        // dotek je vždy nové gesto — stačí stát na konci (i během doběhu)
+        touchStart = { x: touch.clientX, y: touch.clientY, mode: 'open' };
+      }
+    },
+    { passive: true }
+  );
+  window.addEventListener(
+    'touchmove',
+    (event) => {
+      if (swallowTouch) {
+        event.preventDefault();
+        return;
+      }
+      const touch = event.touches[0];
+      if (!touchStart || !touch) return;
+      const dy = touchStart.y - touch.clientY;
+      const dx = Math.abs(touchStart.x - touch.clientX);
+      if (touchStart.mode === 'open' && dy > THRESHOLD && dy > dx) {
+        touchStart = null;
+        setMenuOpen(true);
+      } else if (touchStart.mode === 'close' && -dy > THRESHOLD && -dy > dx) {
+        touchStart = null;
+        swallowTouch = true;
+        setMenuOpen(false);
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  // klávesnice: šipka dolů / PageDown na poslední úrovni otevře, šipka
+  // nahoru / PageUp s otevřeným menu zavře. Capture — dřív než klávesová
+  // navigace scroll-engine; preventDefault ji pak vynechá.
+  window.addEventListener(
+    'keydown',
+    (event) => {
+      const target = event.target as HTMLElement | null;
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+      const down = event.key === 'ArrowDown' || event.key === 'PageDown';
+      const up = event.key === 'ArrowUp' || event.key === 'PageUp';
+      if (down && settledAtEnd()) {
+        event.preventDefault();
+        setMenuOpen(true);
+      } else if (up && isOpen() && menuAtTop()) {
+        event.preventDefault();
+        setMenuOpen(false);
+      }
+    },
+    { capture: true }
+  );
 }

@@ -30,7 +30,7 @@ const [intro, atelier, portfolio, contact, settings] = await Promise.all([
   <Header siteName={settings.siteName} />
   <LevelDots count={4} />
 
-  <ScrollDeck>
+  <ScrollDeck menuAtEnd>
     <IntroLevelComponent data={intro} siteName={settings.siteName} />
     <AtelierLevelComponent data={atelier} intro={intro} />
     <PortfolioLevelComponent data={portfolio} />

@@ -31,7 +31,7 @@ const [contact, settings] = await Promise.all([getContact(), getSeoSettings()]);
   <Header siteName={settings.siteName} />
   <LevelDots count={project.drawings?.length ? 3 : 2} />
 
-  <ScrollDeck>
+  <ScrollDeck menuAtEnd>
     <PhotoRow project={project} />
     <TextRow project={project} />
     {project.drawings?.length ? <DrawingsRow project={project} /> : null}

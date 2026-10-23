@@ -31,7 +31,8 @@ Nikdy necommituj `.env` ani tokeny.
    scrollu.
    Jediná výjimka: smyčka drah (`data-loop`, `initLoopRows`) — po
    doběhnutí scrollu JS okamžitě přeskočí z klonu na identický originál;
-   samotný pohyb zůstává nativnímu snapu. Textová dráha karty se necyklí.
+   samotný pohyb zůstává nativnímu snapu. Textová dráha karty jsou panely
+   po odstavcích; příliš dlouhé odstavce dělí `initTextPagination`.
 2. Na horizontálních drahách vždy `touch-action: pan-x pan-y` a
    `overscroll-behavior-x: contain`. Samotné `pan-x` NEPOUŽÍVEJ — dráha
    vyplňuje celou úroveň a zablokovala by vertikální swipe mezi úrovněmi;

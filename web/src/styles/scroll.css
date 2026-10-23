@@ -117,20 +117,10 @@ html:focus-within .scroll-deck {
   min-height: 100svh;
 }
 
-/* neviditelné snap cíle pro CSS multicol sloupce (vkládá scroll-engine.ts) —
-   samotný posun zůstává nativnímu snapu, JS jen po layoutu změří rozteč */
-.snap-marker {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  pointer-events: none;
-  scroll-snap-align: start;
-}
-
 /* tečkový indikátor pozice na horizontální dráze (dole uprostřed).
-   Globálně, ne scoped v ProgressDots.astro: tečky textové dráhy
-   vkládá scroll-engine.ts dynamicky (počet sloupců zná až po layoutu) a
-   scoped styl by na injektované elementy nedosáhl. */
+   Globálně, ne scoped v ProgressDots.astro: tečky vkládá scroll-engine.ts
+   dynamicky (počet vykreslených panelů, stránkování textu zná až po
+   layoutu) a scoped styl by na injektované elementy nedosáhl. */
 .progress-dots {
   position: absolute;
   bottom: var(--space-lg);

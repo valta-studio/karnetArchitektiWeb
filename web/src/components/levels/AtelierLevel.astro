@@ -1,7 +1,8 @@
 ---
 // Úroveň 2 — ateliér (dle náhledů): texty ve dvou sloupcích přes zesvětlené
-// úvodní médium, ocenění jako prozaické odstavce, koláž publikací,
-// závěrem založení + lidé. Panely jsou užší než viewport — další „nakukuje".
+// úvodní médium, ocenění jako prozaické odstavce, závěrem založení + lidé.
+// Panely jsou užší než viewport — další „nakukuje". Publikace (pole
+// `publications` ve Sanity) se na webu nezobrazují.
 import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
 import ScrollRow from '../ScrollRow.astro';
@@ -28,17 +29,15 @@ const backdropPosterUrl = intro?.poster
   : undefined;
 
 const introHtml = portableTextToHtml(data.intro);
-const publications = data.publications ?? [];
-const publicationPages = Array.from(
-  { length: Math.ceil(publications.length / 2) },
-  (_, index) => publications.slice(index * 2, index * 2 + 2)
-);
 const hasAwards = Boolean(data.awardsIntro || data.awards?.length);
 
+// Na mobilu se založení a lidé dělí do dvou panelů (jen když jsou obojí).
+const splitPeople = Boolean(data.founding && data.people?.length);
+
+// výchozí počet teček (desktop); na mobilu je scroll-engine přepočítá
 const panelCount =
   (introHtml ? 1 : 0) +
   (hasAwards ? 1 : 0) +
-  publicationPages.length +
   (data.founding || data.people?.length ? 1 : 0);
 ---
 
@@ -89,25 +88,8 @@ const panelCount =
     }
 
     {
-      publicationPages.map((page) => (
-        <div class="atelier-panel atelier-publications">
-          {page.map((publication) => (
-            <div class="atelier-publication">
-              <SanityImage
-                image={publication}
-                alt={publication.caption ?? 'Publikace'}
-                sizes="(min-width: 768px) 28vw, 80vw"
-                maxWidth={1080}
-              />
-            </div>
-          ))}
-        </div>
-      ))
-    }
-
-    {
       data.founding || data.people?.length ? (
-        <div class="atelier-panel atelier-text-panel">
+        <div class:list={['atelier-panel atelier-text-panel', { 'atelier-desktop-only': splitPeople }]}>
           <div class="atelier-people">
             {data.founding && <p>{data.founding}</p>}
             {data.people?.length ? (
@@ -123,6 +105,32 @@ const panelCount =
           </div>
         </div>
       ) : null
+    }
+
+    {
+      /* mobil: založení a lidé jako dva samostatné panely (na desktopu
+         skryté — scroll-engine počítá tečky jen z vykreslených panelů) */
+      splitPeople && (
+        <>
+          <div class="atelier-panel atelier-text-panel atelier-mobile-only">
+            <div class="atelier-people">
+              <p>{data.founding}</p>
+            </div>
+          </div>
+          <div class="atelier-panel atelier-text-panel atelier-mobile-only">
+            <div class="atelier-people">
+              <ul>
+                {data.people!.map((person) => (
+                  <li>
+                    {person.degree && <span class="degree">{person.degree} </span>}
+                    {person.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </>
+      )
     }
   </ScrollRow>
 
@@ -218,30 +226,36 @@ const panelCount =
     min-height: 100svh;
     align-items: center;
     gap: 5dvh;
-    padding-inline: var(--page-pad);
-    scroll-padding-inline-start: var(--page-pad);
+    /* jako portfolio: aktivní panel na středu obrazovky (center-snap);
+       půl viewportu na začátku dovolí dosnapovat i krajnímu panelu */
+    padding-left: 50vw;
   }
 
-  /* Desktop jako portfolio: obsah začíná na 35vw (prázdno vlevo) a aktivní
-     panel se na tuto osu i vrací — levý padding drží prostor, scroll-padding
-     dělá ze scrollLeft 0 první snap bod. */
-  @media (min-width: 768px) {
-    .atelier :global(.scroll-row) {
-      padding-inline: 35vw;
-      scroll-padding-inline-start: 35vw;
-    }
-  }
-
-  /* Skutečný flex spacer dovolí poslednímu panelu dosnapovat pod logo.
-     Funguje spolehlivěji než koncový padding overflow flexboxu v Safari. */
+  /* Konec: skutečný flex spacer místo padding-right — koncový padding
+     overflow flexboxu Safari nespolehlivě započítá. */
   .atelier :global(.scroll-row)::after {
     content: '';
-    flex: 0 0 calc(100vw - var(--text-step) - var(--page-pad));
+    flex: 0 0 50vw;
   }
 
   .atelier-panel {
-    scroll-snap-align: start;
+    scroll-snap-align: center;
     flex: none;
+    transition:
+      opacity 300ms var(--ease),
+      color 300ms var(--ease);
+  }
+
+  /* Jako portfolio: vzdálenost od aktivního panelu (data-row-distance,
+     scroll-engine) — sousední panely mají šedý text a lehce blednou,
+     vzdálenější blednou výrazně. */
+  .atelier-panel[data-row-distance='1'] {
+    opacity: 0.3;
+    color: var(--color-muted);
+  }
+
+  .atelier-panel[data-row-distance='2'] {
+    opacity: 0.3;
   }
 
   .atelier-text-panel {
@@ -250,6 +264,21 @@ const panelCount =
     display: flex;
     justify-content: flex-start;
     width: var(--text-column-width);
+  }
+
+  /* varianty panelu založení + lidé: desktop jeden, mobil dva */
+  .atelier-panel.atelier-mobile-only {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .atelier-panel.atelier-desktop-only {
+      display: none;
+    }
+
+    .atelier-panel.atelier-mobile-only {
+      display: flex;
+    }
   }
 
   .atelier-intro,
@@ -271,30 +300,6 @@ const panelCount =
     margin-top: 1.2em;
   }
 
-  /* Publikace jsou rozdělené do samostatných snap panelů po dvou
-     fotografiích. Každý vodorovný krok tak ukáže další dvojici. */
-  .atelier-publications {
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: repeat(2, auto);
-    align-content: center;
-    justify-content: start;
-    column-gap: clamp(0.75rem, 1.75vw, 2rem);
-    row-gap: clamp(0.75rem, 2vw, 2rem);
-  }
-
-  .atelier-publication {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .atelier-publication :global(img) {
-    width: auto;
-    max-width: min(34vw, 620px);
-    max-height: 34dvh;
-  }
-
   .degree {
     color: var(--color-muted);
   }
@@ -304,10 +309,11 @@ const panelCount =
       width: 82vw;
       height: 66svh;
     }
+  }
 
-    .atelier-publication :global(img) {
-      max-width: 78vw;
-      max-height: 38dvh;
+  @media (prefers-reduced-motion: reduce) {
+    .atelier-panel {
+      transition: none;
     }
   }
 </style>

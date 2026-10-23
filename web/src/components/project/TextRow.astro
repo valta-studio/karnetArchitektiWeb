@@ -1,7 +1,9 @@
 ---
-// Karta projektu — úroveň 2 (dle náhledů): název + metadata + perex
-// v prvním sloupci, texty tečou do dalších sloupců a pokračují
-// horizontálním posunem (CSS multicol s pevnou výškou).
+// Karta projektu — úroveň 2: název + metadata + perex v prvním panelu,
+// každý textový odstavec ve vlastním panelu (jako ateliér) — obsah panelu
+// je svisle na středu. Odstavec delší, než se vejde na výšku, rozdělí
+// scroll-engine (paginateText) do více panelů podobné výšky.
+import ProgressDots from '../ProgressDots.astro';
 import ScrollRow from '../ScrollRow.astro';
 import type { Project } from '../../types/sanity';
 
@@ -14,8 +16,8 @@ const columns = project.columns ?? [];
 ---
 
 <section class="level text-row" data-level="text" id="text">
-  <ScrollRow id="text-row" class="text-scroll">
-    <div class="text-columns">
+  <ScrollRow id="text-row" class="text-scroll" loop>
+    <div class="text-panel">
       <div class="text-lead">
         <h1 class="project-title">{project.title}</h1>
 
@@ -34,58 +36,66 @@ const columns = project.columns ?? [];
 
         {project.perex && <p class="project-perex pre-line">{project.perex}</p>}
       </div>
-
-      {columns.map((column) => <p class="text-column pre-line">{column}</p>)}
     </div>
+
+    {
+      columns.map((column) => (
+        <div class="text-panel">
+          <p class="text-column pre-line" data-paginate>
+            {column}
+          </p>
+        </div>
+      ))
+    }
   </ScrollRow>
 
-  {/* tečky se plní v scroll-engine.ts (initColumnSnap) — jedna na snap sloupec */}
-  <div
-    class="progress-dots"
-    data-dots-for="text-row"
-    role="group"
-    aria-label="Posun v textu"
-  ></div>
+  <ProgressDots rowId="text-row" count={columns.length + 1} />
 </section>
 
 <style>
+  /* jako ateliér: aktivní panel na středu obrazovky (center-snap);
+     půl viewportu na začátku dovolí dosnapovat i krajnímu panelu */
   .text-row :global(.text-scroll) {
     min-height: 100svh;
     align-items: center;
-    padding-inline: var(--page-pad);
-    /* sloupce se magneticky zastavují na odsazení stránky */
-    scroll-padding-inline-start: var(--page-pad);
-  }
-
-  /* Desktop jako atelier: sloupce začínají a snapují na ose 35vw. */
-  @media (min-width: 768px) {
-    .text-row :global(.text-scroll) {
-      padding-inline: 35vw;
-      scroll-padding-inline-start: 35vw;
-    }
-  }
-
-  .text-columns {
-    /* snap cíle jsou vložené markery sloupců (scroll-engine.ts) — samotný
-       multicol blok by jako obří snap area kolidoval s jejich pozicemi */
-    scroll-snap-align: none;
-    /* svh, ne dvh: výška řídí tok multicol sloupců — dvh se mění se
-       schováním address baru při svislém scrollu, text by se přeskládal
-       a vodorovná pozice čtení (scrollLeft + markery) by se ztratila */
-    height: 66svh;
-    column-width: var(--text-column-width);
     column-gap: var(--page-pad);
-    column-fill: auto;
+    padding-left: 50vw;
+  }
+
+  /* konec: skutečný flex spacer (koncový padding overflow flexboxu
+     Safari nespolehlivě započítá) */
+  .text-row :global(.text-scroll)::after {
+    content: '';
+    flex: 0 0 50vw;
+  }
+
+  /* panel = sloupec textu, obsah svisle na středu (jako ateliér) */
+  .text-panel {
+    display: flex;
+    align-items: center;
+    width: var(--text-column-width);
+    height: 100svh;
+    scroll-snap-align: center;
     font-size: var(--text-body);
     line-height: var(--leading-snug);
+    transition: opacity 300ms var(--ease);
   }
 
-  .text-lead {
-    break-inside: avoid;
+  /* jako portfolio: vzdálenost od aktivního panelu (data-row-distance,
+     scroll-engine) — okolní panely blednou */
+  .text-panel[data-row-distance='1'] {
+    opacity: 0.4;
   }
 
+  .text-panel[data-row-distance='2'] {
+    opacity: 0.3;
+  }
+
+  /* strop výšky textu v panelu — delší odstavce stránkuje scroll-engine
+     (svh: výška nesmí skákat se schováním address baru) */
+  .text-lead,
   .text-column {
-    break-before: column;
+    max-height: 66svh;
   }
 
   .project-title {
@@ -103,8 +113,15 @@ const columns = project.columns ?? [];
   }
 
   @media (max-width: 767px) {
-    .text-columns {
-      height: 72svh;
+    .text-lead,
+    .text-column {
+      max-height: 72svh;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .text-panel {
+      transition: none;
     }
   }
 </style>

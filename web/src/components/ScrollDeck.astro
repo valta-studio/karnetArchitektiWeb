@@ -2,8 +2,14 @@
 // Vertikální snap scroller. Scroll i snap sedí na tomto kontejneru
 // (scroll.css), ne na kořenovém dokumentu — kvůli stabilnímu toolbaru
 // v iOS Safari (html/body stojí, overflow: hidden).
+// `menuAtEnd` = další posun dolů na poslední úrovni otevře menu (menu.ts).
+interface Props {
+  menuAtEnd?: boolean;
+}
+
+const { menuAtEnd = false } = Astro.props;
 ---
 
-<main class="scroll-deck">
+<main class="scroll-deck" data-menu-at-end={menuAtEnd || undefined}>
   <slot />
 </main>
