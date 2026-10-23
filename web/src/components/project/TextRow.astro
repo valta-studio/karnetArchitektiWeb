@@ -17,7 +17,7 @@ const columns = project.columns ?? [];
 
 <section class="level text-row" data-level="text" id="text">
   <ScrollRow id="text-row" class="text-scroll" loop>
-    <div class="text-panel">
+    <div class="text-panel row-fade">
       <div class="text-lead">
         <h1 class="project-title">{project.title}</h1>
 
@@ -40,7 +40,7 @@ const columns = project.columns ?? [];
 
     {
       columns.map((column) => (
-        <div class="text-panel">
+        <div class="text-panel row-fade">
           <p class="text-column pre-line" data-paginate>
             {column}
           </p>
@@ -53,13 +53,11 @@ const columns = project.columns ?? [];
 </section>
 
 <style>
-  /* jako ateliér: aktivní panel na středu obrazovky (center-snap);
-     půl viewportu na začátku dovolí dosnapovat i krajnímu panelu */
+  /* jako ateliér: aktivní panel na středu obrazovky (center-snap) */
   .text-row :global(.text-scroll) {
     min-height: 100svh;
     align-items: center;
     column-gap: var(--page-pad);
-    padding-left: 50vw;
   }
 
   /* konec: skutečný flex spacer (koncový padding overflow flexboxu
@@ -74,7 +72,6 @@ const columns = project.columns ?? [];
     display: flex;
     align-items: center;
     width: var(--text-column-width);
-    height: 100svh;
     scroll-snap-align: center;
     font-size: var(--text-body);
     line-height: var(--leading-snug);

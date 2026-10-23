@@ -68,7 +68,7 @@ const panelCount =
   <ScrollRow id="atelier-row" loop>
     {
       introHtml && (
-        <div class="atelier-panel atelier-text-panel">
+        <div class="atelier-panel atelier-text-panel row-fade">
           <div class="atelier-intro" set:html={introHtml} />
         </div>
       )
@@ -76,7 +76,7 @@ const panelCount =
 
     {
       hasAwards && (
-        <div class="atelier-panel atelier-text-panel">
+        <div class="atelier-panel atelier-text-panel row-fade">
           <div class="awards">
             {data.awardsIntro && <p>{data.awardsIntro}</p>}
             {data.awards?.map((award) => (
@@ -89,7 +89,7 @@ const panelCount =
 
     {
       data.founding || data.people?.length ? (
-        <div class:list={['atelier-panel atelier-text-panel', { 'atelier-desktop-only': splitPeople }]}>
+        <div class:list={['atelier-panel atelier-text-panel row-fade', { 'atelier-desktop-only': splitPeople }]}>
           <div class="atelier-people">
             {data.founding && <p>{data.founding}</p>}
             {data.people?.length ? (
@@ -112,12 +112,12 @@ const panelCount =
          skryté — scroll-engine počítá tečky jen z vykreslených panelů) */
       splitPeople && (
         <>
-          <div class="atelier-panel atelier-text-panel atelier-mobile-only">
+          <div class="atelier-panel atelier-text-panel row-fade atelier-mobile-only">
             <div class="atelier-people">
               <p>{data.founding}</p>
             </div>
           </div>
-          <div class="atelier-panel atelier-text-panel atelier-mobile-only">
+          <div class="atelier-panel atelier-text-panel row-fade atelier-mobile-only">
             <div class="atelier-people">
               <ul>
                 {data.people!.map((person) => (
@@ -226,9 +226,6 @@ const panelCount =
     min-height: 100svh;
     align-items: center;
     gap: 5dvh;
-    /* jako portfolio: aktivní panel na středu obrazovky (center-snap);
-       půl viewportu na začátku dovolí dosnapovat i krajnímu panelu */
-    padding-left: 50vw;
   }
 
   /* Konec: skutečný flex spacer místo padding-right — koncový padding
@@ -241,6 +238,8 @@ const panelCount =
   .atelier-panel {
     scroll-snap-align: center;
     flex: none;
+    /* plynulé tlumení (.row-fade): sousední panely jako vzdálenější */
+    --fade-near: 0.3;
     transition:
       opacity 300ms var(--ease),
       color 300ms var(--ease);
@@ -256,6 +255,27 @@ const panelCount =
 
   .atelier-panel[data-row-distance='2'] {
     opacity: 0.3;
+  }
+
+  /* šedý text sousedů plynule podle polohy, jako tlumení (.row-fade);
+     druhá animace vedle row-fade — sdílí její časovou osu i rozsah */
+  @supports (animation-timeline: view()) {
+    .atelier-panel {
+      animation-name: row-fade, atelier-tint;
+    }
+  }
+
+  @keyframes atelier-tint {
+    0%,
+    50%,
+    100% {
+      color: var(--color-text);
+    }
+
+    25%,
+    75% {
+      color: var(--color-muted);
+    }
   }
 
   .atelier-text-panel {

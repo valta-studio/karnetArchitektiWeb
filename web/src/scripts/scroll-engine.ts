@@ -164,6 +164,10 @@ function attachLoopJump(row: HTMLElement): void {
       }
     }
     if (!nearest || nearest.dataset.loopClone === undefined) return;
+    // skáče se jen v klidu na snap pozici — mimo ni gesto ještě běží
+    // (trackpad v Safari: prsty stojí uprostřed tahu, snap přijde až po
+    // zvednutí; skok uprostřed gesta WebKitu rozhodí výběr snap cíle)
+    if (best > 2) return;
     const original = originalOf(nearest);
     if (!original) return;
     const delta = original.offsetLeft - nearest.offsetLeft;
@@ -174,10 +178,18 @@ function attachLoopJump(row: HTMLElement): void {
     // nedekódované (Safari) — skok by na místě klonu problikl prázdným
     // boxem. Skáče se až s hotovými obrázky; co nestihne 2 s, zkusí
     // znovu příští doběhnutí scrollu (klony do té doby vypadají stejně).
+    // Stejně tak se čeká na rozjeté přechody (opacity podle vzdálenosti)
+    // — skok by je utnul a originál by bliknul rovnou na cílovou hodnotu.
     const images = imagesAfterJump(delta);
     for (const img of images) img.loading = 'eager';
+    const transitions = row
+      .getAnimations({ subtree: true })
+      .filter((animation) => animation instanceof CSSTransition);
     await Promise.race([
-      Promise.all(images.map((img) => img.decode().catch(() => undefined))),
+      Promise.all([
+        ...images.map((img) => img.decode().catch(() => undefined)),
+        ...transitions.map((transition) => transition.finished.catch(() => undefined)),
+      ]),
       new Promise((resolve) => setTimeout(resolve, 2000)),
     ]);
     if (token !== jumpToken || touching || Math.abs(row.scrollLeft - from) > 1) return;
@@ -222,6 +234,18 @@ function attachLoopJump(row: HTMLElement): void {
   };
   row.addEventListener('touchend', touchEnd, { passive: true });
   row.addEventListener('touchcancel', touchEnd, { passive: true });
+
+  // kolečko / trackpad = gesto běží: čekající skok zrušit. Bez scrollend
+  // (Safari) se klid počítá i od wheel událostí — setrvačnost trackpadu
+  // je posílá ještě po doběhnutí snapu
+  row.addEventListener(
+    'wheel',
+    () => {
+      jumpToken += 1;
+      if (!('onscrollend' in window)) schedule();
+    },
+    { passive: true }
+  );
 
   if ('onscrollend' in window) {
     row.addEventListener('scrollend', normalize);
@@ -537,6 +561,14 @@ function observeRows(): void {
 
     const refresh = () => {
       rendered = all.filter(isRendered);
+      // průměrná vzdálenost středů sousedních panelů — krok plynulého
+      // tlumení okolí (.row-fade, scroll.css)
+      if (rendered.length > 1) {
+        const center = (panel: HTMLElement) => panel.offsetLeft + panel.offsetWidth / 2;
+        const step =
+          (center(rendered[rendered.length - 1]) - center(rendered[0])) / (rendered.length - 1);
+        row.style.setProperty('--row-step', `${step.toFixed(1)}px`);
+      }
       const nextVisible = panels.filter(isRendered);
       const changed =
         nextVisible.length !== visible.length || nextVisible.some((p, i) => p !== visible[i]);

@@ -28,7 +28,7 @@ const photos = [
   <ScrollRow id="photo-row" loop>
     {
       photos.map((photo, index) => (
-        <div class="photo-panel" data-cover={index === 0 || undefined}>
+        <div class="photo-panel row-fade" data-cover={index === 0 || undefined}>
           <SanityImage
             image={photo}
             alt={`${project.title} — fotografie ${index + 1}`}
@@ -55,7 +55,6 @@ const photos = [
     align-items: center;
     /* stejná mezera jako mezi textovými panely (TextRow) */
     gap: var(--page-pad);
-    padding-inline: 35vw;
   }
 
   .photo-panel {
@@ -115,10 +114,6 @@ const photos = [
   }
 
   @media (max-width: 767px) {
-    .photo-row :global(.scroll-row) {
-      padding-inline: 9vw;
-    }
-
     .photo-panel {
       height: 62dvh;
     }

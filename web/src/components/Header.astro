@@ -38,7 +38,8 @@ const { siteName } = Astro.props;
     inset: 0 0 auto 0;
     z-index: 10;
     display: flex;
-    align-items: flex-start;
+    /* burger svisle na středu loga (na mobilu dvouřádkového) */
+    align-items: center;
     justify-content: space-between;
     padding: var(--space-md) calc(var(--page-pad) - 1.5px) 0;
     color: var(--color-chrome);

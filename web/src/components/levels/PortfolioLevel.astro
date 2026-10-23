@@ -20,7 +20,7 @@ const projects = data.projects ?? [];
     {
       projects.map((project) => (
         <a
-          class="portfolio-item"
+          class="portfolio-item row-fade"
           href={`/portfolio/${project.slug}/`}
           data-astro-prefetch="viewport"
         >
@@ -49,13 +49,11 @@ const projects = data.projects ?? [];
     height: 100%;
     align-items: center;
     gap: 2rem;
-    /* inline padding drží prostor, aby krajní projekty mohly dosnapovat */
-    padding: calc(var(--header-height) + 2dvh) 50vw 6dvh;
   }
 
   /* projekt = snap cíl; center-snap → aktivní projekt ve středu.
-     width: min-content → šířka položky = šířka fotky, delší název se
-     zalomí pod ní (nerozšíří mezery v řadě) */
+     width: min-content → šířka položky = šířka fotky (název ji
+     neovlivní, viz .portfolio-item-title) */
   .portfolio-item {
     display: flex;
     flex-direction: column;
@@ -78,7 +76,17 @@ const projects = data.projects ?? [];
     max-width: none;
   }
 
+  /* Název vždy na jeden řádek a na střed pod fotkou, ale šířku položky
+     neurčuje (mezery v řadě drží fotky): width 0 → do min-content šířky
+     položky nepřispívá, min-width 100 % ho roztáhne na šířku fotky
+     a delší text přesahuje rovnoměrně na obě strany (flex center) —
+     zalomený název by navíc položku zvýšil a fotku posunul výš. */
   .portfolio-item-title {
+    display: flex;
+    justify-content: center;
+    width: 0;
+    min-width: 100%;
+    white-space: nowrap;
     font-family: var(--font-display);
     font-size: var(--text-sm);
     line-height: 1.2;
@@ -98,6 +106,29 @@ const projects = data.projects ?? [];
 
   .portfolio-item[data-row-distance='2'] {
     opacity: 0.3;
+  }
+
+  /* plynule podle polohy jako tlumení (.row-fade, scroll.css) */
+  @supports (animation-timeline: view()) {
+    .portfolio-item-title {
+      transition: none;
+      animation: title-tint linear both;
+      animation-timeline: view(inline);
+      animation-range:
+        cover calc(50% - var(--row-step, 50vw))
+        cover calc(50% + var(--row-step, 50vw));
+    }
+  }
+
+  @keyframes title-tint {
+    0%,
+    100% {
+      color: var(--color-muted);
+    }
+
+    50% {
+      color: var(--color-text);
+    }
   }
 
   @media (max-width: 767px) {

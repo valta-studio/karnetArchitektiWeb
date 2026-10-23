@@ -20,7 +20,7 @@ const drawings = project.drawings ?? [];
       <div class="drawings-band">
         <ScrollRow id="drawings-row" loop>
           {drawings.map((drawing, index) => (
-            <div class="drawing-panel">
+            <div class="drawing-panel row-fade">
               <SanityImage
                 image={drawing}
                 alt={`${project.title} — výkres ${index + 1}`}
@@ -57,9 +57,6 @@ const drawings = project.drawings ?? [];
     align-items: center;
     /* stejná mezera jako mezi textovými panely (TextRow) */
     gap: var(--page-pad);
-    /* jako u fotek: dost velké odsazení, aby se každý výkres mohl
-       magneticky vystředit (snap-align: center jinak nemá kam dojet) */
-    padding-inline: 35vw;
   }
 
   .drawing-panel {
@@ -95,10 +92,6 @@ const drawings = project.drawings ?? [];
   @media (max-width: 767px) {
     .drawings-band {
       height: 56dvh;
-    }
-
-    .drawings-row :global(.scroll-row) {
-      padding-inline: 9vw;
     }
 
     .drawings-row :global(.drawing-img) {

@@ -111,6 +111,42 @@ html:focus-within .scroll-deck {
   transition: none !important;
 }
 
+/* Tlumení okolí aktivního panelu (.row-fade: portfolio, ateliér, fotky,
+   výkresy). Bez podpory scroll-driven animací krokově podle
+   data-row-distance (scroll-engine) s časovým přechodem v komponentách.
+   S podporou plynule podle polohy středu panelu vůči středu dráhy:
+   opacity jede s trackpadem / prstem, místo přechodu spuštěného po
+   překročení půlky (v Safari s trackpadem trhané), a skok smyčky
+   z klonu na originál je z principu neviditelný. --row-step = vzdálenost
+   středů sousedních panelů (měří scroll-engine): ±1 krok = --fade-near,
+   ±2 a dál = --fade-far. */
+@keyframes row-fade {
+  0%,
+  100% {
+    opacity: var(--fade-far, 0.3);
+  }
+
+  25%,
+  75% {
+    opacity: var(--fade-near, 0.4);
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .row-fade {
+    transition: none;
+    animation: row-fade linear both;
+    animation-timeline: view(inline);
+    animation-range:
+      cover calc(50% - 2 * var(--row-step, 50vw))
+      cover calc(50% + 2 * var(--row-step, 50vw));
+  }
+}
+
 /* panel přes celou obrazovku (výchozí) */
 .scroll-panel {
   width: 100vw;

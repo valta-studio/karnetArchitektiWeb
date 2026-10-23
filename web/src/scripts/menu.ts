@@ -111,50 +111,72 @@ function initMenuAtEnd(): void {
   let mode: 'open' | 'close' | 'swallow' | null = null;
   let wheelSum = 0;
   let closedAt = 0;
-  window.addEventListener(
-    'wheel',
-    (event) => {
-      const now = performance.now();
-      const dy = event.deltaY;
-      // vodorovné gesto (dráha) se nepočítá
-      if (Math.abs(dy) <= Math.abs(event.deltaX)) {
-        lastWheel = now;
+
+  // Blokující (passive: false) posluchač jen tehdy, kdy se gesto opravdu
+  // ruší — s otevřeným menu a krátce po jeho zavření (polykání). Jinak
+  // pasivní: blokující wheel posluchač na window nutí Safari u každého
+  // gesta čekat na hlavní vlákno — vodorovný tah trackpadem doleva (= směr
+  // gesta „zpět" v historii) se pak rozjížděl až po dlouhém tahu.
+  const swallowing = () => mode === 'swallow' && performance.now() - closedAt <= SWALLOW_MAX;
+  let blocking = false;
+  const syncBlocking = () => {
+    const block = isOpen() || swallowing();
+    if (block === blocking) return;
+    blocking = block;
+    // passive není součástí identity posluchače — remove + add ho přepne
+    window.removeEventListener('wheel', onWheel);
+    window.addEventListener('wheel', onWheel, { passive: !block });
+  };
+  new MutationObserver(syncBlocking).observe(html, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+
+  const onWheel = (event: WheelEvent) => {
+    const now = performance.now();
+    const dy = event.deltaY;
+    // vodorovné gesto (dráha) se nepočítá
+    if (Math.abs(dy) <= Math.abs(event.deltaX)) {
+      lastWheel = now;
+      return;
+    }
+    const pause = now - lastWheel > GESTURE_GAP;
+    const flip = Math.sign(dy) !== Math.sign(lastDelta);
+    const rise = !flip && Math.abs(dy) > Math.abs(lastDelta) + 2;
+    lastWheel = now;
+    lastDelta = dy;
+
+    if (mode === 'swallow') {
+      if (now - closedAt <= SWALLOW_MAX && !flip) {
+        event.preventDefault();
         return;
       }
-      const pause = now - lastWheel > GESTURE_GAP;
-      const flip = Math.sign(dy) !== Math.sign(lastDelta);
-      const rise = !flip && Math.abs(dy) > Math.abs(lastDelta) + 2;
-      lastWheel = now;
-      lastDelta = dy;
+      mode = null;
+    }
+    if (pause || flip) mode = null;
+    if (!mode && (pause || flip || rise)) {
+      wheelSum = 0;
+      if (isOpen()) mode = dy < 0 && menuAtTop() ? 'close' : null;
+      else mode = dy > 0 && settledAtEnd() ? 'open' : null;
+    }
+    if (!mode) return;
 
-      if (mode === 'swallow') {
-        if (now - closedAt <= SWALLOW_MAX && !flip) {
-          event.preventDefault();
-          return;
-        }
-        mode = null;
-      }
-      if (pause || flip) mode = null;
-      if (!mode && (pause || flip || rise)) {
-        wheelSum = 0;
-        if (isOpen()) mode = dy < 0 && menuAtTop() ? 'close' : null;
-        else mode = dy > 0 && settledAtEnd() ? 'open' : null;
-      }
-      if (!mode) return;
-
-      wheelSum += dy;
-      if (mode === 'open' && wheelSum > THRESHOLD) {
-        mode = null;
-        setMenuOpen(true);
-      } else if (mode === 'close' && wheelSum < -THRESHOLD) {
-        mode = 'swallow';
-        closedAt = now;
-        setMenuOpen(false);
-        event.preventDefault();
-      }
-    },
-    { passive: false }
-  );
+    wheelSum += dy;
+    if (mode === 'open' && wheelSum > THRESHOLD) {
+      mode = null;
+      setMenuOpen(true);
+    } else if (mode === 'close' && wheelSum < -THRESHOLD) {
+      // swallow před zavřením — syncBlocking (MutationObserver) pak
+      // posluchač nechá blokující po dobu polykání
+      mode = 'swallow';
+      closedAt = now;
+      setMenuOpen(false);
+      event.preventDefault();
+      window.setTimeout(syncBlocking, SWALLOW_MAX + 1);
+    }
+  };
+  window.addEventListener('wheel', onWheel, { passive: true });
+  syncBlocking();
 
   // dotyk: tah prstem nahoru (= posun dolů) na usazeném konci otevře,
   // tah dolů (= posun nahoru) s otevřeným menu zavře
