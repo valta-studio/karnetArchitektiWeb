@@ -117,3 +117,29 @@ img[data-skeleton]:not(.is-loaded) {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* Přechod mezi stránkami — nativní cross-document View Transitions (bez
+   routeru a knihoven). Prohlížeče bez podpory prostě normálně přejdou.
+   Portfolio → karta: titulní fotka „doletí" na místo první fotky karty
+   (jméno project-cover nastavuje page-transition.ts a PhotoRow). */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+::view-transition-group(project-cover) {
+  animation-duration: 600ms;
+  animation-timing-function: var(--ease);
+}
+
+/* letí stará (už stažená) fotka; nová by v tu chvíli mohla být ještě
+   šedý skeleton — ukáže se až skutečný prvek po doběhnutí */
+::view-transition-old(project-cover) {
+  animation: none;
+}
+
+::view-transition-new(project-cover) {
+  animation: none;
+  opacity: 0;
+}
