@@ -146,6 +146,16 @@ img[data-skeleton]:not(.is-loaded) {
   animation: vt-fade-in 300ms var(--ease) 300ms both;
 }
 
+/* Snímky na středu skupiny. Výchozí UA styl (height: auto) je přišpendlí
+   k hornímu okraji — na mobilu je box fotky na kartě vyšší než bitmapa
+   (object-fit: contain, PhotoRow), takže fotka letěla nahoru a na střed
+   skočila až s prolnutím. */
+::view-transition-old(project-cover),
+::view-transition-new(project-cover) {
+  height: 100%;
+  object-fit: contain;
+}
+
 /* název jen přeletí — snímky v přirozené velikosti, ať se text
    nedeformuje, když se v portfoliu zalomil jinak */
 ::view-transition-old(project-title),
