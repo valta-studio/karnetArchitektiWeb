@@ -60,8 +60,9 @@ studio/schemas/     documents/ (project + singletony úrovní + seoSettings),
 - CSS: vanilla + custom properties z `tokens.css`. Žádný Tailwind.
 - Obrázky VÝHRADNĚ přes komponentu `SanityImage` (srcset, WebP, hotspot,
   lazy loading). Nikdy přímé `<img src>` na Sanity CDN URL.
-- Font Riforma LL: self-host woff2 z `public/fonts/`, `font-display: swap`,
-  subset latin-ext. Nepřidávej Google Fonts.
+- Font Karnet (vlastní, jen verzálky): self-host woff2 z `public/fonts/`,
+  `font-display: swap`. `Karnet` = základ, `Karnet Primary` (široký) = logo.
+  Nepřidávej Google Fonts.
 - Typy Sanity dokumentů v `web/src/types/sanity.ts` — drž je synchronní se
   schématy ve `studio/schemas/`.
 - Commity: konvenční prefixy (`feat:`, `fix:`, `chore:`), česky nebo anglicky.

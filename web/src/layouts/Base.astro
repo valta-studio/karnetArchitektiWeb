@@ -78,6 +78,8 @@ const isPlausible = Boolean(analyticsId && !analyticsId.startsWith('G-'));
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
     <link rel="preconnect" href="https://cdn.sanity.io" />
+    <link rel="preload" href="/fonts/Karnet-Bold.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Karnet-BoldPrimary.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 

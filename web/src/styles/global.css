@@ -1,24 +1,24 @@
 /* Reset, fonty, základní typografie. */
 
-/* Font Riforma LL — odkomentovat po dodání licencovaných woff2 do public/fonts/.
-   Subset latin-ext (čeština), font-display: swap.
+/* Font Karnet — vlastní písmo studia, jen verzálky (malá písmena mapují
+   na velká), jediný řez Bold. „Primary" je široká varianta pro logo.
+   Znaková sada pokrývá latin-ext (čeština), font-display: swap. */
 
 @font-face {
-  font-family: 'Riforma LL';
-  src: url('/fonts/RiformaLL-Regular.woff2') format('woff2');
-  font-weight: 400;
+  font-family: 'Karnet';
+  src: url('/fonts/Karnet-Bold.woff2') format('woff2');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Riforma LL';
-  src: url('/fonts/RiformaLL-Medium.woff2') format('woff2');
-  font-weight: 500;
+  font-family: 'Karnet Primary';
+  src: url('/fonts/Karnet-BoldPrimary.woff2') format('woff2');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
-*/
 
 *,
 *::before,

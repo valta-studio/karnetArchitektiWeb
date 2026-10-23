@@ -14,9 +14,10 @@
   --color-inverse-bg: #161615;
   --color-inverse-text: #e3e3e1;
 
-  /* typografie — Riforma LL po dodání licence (viz global.css) */
-  --font-sans: 'Riforma LL', 'Neue Haas Grotesk', 'Helvetica Neue', Helvetica,
-    Arial, sans-serif;
+  /* typografie — font Karnet (viz global.css) */
+  --font-sans: 'Karnet', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* široká varianta pro logo */
+  --font-display: 'Karnet Primary', var(--font-sans);
 
   --text-xs: 0.75rem;
   /* obsahový text jednotně 17px (1.0625rem) — výjimkou je logo (--text-xl)
