@@ -50,7 +50,8 @@ const projects = data.projects ?? [];
   .portfolio-track {
     height: 100%;
     align-items: center;
-    gap: 2rem;
+    /* stejná mezera jako na ostatních drahách */
+    gap: var(--page-pad);
   }
 
   /* projekt = snap cíl; center-snap → aktivní projekt ve středu.
@@ -134,10 +135,6 @@ const projects = data.projects ?? [];
   }
 
   @media (max-width: 767px) {
-    .portfolio-track {
-      gap: var(--space-sm);
-    }
-
     /* jako fotky na kartě projektu: každá fotka v rámečku 32dvh × 82vw
        podle vlastního poměru stran — na šířku jsou nižší (nepřetečou
        displej), stejnou výšku mají jen fotky na výšku. Šířka z poměru

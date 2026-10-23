@@ -150,6 +150,8 @@ const panelCount =
     display: flex;
     align-items: center;
     justify-content: center;
+    /* na středu pod hlavičkou, stejně jako médium v úvodu */
+    padding-top: var(--header-bottom);
     pointer-events: none;
     opacity: 0.14;
     z-index: 1;
@@ -225,7 +227,8 @@ const panelCount =
     z-index: 2;
     min-height: 100svh;
     align-items: center;
-    gap: 5dvh;
+    /* stejná mezera jako na ostatních drahách */
+    gap: var(--page-pad);
   }
 
   /* Konec: skutečný flex spacer místo padding-right — koncový padding

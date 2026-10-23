@@ -57,10 +57,14 @@ const posterUrl = data.poster
 </section>
 
 <style>
+  /* médium svisle na středu prostoru POD hlavičkou (opticky; na středu
+     celé výšky působilo posunuté nahoru). Stejný odsaz mají podkresy
+     ateliéru a kontaktu — geometrie média musí sedět na pixel. */
   .intro {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding-top: var(--header-bottom);
   }
 
   .intro-frame {

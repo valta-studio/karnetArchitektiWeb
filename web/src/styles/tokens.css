@@ -47,6 +47,10 @@
   /* layout */
   --page-pad: clamp(1.25rem, 3vw, 3.25rem);
   --header-height: clamp(4rem, 9dvh, 6rem);
+  /* spodní hrana loga v hlavičce — médium úvodu a podkresy se centrují do
+     prostoru pod ní. Mobil: logo bývá dvouřádkové, stačí --header-height;
+     desktop: odsazení hlavičky + jeden řádek loga (line-height 1) */
+  --header-bottom: var(--header-height);
   /* Text začíná na ose loga a končí přibližně v polovině prostoru
      k pravé navigaci. Stejný krok odhalí začátek dalšího textu. */
   --text-step: 46vw;
@@ -66,6 +70,7 @@
     /* Užší textové sloupce na desktopu — cca 53–68 znaků na řádek,
        strop v rem drží míru i na velmi širokých obrazovkách. */
     --text-column-width: min(30vw, 30rem);
+    --header-bottom: calc(var(--space-md) + var(--text-xl));
   }
 }
 
@@ -78,6 +83,6 @@
     /* textové sloupce drah (karta projektu, ateliér) o kus širší než
        obecná šířka obsahu — kratší řádky působily stísněně; okraj
        dalšího panelu pořád vykukuje */
-    --text-column-width: calc(80vw - var(--page-pad));
+    --text-column-width: calc(86vw - var(--page-pad));
   }
 }
