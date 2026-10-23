@@ -21,6 +21,7 @@ const { siteName } = Astro.props;
   >
     <span></span>
     <span></span>
+    <span></span>
     <!-- znak * z fontu Karnet (glyf asterisk) — burger se v intervalu
          promění v hvězdičku a zpět -->
     <svg class="burger-star" viewBox="0 0 920 700" aria-hidden="true">
@@ -56,20 +57,26 @@ const { siteName } = Astro.props;
     text-decoration: none;
   }
 
+  /* Tloušťka čárky = tah hvězdičky (glyf: 145–152 z 920 jednotek šířky
+     → při 44px ≈ 7px). Tři čárky + dvě mezery ≈ výška hvězdičky (33.5px). */
   .burger {
+    --burger-line: 7px;
+    --burger-gap: 6px;
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: var(--burger-gap);
     padding: var(--space-xs) 0;
   }
 
   .burger span {
     display: block;
     width: 30px;
-    height: 2px;
+    height: var(--burger-line);
     background: currentColor;
-    transition: transform var(--duration) var(--ease);
+    transition:
+      transform var(--duration) var(--ease),
+      opacity var(--duration) var(--ease);
     animation: burger-lines 8s var(--ease) infinite;
   }
 
@@ -77,8 +84,9 @@ const { siteName } = Astro.props;
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 30px;
-    margin: -11.4px 0 0 -15px; /* 30 × 700/920 → výška 22.8px, na střed */
+    width: 44px;
+    max-width: none; /* global.css omezuje svg na šířku rodiče (30px burger) */
+    margin: -16.75px 0 0 -22px; /* 44 × 700/920 → výška 33.5px, na střed */
     fill: currentColor;
     opacity: 0;
     pointer-events: none;
@@ -121,19 +129,24 @@ const { siteName } = Astro.props;
     }
   }
 
-  /* otevřený menu overlay: čárky burgeru se složí do křížku (zavření),
-     interval stojí a hvězdička je skrytá */
+  /* otevřený menu overlay: krajní čárky se složí do křížku (zavření),
+     prostřední zmizí; interval stojí a hvězdička je skrytá.
+     Posun = výška čárky + mezera (krajní čárka dojede na osu prostřední) */
   :global(html.menu-open) .burger span,
   :global(html.menu-open) .burger-star {
     animation: none;
   }
 
   :global(html.menu-open) .burger span:first-of-type {
-    transform: translateY(4.5px) rotate(45deg);
+    transform: translateY(calc(var(--burger-line) + var(--burger-gap))) rotate(45deg);
+  }
+
+  :global(html.menu-open) .burger span:nth-of-type(2) {
+    opacity: 0;
   }
 
   :global(html.menu-open) .burger span:last-of-type {
-    transform: translateY(-4.5px) rotate(-45deg);
+    transform: translateY(calc(-1 * (var(--burger-line) + var(--burger-gap)))) rotate(-45deg);
   }
 
   /* otevřený menu overlay: logo ustupuje pod poloprůhledné menu jako
