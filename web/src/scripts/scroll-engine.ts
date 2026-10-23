@@ -36,6 +36,36 @@ function syncDots(dots: HTMLElement[], activeIndex: number): void {
   });
 }
 
+/**
+ * Nové kolo smyčky: aktivní tečka „přeběhne" z konce na začátek (nebo
+ * zpět) — dočasný pruh ve tvaru a barvě staré aktivní tečky doletí na
+ * novou a rozplyne se. Fixed v <body>: okno teček se mezitím přestaví.
+ */
+function sweepDot(from: HTMLElement, fromRect: DOMRect, to: HTMLElement | undefined): void {
+  if (!to || reducedMotion.matches) return;
+  const toRect = to.getBoundingClientRect();
+  const ghost = document.createElement('span');
+  ghost.className = 'dot-sweep';
+  Object.assign(ghost.style, {
+    left: `${fromRect.left}px`,
+    top: `${fromRect.top}px`,
+    width: `${fromRect.width}px`,
+    height: `${fromRect.height}px`,
+    background: getComputedStyle(from).backgroundColor,
+  });
+  document.body.append(ghost);
+  ghost
+    .animate(
+      [
+        { translate: '0 0', opacity: 1 },
+        { translate: `${toRect.left - fromRect.left}px 0`, opacity: 0 },
+      ],
+      { duration: 450, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
+    )
+    .finished.catch(() => undefined)
+    .finally(() => ghost.remove());
+}
+
 /** Vypočítá skutečnou scrollLeft pozici CSS snap cíle. */
 function rowTargetLeft(row: HTMLElement, target: HTMLElement): number {
   const rowStyle = getComputedStyle(row);
@@ -566,15 +596,37 @@ function observeRows(): void {
     // takže IntersectionObserver neumí spolehlivě určit aktivní snap cíl.
     // Panely navíc dostanou vzdálenost od aktivního v pořadí (0, 1, 2+)
     // — styl podle ní tlumí okolí (portfolio, ateliér); klony se počítají.
+    // Přešla aktivní pozice šev smyčky (první panel sady)? Vpřed = nově
+    // aktivní je za ním nebo na něm, vzad = aktivní ho opustila doleva.
+    // Skok smyčky (normalize) posouvá o celé sady — ten se nepočítá.
+    const crossedSeam = (fromAt: number, toAt: number): boolean => {
+      if (row.dataset.loop === undefined || visible.length < 3) return false;
+      if (Math.abs(toAt - fromAt) >= visible.length) return false;
+      const first = visible[0].dataset.loopIndex;
+      const passed =
+        toAt > fromAt ? rendered.slice(fromAt + 1, toAt + 1) : rendered.slice(toAt + 1, fromAt + 1);
+      return passed.some((panel) => panel.dataset.loopIndex === first);
+    };
+
     const syncActive = () => {
       const active = nearest(rendered);
-      syncDots(dots, active ? visible.indexOf(originalOf(active)) : 0);
-      if (!active || active === lastActive) return;
+      const activeDot = active ? visible.indexOf(originalOf(active)) : 0;
+      if (!active || active === lastActive) {
+        syncDots(dots, activeDot);
+        return;
+      }
+      const from = dots.find((dot) => dot.classList.contains('is-active'));
+      const fromRect = from?.getBoundingClientRect();
+      const fromAt = lastActive ? rendered.indexOf(lastActive) : -1;
+      syncDots(dots, activeDot);
       lastActive = active;
       const activeAt = rendered.indexOf(active);
       rendered.forEach((panel, i) => {
         panel.dataset.rowDistance = String(Math.min(2, Math.abs(i - activeAt)));
       });
+      if (from && fromRect && fromAt >= 0 && crossedSeam(fromAt, activeAt)) {
+        sweepDot(from, fromRect, dots[activeDot]);
+      }
     };
 
     const refresh = () => {
