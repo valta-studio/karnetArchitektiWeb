@@ -71,12 +71,12 @@ const { siteName, backHref } = Astro.props;
   }
 
   /* šipka zpět — tah jako čárky burgeru (5px), šířka jako burger (30px);
-     na mobilu před logem, na desktopu v levém sloupci hlavičky */
+     jen na desktopu (levý sloupec hlavičky), na mobilu skrytá — zpět
+     vede systémové gesto / tlačítko prohlížeče */
   .back {
     position: relative;
-    display: flex;
+    display: none;
     flex: none;
-    margin-right: var(--space-sm);
   }
 
   .back::after {
@@ -111,7 +111,6 @@ const { siteName, backHref } = Astro.props;
     flex-direction: column;
     gap: var(--burger-gap);
     padding: var(--space-xs) 0;
-    /* vpravo i se šipkou zpět před logem (mobil) */
     margin-left: auto;
   }
 
@@ -215,9 +214,9 @@ const { siteName, backHref } = Astro.props;
     }
 
     .back {
+      display: flex;
       grid-column: 1;
       justify-self: start;
-      margin-right: 0;
     }
 
     .logo {
