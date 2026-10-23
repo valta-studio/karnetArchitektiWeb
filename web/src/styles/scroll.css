@@ -103,6 +103,14 @@ html:focus-within .scroll-deck {
   flex: none;
 }
 
+/* skok smyčky z klonu na originál (scroll-engine.ts): stav panelů závislý
+   na pozici se musí přepnout okamžitě, jinak by přechody problikly */
+.scroll-row[data-loop-jump] *,
+.scroll-row[data-loop-jump] *::before,
+.scroll-row[data-loop-jump] *::after {
+  transition: none !important;
+}
+
 /* panel přes celou obrazovku (výchozí) */
 .scroll-panel {
   width: 100vw;

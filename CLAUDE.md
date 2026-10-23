@@ -29,6 +29,9 @@ Nikdy necommituj `.env` ani tokeny.
    knihovny (fullPage.js, GSAP ScrollTrigger, Lenis…) — JS smí jen pozorovat
    (IntersectionObserver) a synchronizovat UI stav, nikdy nepřebírat řízení
    scrollu.
+   Jediná výjimka: smyčka drah (`data-loop`, `initLoopRows`) — po
+   doběhnutí scrollu JS okamžitě přeskočí z klonu na identický originál;
+   samotný pohyb zůstává nativnímu snapu. Textová dráha karty se necyklí.
 2. Na horizontálních drahách vždy `touch-action: pan-x pan-y` a
    `overscroll-behavior-x: contain`. Samotné `pan-x` NEPOUŽÍVEJ — dráha
    vyplňuje celou úroveň a zablokovala by vertikální swipe mezi úrovněmi;

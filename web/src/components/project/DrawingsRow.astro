@@ -18,7 +18,7 @@ const drawings = project.drawings ?? [];
   drawings.length > 0 && (
     <section class="level drawings-row" data-level="vykresy" id="vykresy">
       <div class="drawings-band">
-        <ScrollRow id="drawings-row">
+        <ScrollRow id="drawings-row" loop>
           {drawings.map((drawing, index) => (
             <div class="drawing-panel">
               <SanityImage

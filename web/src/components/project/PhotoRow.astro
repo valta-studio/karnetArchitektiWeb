@@ -15,7 +15,7 @@ const photos = project.photos ?? [];
 ---
 
 <section class="level photo-row" data-level="fotky" id="fotky">
-  <ScrollRow id="photo-row">
+  <ScrollRow id="photo-row" loop>
     {
       photos.map((photo, index) => (
         <div class="photo-panel">

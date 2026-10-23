@@ -47,6 +47,154 @@ function scrollRowTo(row: HTMLElement, target: HTMLElement): void {
   row.scrollTo({ left: rowTargetLeft(row, target), behavior: scrollBehavior() });
 }
 
+/** Výchozí pozice dráhy — u smyčky první originální panel, jinak začátek. */
+function rowHomeLeft(row: HTMLElement): number {
+  const first = row.querySelector<HTMLElement>(':scope > [data-loop-index]:not([data-loop-clone])');
+  return first ? rowTargetLeft(row, first) : 0;
+}
+
+/** Kopie panelu pro smyčku — pro čtečky skrytá, bez id, mimo tab pořadí. */
+function cloneForLoop(panel: HTMLElement): HTMLElement {
+  const clone = panel.cloneNode(true) as HTMLElement;
+  clone.dataset.loopClone = '';
+  clone.setAttribute('aria-hidden', 'true');
+  clone.removeAttribute('id');
+  for (const node of clone.querySelectorAll('[id]')) node.removeAttribute('id');
+  for (const node of clone.querySelectorAll<HTMLElement>('a, button, [tabindex]')) {
+    node.tabIndex = -1;
+  }
+  if (clone.matches('a, button')) clone.tabIndex = -1;
+  return clone;
+}
+
+/**
+ * Nekonečná smyčka vodorovných drah (.scroll-row[data-loop]). Panely se
+ * naklonují na obě strany (celé sady, aspoň 1,5× šířka viewportu) a dráha
+ * startuje na prvním originálu. Pohyb zůstává plně nativnímu x mandatory
+ * snapu — JS až PO doběhnutí scrollu (scrollend, ve starších Safari klid
+ * scroll událostí) okamžitě přeskočí z klonu na identický originál.
+ * Obsah je stejný, takže skok není vidět; během gesta se nesahá na nic.
+ */
+function initLoopRows(): void {
+  for (const row of document.querySelectorAll<HTMLElement>('.scroll-row[data-loop]')) {
+    const originals = Array.from(row.children) as HTMLElement[];
+    if (originals.length < 2) continue;
+
+    originals.forEach((panel, index) => {
+      panel.dataset.loopIndex = String(index);
+    });
+
+    const first = originals[0];
+    const last = originals[originals.length - 1];
+    const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+    const setWidth = last.offsetLeft + last.offsetWidth - first.offsetLeft + gap;
+    const copies = Math.max(2, Math.ceil((row.clientWidth * 1.5) / Math.max(1, setWidth)));
+
+    for (let i = 0; i < copies; i += 1) {
+      row.prepend(...originals.map(cloneForLoop));
+      row.append(...originals.map(cloneForLoop));
+    }
+
+    row.scrollTo({ left: rowHomeLeft(row), behavior: 'instant' });
+
+    // prst na dráze = gesto běží, skok by se s ním pral
+    let touching = false;
+
+    // obrázky originálů, které budou po skoku o `delta` vidět
+    const imagesAfterJump = (delta: number): HTMLImageElement[] => {
+      const view = row.getBoundingClientRect();
+      const images: HTMLImageElement[] = [];
+      for (const panel of originals) {
+        const rect = panel.getBoundingClientRect();
+        const left = rect.left - delta;
+        if (left < view.right && left + rect.width > view.left) {
+          images.push(...panel.querySelectorAll('img'));
+        }
+      }
+      return images;
+    };
+
+    // stojí-li dráha na klonu, skok o rozdíl pozic na jeho originál
+    let jumpToken = 0;
+    const normalize = async () => {
+      if (touching) return;
+      let nearest: HTMLElement | undefined;
+      let best = Infinity;
+      for (const panel of row.children as HTMLCollectionOf<HTMLElement>) {
+        if (panel.dataset.loopIndex === undefined) continue;
+        const distance = Math.abs(row.scrollLeft - rowTargetLeft(row, panel));
+        if (distance < best) {
+          best = distance;
+          nearest = panel;
+        }
+      }
+      if (!nearest || nearest.dataset.loopClone === undefined) return;
+      const original = originals[Number(nearest.dataset.loopIndex)];
+      const delta = original.offsetLeft - nearest.offsetLeft;
+      const from = row.scrollLeft;
+      const token = ++jumpToken;
+
+      // Originály mimo obrazovku bývají nestažené (loading=lazy) nebo
+      // nedekódované (Safari) — skok by na místě klonu problikl prázdným
+      // boxem. Skáče se až s hotovými obrázky; co nestihne 2 s, zkusí
+      // znovu příští doběhnutí scrollu (klony do té doby vypadají stejně).
+      const images = imagesAfterJump(delta);
+      for (const img of images) img.loading = 'eager';
+      await Promise.race([
+        Promise.all(images.map((img) => img.decode().catch(() => undefined))),
+        new Promise((resolve) => setTimeout(resolve, 2000)),
+      ]);
+      if (token !== jumpToken || touching || Math.abs(row.scrollLeft - from) > 1) return;
+      if (!images.every((img) => img.complete)) return;
+
+      // Vzdálenost od aktivního (data-row-distance, observeRows) se posune
+      // o stejný počet panelů jako pozice — synchronně se skokem, jinak by
+      // originál jeden snímek nesl starou vzdálenost (např. opacity 0.3).
+      // Přechody jsou po dobu skoku vypnuté (scroll.css).
+      const panels = Array.from(row.children) as HTMLElement[];
+      const shift = panels.indexOf(original) - panels.indexOf(nearest);
+      const distances = panels.map((panel) => panel.dataset.rowDistance);
+      if (distances.some((distance) => distance !== undefined)) {
+        panels.forEach((panel, i) => {
+          panel.dataset.rowDistance = distances[i - shift] ?? '2';
+        });
+      }
+      row.dataset.loopJump = '';
+      row.scrollTo({ left: from + delta, behavior: 'instant' });
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          delete row.dataset.loopJump;
+        })
+      );
+    };
+
+    let timer = 0;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(normalize, 150);
+    };
+    row.addEventListener(
+      'touchstart',
+      () => {
+        touching = true;
+      },
+      { passive: true }
+    );
+    const touchEnd = () => {
+      touching = false;
+      if (!('onscrollend' in window)) schedule();
+    };
+    row.addEventListener('touchend', touchEnd, { passive: true });
+    row.addEventListener('touchcancel', touchEnd, { passive: true });
+
+    if ('onscrollend' in window) {
+      row.addEventListener('scrollend', normalize);
+    } else {
+      row.addEventListener('scroll', schedule, { passive: true });
+    }
+  }
+}
+
 // hash se píše jen pro hlavní úrovně homepage (úvod ne — vršek bez kotvy);
 // implicitní hash na kartě projektu (#text, #menu…) by po reloadu nebo
 // obnovení tabu otevřel stránku uprostřed — mobilní prohlížeče taby
@@ -150,9 +298,11 @@ function initSnapActivation(): void {
       }
       // dráhy se srážejí na začátek jen u startu od vršku — při návratu na
       // úroveň si prohlížeč smí obnovit vodorovnou pozici (portfolio pás)
+      // (smyčka: „začátek" = první originální panel, ne klony před ním)
       if (holdTarget !== 'top') return;
       for (const row of document.querySelectorAll<HTMLElement>('.scroll-row')) {
-        if (row.scrollLeft !== 0) row.scrollTo({ left: 0, behavior: 'instant' });
+        const home = rowHomeLeft(row);
+        if (Math.abs(row.scrollLeft - home) > 1) row.scrollTo({ left: home, behavior: 'instant' });
       }
     };
 
@@ -295,28 +445,49 @@ function observeRows(): void {
     );
     if (!dots.length) continue;
 
-    const panels = Array.from(row.children) as HTMLElement[];
+    // smyčka (initLoopRows): klony nesou data-loop-index svého originálu,
+    // tečka patří originálu i všem jeho klonům
+    const all = Array.from(row.children) as HTMLElement[];
+    const panelIndex = (panel: HTMLElement, position: number) =>
+      panel.dataset.loopIndex === undefined ? position : Number(panel.dataset.loopIndex);
+    const panels = all.filter((panel) => panel.dataset.loopClone === undefined);
+
+    // Aktivní je panel, jehož skutečná snap pozice je nejblíž scrollLeft.
+    const nearest = (candidates: HTMLElement[]) => {
+      let found: HTMLElement | undefined;
+      let bestDistance = Infinity;
+      for (const panel of candidates) {
+        const distance = Math.abs(row.scrollLeft - rowTargetLeft(row, panel));
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          found = panel;
+        }
+      }
+      return found;
+    };
+
+    // ve smyčce jede tečka k nejbližší kopii cíle (kratší cestou)
     dots.forEach((dot, index) => {
       dot.addEventListener('click', () => {
-        const target = panels[index];
+        const target = nearest(all.filter((panel, i) => panelIndex(panel, i) === index));
         if (target) scrollRowTo(row, target);
       });
     });
 
     // Na desktopu je často viditelných více užších panelů najednou,
     // takže IntersectionObserver neumí spolehlivě určit aktivní snap cíl.
-    // Aktivní je panel, jehož skutečná snap pozice je nejblíž scrollLeft.
+    // Panely navíc dostanou vzdálenost od aktivního v DOM pořadí (0, 1, 2+)
+    // — styl podle ní tlumí okolí (portfolio); klony se počítají jako panely.
+    let lastActive: HTMLElement | undefined;
     const syncActive = () => {
-      let activeIndex = 0;
-      let bestDistance = Infinity;
-      panels.forEach((panel, index) => {
-        const distance = Math.abs(row.scrollLeft - rowTargetLeft(row, panel));
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          activeIndex = index;
-        }
+      const active = nearest(all);
+      syncDots(dots, active ? panelIndex(active, all.indexOf(active)) : 0);
+      if (!active || active === lastActive) return;
+      lastActive = active;
+      const activeAt = all.indexOf(active);
+      all.forEach((panel, i) => {
+        panel.dataset.rowDistance = String(Math.min(2, Math.abs(i - activeAt)));
       });
-      syncDots(dots, activeIndex);
     };
 
     let scrollFrame = 0;
@@ -601,6 +772,9 @@ function initKeyboard(): void {
 }
 
 export function initScrollEngine(): void {
+  // klony smyčky musí existovat dřív, než guard srovná dráhy na začátek
+  // a než observeRows / initImgSkeleton posbírají panely a obrázky
+  initLoopRows();
   initSnapActivation();
   observeLevels();
   observeRows();

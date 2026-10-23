@@ -1,14 +1,16 @@
 ---
 // Horizontální snap dráha (scroll.css: x mandatory, touch-action: pan-x pan-y,
-// overscroll-behavior-x: contain).
+// overscroll-behavior-x: contain). `loop` = nekonečná smyčka panelů
+// (klony + skok po doběhnutí scrollu, viz initLoopRows ve scroll-engine.ts).
 interface Props {
   id: string;
   class?: string;
+  loop?: boolean;
 }
 
-const { id, class: className } = Astro.props;
+const { id, class: className, loop = false } = Astro.props;
 ---
 
-<div class:list={['scroll-row', className]} data-row={id}>
+<div class:list={['scroll-row', className]} data-row={id} data-loop={loop || undefined}>
   <slot />
 </div>

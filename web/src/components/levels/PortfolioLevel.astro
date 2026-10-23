@@ -1,15 +1,11 @@
 ---
-// Úroveň 3 — portfolio (dle náhledů): fotky projektů v přirozených proporcích,
-// název pod fotkou. Vždy DVĚ řady, horizontální posun po stránkách.
-// Snap jednotka = sloupec = dva projekty nad sebou (bez přesahů — každá fotka
-// v jedné řadě, výška podle poměru stran).
-// Desktop: obsah začíná ve vodorovném středu stránky (prázdno vlevo), dva
-//   sloupce v šířce viewportu → 4 projekty na stránku (2×2).
-// Mobil: jeden sloupec na obrazovku → 2 projekty na stránku (1×2).
+// Úroveň 3 — portfolio (dle náhledu): JEDNA řada fotek projektů ve smyčce,
+// všechny ve stejné výšce (šířka z poměru stran), název pod fotkou na středu.
+// Aktivní projekt je na středu obrazovky; sousední mají šedý název a čím
+// dál od středu, tím víc blednou (data-row-distance nastavuje scroll-engine).
 import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
-import { aspectRatioFor } from '../../lib/image';
-import type { PortfolioLevel, Project } from '../../types/sanity';
+import type { PortfolioLevel } from '../../types/sanity';
 
 interface Props {
   data: PortfolioLevel;
@@ -17,52 +13,31 @@ interface Props {
 
 const { data } = Astro.props;
 const projects = data.projects ?? [];
-
-type Item = {
-  project: Project;
-  shape: 'wide' | 'tall' | 'square';
-};
-
-const items: Item[] = projects.map((project) => {
-  const ratio = project.cover ? aspectRatioFor(project.cover) : 1.5;
-  const shape = ratio >= 1.15 ? 'wide' : ratio <= 0.87 ? 'tall' : 'square';
-  return { project, shape };
-});
-
-// Dva projekty na sloupec (horní + spodní řada).
-const columns: Item[][] = [];
-for (let i = 0; i < items.length; i += 2) {
-  columns.push(items.slice(i, i + 2));
-}
 ---
 
 <section class="level portfolio" data-level="portfolio" id="portfolio">
-  <div class="scroll-row portfolio-track" data-row="portfolio-row">
+  <div class="scroll-row portfolio-track" data-row="portfolio-row" data-loop>
     {
-      columns.map((column) => (
-        <div class="portfolio-col">
-          {column.map(({ project, shape }) => (
-            <a
-              class:list={['portfolio-item', `is-${shape}`]}
-              href={`/portfolio/${project.slug}/`}
-              data-astro-prefetch="viewport"
-            >
-              <SanityImage
-                image={project.cover}
-                alt={project.title}
-                sizes="(min-width: 768px) 32vw, 84vw"
-                maxWidth={1200}
-                class="portfolio-cover"
-              />
-              <span class="portfolio-item-title">{project.title}</span>
-            </a>
-          ))}
-        </div>
+      projects.map((project) => (
+        <a
+          class="portfolio-item"
+          href={`/portfolio/${project.slug}/`}
+          data-astro-prefetch="viewport"
+        >
+          <SanityImage
+            image={project.cover}
+            alt={project.title}
+            sizes="(min-width: 768px) 50vw, 84vw"
+            maxWidth={1600}
+            class="portfolio-cover"
+          />
+          <span class="portfolio-item-title">{project.title}</span>
+        </a>
       ))
     }
   </div>
 
-  <ProgressDots rowId="portfolio-row" count={columns.length} />
+  <ProgressDots rowId="portfolio-row" count={projects.length} />
 </section>
 
 <style>
@@ -73,91 +48,73 @@ for (let i = 0; i < items.length; i += 2) {
   .portfolio-track {
     height: 100%;
     align-items: center;
-    gap: 5dvh;
-    /* desktop: první sloupec začíná na ose 35vw (prázdno vlevo);
-       inline padding drží prostor, aby krajní sloupce mohly dosnapovat */
-    padding: calc(var(--header-height) + 2dvh) 35vw 6dvh 35vw;
+    gap: 2rem;
+    /* inline padding drží prostor, aby krajní projekty mohly dosnapovat */
+    padding: calc(var(--header-height) + 2dvh) 50vw 6dvh;
   }
 
-  /* sloupec = snap cíl, dvě řady nad sebou; center-snap → aktivní sloupec
-     ve středu, sousední vykukují (vzhled dle náhledu) */
-  .portfolio-col {
-    display: grid;
-    grid-template-rows: auto auto;
-    align-content: center;
-    row-gap: 2dvh;
-    scroll-snap-align: center;
-  }
-
+  /* projekt = snap cíl; center-snap → aktivní projekt ve středu.
+     width: min-content → šířka položky = šířka fotky, delší název se
+     zalomí pod ní (nerozšíří mezery v řadě) */
   .portfolio-item {
     display: flex;
     flex-direction: column;
-    width: fit-content;
-    max-width: 100%;
-    justify-self: center;
-    gap: 0.3rem;
-    /* fotka si drží vlastní šířku z poměru stran (jinak by ji flex/grid
-       roztáhl na šířku sloupce a při pevné výšce zdeformoval). */
-    align-items: flex-start;
+    align-items: center;
+    width: min-content;
+    gap: 0.9rem;
+    scroll-snap-align: center;
+    transition: opacity 300ms var(--ease);
   }
 
   .portfolio-item:hover {
     text-decoration: none;
   }
 
-  /* výška podle orientace, šířka vždy z přirozeného poměru stran —
-     globální max-width: 100% by šířku ořízl podle gridu a bitmapu roztáhl */
+  /* stejná výška všech fotek, šířka z přirozeného poměru stran —
+     globální max-width: 100% by šířku ořízl a bitmapu roztáhl */
   .portfolio :global(.portfolio-cover) {
     width: auto;
-    height: 28dvh;
+    height: 36dvh;
     max-width: none;
   }
 
-  .portfolio-item.is-square :global(.portfolio-cover) {
-    height: 32dvh;
-  }
-
-  .portfolio-item.is-tall :global(.portfolio-cover) {
-    height: 38dvh;
-  }
-
   .portfolio-item-title {
+    font-family: var(--font-display);
     font-size: var(--text-sm);
     line-height: 1.2;
+    text-align: center;
+    color: var(--color-muted);
+    transition: color 300ms var(--ease);
+  }
+
+  /* vzdálenost od středu (0 = aktivní) */
+  .portfolio-item[data-row-distance='0'] .portfolio-item-title {
+    color: var(--color-text);
+  }
+
+  .portfolio-item[data-row-distance='1'] {
+    opacity: 0.85;
+  }
+
+  .portfolio-item[data-row-distance='2'] {
+    opacity: 0.3;
   }
 
   @media (max-width: 767px) {
-    .portfolio {
-      --mobile-portfolio-width: 76vw;
-    }
-
     .portfolio-track {
-      padding-left: var(--page-pad);
-      padding-right: calc(100vw - var(--page-pad) - var(--mobile-portfolio-width));
-      scroll-padding-inline-start: var(--page-pad);
+      gap: var(--space-sm);
     }
 
-    /* Užší krok nechá zprava vykukovat další sloupec. Po snapu se
-       aktivní obrázky vždy vrátí na levou osu loga. */
-    .portfolio-col {
-      width: var(--mobile-portfolio-width);
-      scroll-snap-align: start;
-    }
-
-    .portfolio-item {
-      justify-self: start;
-    }
-
+    /* výška stále stejná pro všechny, jen nižší; šířka se liší */
     .portfolio :global(.portfolio-cover) {
-      width: auto;
-      height: auto;
-      max-width: 100%;
-      max-height: 33dvh;
+      height: 32dvh;
     }
+  }
 
-    .portfolio-item.is-tall :global(.portfolio-cover),
-    .portfolio-item.is-square :global(.portfolio-cover) {
-      max-height: 37dvh;
+  @media (prefers-reduced-motion: reduce) {
+    .portfolio-item,
+    .portfolio-item-title {
+      transition: none;
     }
   }
 </style>
