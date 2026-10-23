@@ -26,6 +26,13 @@ body {
      (iOS Safari) — swipe mimo obsah teď na úrovni prostě zůstane stát */
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
+  /* deck je vnitřní scroller, takže by ukazoval vlastní svislý scrollbar
+     (desktop) / scroll indikátor (iOS) — polohu ukazují progress-dots */
+  scrollbar-width: none;
+}
+
+.scroll-deck::-webkit-scrollbar {
+  display: none;
 }
 
 /* programový skok mezi úrovněmi (scroll-engine.ts): mandatory snap se
