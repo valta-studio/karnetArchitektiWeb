@@ -252,6 +252,9 @@ const panelCount = segments.length;
     z-index: 2;
     min-height: 100svh;
     align-items: center;
+    /* panely na středu prostoru pod hlavičkou — stejná osa jako podkres
+       (a médium v úvodu), jinak fotka sedí o půl hlavičky výš */
+    padding-top: var(--header-bottom);
     /* stejná mezera jako na ostatních drahách */
     gap: var(--page-pad);
   }
