@@ -44,6 +44,8 @@ export function initPageTransition(): void {
     }
   });
 
+  initBackLink();
+
   // návrat z bfcache — stránka je ve stavu z odchodu, jméno uklidit
   window.addEventListener('pageshow', () => {
     for (const el of document.querySelectorAll<HTMLElement>(
@@ -53,4 +55,24 @@ export function initPageTransition(): void {
     }
     clicked = null;
   });
+}
+
+/**
+ * Zpět z karty projektu (a[data-back], PhotoRow) → portfolio. Přišel-li
+ * uživatel z cílové stránky (hlavní), jde se historií: prohlížeč vrátí
+ * portfolio i dráhu na projektu, ze kterého odešel (bfcache), a návrat
+ * drží scroll-engine na #portfolio. Jinak (přímý odkaz, jiný web) je to
+ * obyčejný odkaz na /#portfolio.
+ */
+function initBackLink(): void {
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('a[data-back]')) {
+    link.addEventListener('click', (event) => {
+      if (!document.referrer || history.length < 2) return;
+      const from = new URL(document.referrer);
+      const to = new URL(link.href);
+      if (from.origin !== to.origin || from.pathname !== to.pathname) return;
+      event.preventDefault();
+      history.back();
+    });
+  }
 }

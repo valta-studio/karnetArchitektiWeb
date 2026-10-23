@@ -4,12 +4,24 @@
 
 interface Props {
   siteName: string;
+  /** Šipka zpět vlevo (karta projektu → portfolio, page-transition.ts). */
+  backHref?: string;
 }
 
-const { siteName } = Astro.props;
+const { siteName, backHref } = Astro.props;
 ---
 
 <header class="site-header">
+  {
+    backHref && (
+      <a class="back" href={backHref} data-back aria-label="Zpět na portfolio">
+        <svg viewBox="0 0 30 24" aria-hidden="true">
+          <path d="M13 2.5 3.5 12l9.5 9.5M3.5 12H30" />
+        </svg>
+      </a>
+    )
+  }
+
   <a class="logo" href="/" data-scroll-to="uvod">{siteName}</a>
 
   <button
@@ -58,6 +70,34 @@ const { siteName } = Astro.props;
     text-decoration: none;
   }
 
+  /* šipka zpět — tah jako čárky burgeru (5px), šířka jako burger (30px);
+     na mobilu před logem, na desktopu v levém sloupci hlavičky */
+  .back {
+    position: relative;
+    display: flex;
+    flex: none;
+    margin-right: var(--space-sm);
+  }
+
+  .back::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+  }
+
+  .back svg {
+    width: 30px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 5;
+    transition: transform var(--duration) var(--ease);
+  }
+
+  .back:hover svg {
+    transform: translateX(-3px);
+  }
+
   /* Tloušťka čárky = tah hvězdičky (glyf: 145–152 z 920 jednotek šířky
      → při 32px ≈ 5px). Tři čárky + dvě mezery ≈ výška hvězdičky (24.3px). */
   .burger {
@@ -71,6 +111,8 @@ const { siteName } = Astro.props;
     flex-direction: column;
     gap: var(--burger-gap);
     padding: var(--space-xs) 0;
+    /* vpravo i se šipkou zpět před logem (mobil) */
+    margin-left: auto;
   }
 
   .burger span {
@@ -170,6 +212,12 @@ const { siteName } = Astro.props;
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
+    }
+
+    .back {
+      grid-column: 1;
+      justify-self: start;
+      margin-right: 0;
     }
 
     .logo {
