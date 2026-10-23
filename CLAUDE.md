@@ -51,7 +51,7 @@ web/src/
   pages/            index.astro, portfolio/[slug].astro
   components/       ScrollDeck, ScrollRow, ProgressDots, SanityImage, Header,
                     BurgerScreen; levels/ (4 úrovně); project/ (3 dráhy karty)
-  scripts/          scroll-engine.ts, video.ts, menu.ts
+  scripts/          scroll-engine.ts, video.ts, menu.ts, page-transition.ts
   lib/              sanity.ts (klient + GROQ), image.ts (srcset helpery)
   styles/           tokens.css, global.css, scroll.css
 studio/schemas/     documents/ (project + singletony úrovní + seoSettings),

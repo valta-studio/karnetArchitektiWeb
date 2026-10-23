@@ -67,6 +67,7 @@ export default defineType({
     defineField({
       name: 'cover',
       title: 'Náhledová fotka (portfolio)',
+      description: 'Na kartě projektu se zobrazí jako první fotka.',
       type: 'image',
       options: { hotspot: true },
       validation: (rule) => rule.required(),

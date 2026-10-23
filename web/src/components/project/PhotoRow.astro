@@ -4,14 +4,24 @@
 import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
 import ScrollRow from '../ScrollRow.astro';
-import type { Project } from '../../types/sanity';
+import { isMockImage } from '../../lib/image';
+import type { ImageSource, Project } from '../../types/sanity';
 
 interface Props {
   project: Project;
 }
 
 const { project } = Astro.props;
-const photos = project.photos ?? [];
+
+// Náhledová fotka z portfolia je na kartě vždy první (přechod z portfolia
+// na ni plynule navazuje); pokud je zároveň mezi fotkami, podruhé se nezobrazí.
+const assetKey = (image: ImageSource) =>
+  isMockImage(image) ? image.src : image.asset._ref;
+const coverKey = project.cover ? assetKey(project.cover) : undefined;
+const photos = [
+  ...(project.cover ? [project.cover] : []),
+  ...(project.photos ?? []).filter((photo) => assetKey(photo) !== coverKey),
+];
 ---
 
 <section class="level photo-row" data-level="fotky" id="fotky">
@@ -31,6 +41,10 @@ const photos = project.photos ?? [];
       ))
     }
   </ScrollRow>
+
+  {/* název nad tečkami (fixed) — cíl přechodu z názvu v portfoliu
+       (page-transition.ts); h1 je až v textové úrovni */}
+  <p class="photo-row-title">{project.title}</p>
 
   <ProgressDots rowId="photo-row" count={photos.length} />
 </section>
@@ -74,6 +88,26 @@ const photos = project.photos ?? [];
     view-transition-name: project-cover;
   }
 
+  /* stejný styl jako název pod fotkou v portfoliu; sedí nad tečkami
+     (scroll.css .progress-dots: bottom --space-lg, výška 4px). Fixed —
+     zůstává vidět na všech úrovních karty; z-index jako svislé tečky
+     (LevelDots), pod burger obrazovkou (9) */
+  .photo-row-title {
+    position: fixed;
+    z-index: 5;
+    left: 50%;
+    bottom: calc(var(--space-lg) + 4px + var(--space-sm));
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100% - 2 * var(--page-pad));
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    line-height: 1.2;
+    text-align: center;
+    view-transition-name: project-title;
+  }
+
   .photo-row :global(.photo-img) {
     height: 100%;
     width: auto;
@@ -87,6 +121,11 @@ const photos = project.photos ?? [];
 
     .photo-panel {
       height: 62dvh;
+    }
+
+    /* tečky jsou na mobilu níž (scroll.css: bottom --space-sm) */
+    .photo-row-title {
+      bottom: calc(var(--space-sm) + 4px + var(--space-sm));
     }
 
     .photo-row :global(.photo-img) {
