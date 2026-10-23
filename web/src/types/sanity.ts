@@ -107,11 +107,19 @@ export interface IntroLevel {
   seo?: Seo;
 }
 
+/** Kam se fotka ateliéru zařadí mezi textové panely. */
+export type AtelierPhotoPlacement = 'start' | 'afterIntro' | 'afterAwards' | 'end';
+
+export type AtelierPhoto = ImageSource & {
+  alt?: string;
+  placement?: AtelierPhotoPlacement;
+};
+
 export interface AtelierLevel {
   intro?: PortableTextBlock[];
   awardsIntro?: string;
   awards?: Award[];
-  publications?: ImageSource[];
+  photos?: AtelierPhoto[];
   founding?: string;
   people?: Person[];
 }

@@ -1,14 +1,14 @@
 ---
 // Úroveň 2 — ateliér (dle náhledů): texty ve dvou sloupcích přes zesvětlené
 // úvodní médium, ocenění jako prozaické odstavce, závěrem založení + lidé.
-// Panely jsou užší než viewport — další „nakukuje". Publikace (pole
-// `publications` ve Sanity) se na webu nezobrazují.
+// Panely jsou užší než viewport — další „nakukuje". Fotky (pole `photos`)
+// jsou samostatné panely, zařazené mezi texty podle `placement`.
 import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
 import ScrollRow from '../ScrollRow.astro';
 import { portableTextToHtml } from '../../lib/portable-text';
 import { INTRO_MEDIA_MAX_WIDTH, INTRO_MEDIA_SIZES, isMockImage, urlFor } from '../../lib/image';
-import type { AtelierLevel, IntroLevel } from '../../types/sanity';
+import type { AtelierLevel, AtelierPhotoPlacement, IntroLevel } from '../../types/sanity';
 
 interface Props {
   data: AtelierLevel;
@@ -31,14 +31,35 @@ const backdropPosterUrl = intro?.poster
 const introHtml = portableTextToHtml(data.intro);
 const hasAwards = Boolean(data.awardsIntro || data.awards?.length);
 
+const hasPeople = Boolean(data.founding || data.people?.length);
+
 // Na mobilu se založení a lidé dělí do dvou panelů (jen když jsou obojí).
 const splitPeople = Boolean(data.founding && data.people?.length);
 
+// Pořadí panelů: texty v pevném pořadí, fotky mezi ně podle umístění
+// (bez vyplněného umístění za úvodní texty — výchozí hodnota ve Studiu).
+const photos = (data.photos ?? []).map((photo, index) => ({ photo, index }));
+const photosAt = (placement: AtelierPhotoPlacement) =>
+  photos
+    .filter(({ photo }) => (photo.placement ?? 'afterIntro') === placement)
+    .map((entry) => ({ kind: 'photo' as const, ...entry }));
+
+type Segment =
+  | { kind: 'intro' | 'awards' | 'people' }
+  | ReturnType<typeof photosAt>[number];
+
+const segments: Segment[] = [
+  ...photosAt('start'),
+  ...(introHtml ? [{ kind: 'intro' as const }] : []),
+  ...photosAt('afterIntro'),
+  ...(hasAwards ? [{ kind: 'awards' as const }] : []),
+  ...photosAt('afterAwards'),
+  ...(hasPeople ? [{ kind: 'people' as const }] : []),
+  ...photosAt('end'),
+];
+
 // výchozí počet teček (desktop); na mobilu je scroll-engine přepočítá
-const panelCount =
-  (introHtml ? 1 : 0) +
-  (hasAwards ? 1 : 0) +
-  (data.founding || data.people?.length ? 1 : 0);
+const panelCount = segments.length;
 ---
 
 <section class="level atelier" data-level="atelier" id="atelier">
@@ -67,69 +88,73 @@ const panelCount =
 
   <ScrollRow id="atelier-row" loop>
     {
-      introHtml && (
-        <div class="atelier-panel atelier-text-panel row-fade">
-          <div class="atelier-intro" set:html={introHtml} />
-        </div>
-      )
-    }
-
-    {
-      hasAwards && (
-        <div class="atelier-panel atelier-text-panel row-fade">
-          <div class="awards">
-            {data.awardsIntro && <p>{data.awardsIntro}</p>}
-            {data.awards?.map((award) => (
-              <p>{award.text}</p>
-            ))}
+      segments.map((segment) =>
+        segment.kind === 'photo' ? (
+          <div class="atelier-panel atelier-photo-panel row-fade">
+            <SanityImage
+              image={segment.photo}
+              alt={segment.photo.alt ?? `Ateliér — fotografie ${segment.index + 1}`}
+              sizes="(min-width: 768px) 60vw, 90vw"
+              class="atelier-photo"
+              skeleton
+            />
           </div>
-        </div>
-      )
-    }
-
-    {
-      data.founding || data.people?.length ? (
-        <div class:list={['atelier-panel atelier-text-panel row-fade', { 'atelier-desktop-only': splitPeople }]}>
-          <div class="atelier-people">
-            {data.founding && <p>{data.founding}</p>}
-            {data.people?.length ? (
-              <ul>
-                {data.people.map((person) => (
-                  <li>
-                    {person.degree && <span class="degree">{person.degree} </span>}
-                    {person.name}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+        ) : segment.kind === 'intro' ? (
+          <div class="atelier-panel atelier-text-panel row-fade">
+            <div class="atelier-intro" set:html={introHtml} />
           </div>
-        </div>
-      ) : null
-    }
-
-    {
-      /* mobil: založení a lidé jako dva samostatné panely (na desktopu
-         skryté — scroll-engine počítá tečky jen z vykreslených panelů) */
-      splitPeople && (
-        <>
-          <div class="atelier-panel atelier-text-panel row-fade atelier-mobile-only">
-            <div class="atelier-people">
-              <p>{data.founding}</p>
+        ) : segment.kind === 'awards' ? (
+          <div class="atelier-panel atelier-text-panel row-fade">
+            <div class="awards">
+              {data.awardsIntro && <p>{data.awardsIntro}</p>}
+              {data.awards?.map((award) => (
+                <p>{award.text}</p>
+              ))}
             </div>
           </div>
-          <div class="atelier-panel atelier-text-panel row-fade atelier-mobile-only">
-            <div class="atelier-people">
-              <ul>
-                {data.people!.map((person) => (
-                  <li>
-                    {person.degree && <span class="degree">{person.degree} </span>}
-                    {person.name}
-                  </li>
-                ))}
-              </ul>
+        ) : (
+          <>
+            <div class:list={['atelier-panel atelier-text-panel row-fade', { 'atelier-desktop-only': splitPeople }]}>
+              <div class="atelier-people">
+                {data.founding && <p>{data.founding}</p>}
+                {data.people?.length ? (
+                  <ul>
+                    {data.people.map((person) => (
+                      <li>
+                        {person.degree && <span class="degree">{person.degree} </span>}
+                        {person.name}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
             </div>
-          </div>
-        </>
+
+            {/* mobil: založení a lidé jako dva samostatné panely (na desktopu
+                skryté — scroll-engine počítá tečky jen z vykreslených panelů) */}
+            {splitPeople && (
+              <>
+                <div class="atelier-panel atelier-text-panel row-fade atelier-mobile-only">
+                  <div class="atelier-people">
+                    <p>{data.founding}</p>
+                  </div>
+                </div>
+                <div class="atelier-panel atelier-text-panel row-fade atelier-mobile-only">
+                  <div class="atelier-people">
+                    <ul>
+                      {data.people!.map((person) => (
+                        <li>
+                          {person.degree && <span class="degree">{person.degree} </span>}
+                          {person.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )
       )
     }
   </ScrollRow>
@@ -287,6 +312,31 @@ const panelCount =
     display: flex;
     justify-content: flex-start;
     width: var(--text-column-width);
+  }
+
+  /* Fotka: jeden panel = jedna zastávka, přirozené proporce jako fotky
+     na kartě projektu (PhotoRow). */
+  .atelier-photo-panel {
+    height: 72dvh;
+    display: flex;
+    align-items: center;
+  }
+
+  .atelier :global(.atelier-photo) {
+    height: 100%;
+    width: auto;
+    max-width: none;
+  }
+
+  @media (max-width: 767px) {
+    .atelier-photo-panel {
+      height: 62dvh;
+    }
+
+    .atelier :global(.atelier-photo) {
+      max-width: 82vw;
+      object-fit: contain;
+    }
   }
 
   /* varianty panelu založení + lidé: desktop jeden, mobil dva */
