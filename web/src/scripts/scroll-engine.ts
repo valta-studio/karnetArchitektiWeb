@@ -9,12 +9,30 @@ function scrollBehavior(): ScrollBehavior {
   return reducedMotion.matches ? 'auto' : 'smooth';
 }
 
+/** Nejvýš tolik teček je vidět najednou (vodorovné i svislé). */
+const MAX_DOTS = 5;
+
+/**
+ * Aktivní tečka + okno nejvýš MAX_DOTS teček kolem ní (ostatní hidden).
+ * Krajní tečka okna, za kterou jsou další skryté, je .is-edge (tlumená
+ * — naznačuje, že pokračují).
+ */
 function syncDots(dots: HTMLElement[], activeIndex: number): void {
+  const start = Math.max(
+    0,
+    Math.min(activeIndex - Math.floor(MAX_DOTS / 2), dots.length - MAX_DOTS)
+  );
+  const end = start + MAX_DOTS - 1;
   dots.forEach((dot, index) => {
     const isActive = index === activeIndex;
     dot.classList.toggle('is-active', isActive);
     if (isActive) dot.setAttribute('aria-current', 'true');
     else dot.removeAttribute('aria-current');
+    dot.hidden = index < start || index > end;
+    dot.classList.toggle(
+      'is-edge',
+      !isActive && ((index === start && start > 0) || (index === end && end < dots.length - 1))
+    );
   });
 }
 

@@ -53,6 +53,12 @@ const { count } = Astro.props;
       opacity var(--duration) var(--ease);
   }
 
+  /* krajní tečka okna (max 5, syncDots), za kterou pokračují skryté —
+     0.4 × běžná neaktivní */
+  .level-dot.is-edge {
+    opacity: calc(0.35 * 0.4);
+  }
+
   .level-dot.is-active {
     height: 24px;
     opacity: 1;
