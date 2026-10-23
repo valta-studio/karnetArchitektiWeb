@@ -861,6 +861,30 @@ function scrollToLevel(index: number): void {
   if (target) scrollToTarget(target);
 }
 
+/**
+ * Návrat z bfcache (zpět z karty projektu): Safari po obnovení stránky
+ * přestane hýbat scroll-driven animacemi (view() / pojmenované
+ * view-timeline) — tlumení drah (.row-fade) i tónování titulků zamrznou
+ * ve stavu z odchodu a vodorovný posun je nemění. Animace se proto
+ * znovu založí: animation-name: none → reflow → zpět na hodnotu z CSS
+ * (nové CSSAnimation dostanou čerstvé časové osy).
+ */
+function initScrollAnimationRestore(): void {
+  if (!CSS.supports('animation-timeline: view()')) return;
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    const animated = Array.from(document.body.querySelectorAll<HTMLElement>('*')).filter(
+      (el) => {
+        const timelines = getComputedStyle(el).getPropertyValue('animation-timeline');
+        return timelines.split(',').some((t) => t.trim() !== '' && t.trim() !== 'auto');
+      }
+    );
+    for (const el of animated) el.style.animationName = 'none';
+    void document.body.offsetWidth;
+    for (const el of animated) el.style.removeProperty('animation-name');
+  });
+}
+
 /** Klávesová navigace mezi úrovněmi a po horizontální dráze. */
 function initKeyboard(): void {
   window.addEventListener('keydown', (event) => {
@@ -906,5 +930,6 @@ export function initScrollEngine(): void {
   initSnapActivation();
   observeLevels();
   observeRows();
+  initScrollAnimationRestore();
   initKeyboard();
 }
