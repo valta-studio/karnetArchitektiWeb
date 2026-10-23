@@ -1,5 +1,5 @@
 ---
-// Úroveň 4 — kontakt (dle náhledů): jeden blok vlevo — e-mail a telefon,
+// Úroveň 4 — kontakt: jeden blok na středu — e-mail a telefon,
 // adresa kanceláře, sociální sítě pod sebou, fakturační údaje.
 // Na desktopu za blokem prosvítá úvodní médium stejně jako v ateliéru.
 import SanityImage from '../SanityImage.astro';
@@ -103,10 +103,13 @@ const backdropPosterUrl = intro?.poster
 </section>
 
 <style>
+  /* blok kontaktů vodorovně na středu (osa loga a menu) */
   .kontakt {
     display: flex;
     align-items: center;
+    justify-content: center;
     min-height: 100svh;
+    padding-inline: var(--page-pad);
   }
 
   /* Podkres jen na desktopu — mobil zůstává bez média (viz náhledy).
@@ -149,11 +152,7 @@ const backdropPosterUrl = intro?.poster
      statický absolutní podkres výše. */
   @supports (animation-timeline: view()) {
     @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-      /* Timeline drží 200svh slot (.stick-under-menu), ne sticky úroveň:
-         sticky posouvá view range o dobu přilnutí, entry by tak končilo
-         až s najetým menu a médium by se do té doby neproložilo. Slot
-         jede s dokumentem — entry 100 % = přesně okamžik dosnapování. */
-      :global(.stick-under-menu:has(.kontakt)) {
+      .kontakt {
         view-timeline: --kontakt block;
       }
 
@@ -189,9 +188,9 @@ const backdropPosterUrl = intro?.poster
     z-index: 2;
     display: flex;
     flex-direction: column;
-    width: var(--text-step);
+    align-items: center;
     gap: 1.2em;
-    padding-left: var(--page-pad);
+    text-align: center;
     font-size: var(--text-body);
     line-height: var(--leading-snug);
   }
@@ -199,6 +198,7 @@ const backdropPosterUrl = intro?.poster
   .kontakt-group {
     display: flex;
     flex-direction: column;
+    align-items: center;
   }
 
   .kontakt-group a:hover {

@@ -29,26 +29,12 @@ const [contact, settings] = await Promise.all([getContact(), getSeoSettings()]);
 
 <Base title={project.title} description={project.perex} seo={project.seo}>
   <Header siteName={settings.siteName} />
-  <LevelDots count={project.drawings?.length ? 4 : 3} />
+  <LevelDots count={project.drawings?.length ? 3 : 2} />
 
   <ScrollDeck>
     <PhotoRow project={project} />
-    {
-      /* slot .stick-under-menu drží úroveň, přes kterou na desktopu
-         najíždí menu (scroll.css) — vždy poslední obsahovou */
-      project.drawings?.length ? (
-        <>
-          <TextRow project={project} />
-          <div class="stick-under-menu">
-            <DrawingsRow project={project} />
-          </div>
-        </>
-      ) : (
-        <div class="stick-under-menu">
-          <TextRow project={project} />
-        </div>
-      )
-    }
+    <TextRow project={project} />
+    {project.drawings?.length ? <DrawingsRow project={project} /> : null}
     <BurgerScreen contact={contact} />
   </ScrollDeck>
 </Base>

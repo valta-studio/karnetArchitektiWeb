@@ -1,5 +1,5 @@
 ---
-// Svislý tečkovaný indikátor vertikálních úrovní u pravého okraje
+// Svislý indikátor (obdélníky) vertikálních úrovní u pravého okraje
 // (dle náhledů). Aktivní tečku přepíná scroll-engine.ts.
 interface Props {
   count: number;
@@ -33,40 +33,34 @@ const { count } = Astro.props;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     z-index: 5;
     color: var(--color-chrome);
     mix-blend-mode: difference;
   }
 
+  /* svislá osa → svislé obdélníky, aktivní se prodlouží a zesílí;
+     neaktivní jsou tlumené průhledností (sedí i přes blend difference) */
   .level-dot {
-    width: 8px;
-    height: 8px;
+    width: 4px;
+    height: 12px;
     position: relative;
     flex: none;
-    border-radius: 50%;
     background: currentColor;
+    opacity: 0.35;
     transition:
-      width var(--duration) var(--ease),
-      height var(--duration) var(--ease);
+      height var(--duration) var(--ease),
+      opacity var(--duration) var(--ease);
   }
 
   .level-dot.is-active {
-    width: 12px;
-    height: 12px;
+    height: 24px;
+    opacity: 1;
   }
 
   .level-dot::after {
     content: '';
     position: absolute;
     inset: -5px;
-  }
-
-  /* mobil: menu obrazovka (vždy poslední úroveň) není ve scroll toku —
-     otevírá se jako overlay burgerem, její tečka se skrývá */
-  @media (max-width: 767px) {
-    .level-dot:last-child {
-      display: none;
-    }
   }
 </style>

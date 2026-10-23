@@ -16,10 +16,6 @@ function setMenuOpen(open: boolean): void {
 
 export function initMenu(): void {
   const html = document.documentElement;
-  // overlay režim = mobilní breakpoint (zrcadlí media query v Header.astro
-  // a BurgerScreen.astro); na desktopu je burger skrytý a menu obrazovka
-  // zůstává poslední snap úrovní dosažitelnou scrollem
-  const overlayMode = window.matchMedia('(max-width: 767px)');
 
   // burger → přepnout overlay
   for (const button of document.querySelectorAll<HTMLElement>('[data-burger]')) {
@@ -34,12 +30,6 @@ export function initMenu(): void {
     }
   });
 
-  // opuštění mobilního breakpointu (rotace, resize) → overlay zavřít,
-  // obrazovka se vrací do scroll toku jako poslední úroveň
-  overlayMode.addEventListener('change', (event) => {
-    if (!event.matches) setMenuOpen(false);
-  });
-
   // svislé gesto nad otevřeným overlayem nesmí projít na root scroller
   // (úrovně pod menu by se posouvaly). Root nejde zamknout přes CSS:
   // overflow: hidden na <html> zahodí scroll pozici. Pokud se obsah menu
@@ -48,7 +38,7 @@ export function initMenu(): void {
   const screen = document.querySelector<HTMLElement>('[data-level="menu"]');
   if (screen) {
     const blockScroll = (event: Event) => {
-      if (!overlayMode.matches || !html.classList.contains(MENU_OPEN)) return;
+      if (!html.classList.contains(MENU_OPEN)) return;
       if (screen.scrollHeight > screen.clientHeight) return;
       event.preventDefault();
     };

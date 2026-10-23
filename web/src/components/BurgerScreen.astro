@@ -1,10 +1,7 @@
 ---
 // Menu obrazovka — poloprůhledný overlay se stejným obsahem na všech
-// šířkách (kompletní navigace + sociální sítě).
-// Na desktopu je poslední snap úrovní: úroveň před ní je sticky
-// (scroll.css), takže menu při doscrollování najede PŘES ni a ta jí
-// prosvítá pozadím. Na mobilu ve scroll toku není — otevírá ji burger
-// nad aktuální úrovní (menu.ts přepíná html.menu-open).
+// šířkách (kompletní navigace + sociální sítě). Ve scroll toku není —
+// otevírá ji burger nad aktuální úrovní (menu.ts přepíná html.menu-open).
 import { NAV_LINKS } from '../lib/nav';
 import type { Contact } from '../types/sanity';
 
@@ -57,14 +54,15 @@ const menuLinks = NAV_LINKS;
       var(--space-lg);
     background: color-mix(in srgb, var(--color-bg) 90%, transparent);
     color: var(--color-text);
-    z-index: 11;
   }
 
+  /* položky vodorovně na středu (osa loga na desktopu) */
   .burger-nav ul,
   .burger-socials {
     display: flex;
     flex-direction: column;
-    width: var(--content-text-width);
+    align-items: center;
+    text-align: center;
   }
 
   /* Položky ve velikosti loga (dle náhledu) — velká polotučná typografie */
@@ -77,27 +75,25 @@ const menuLinks = NAV_LINKS;
     letter-spacing: -0.02em;
   }
 
-  /* Mobil: obrazovka není ve scroll toku — je fixed overlay nad aktuální
+  /* Obrazovka není ve scroll toku — je fixed overlay nad aktuální
      úrovní, otevírá se burgerem. Stránka pod ním zůstává, kde byla. */
-  @media (max-width: 767px) {
-    .burger-screen {
-      position: fixed;
-      inset: 0;
-      z-index: 9; /* pod hlavičkou (10) — burger zůstává klikací pro zavření */
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      visibility: hidden;
-      opacity: 0;
-      transition:
-        opacity var(--duration) var(--ease),
-        visibility 0s var(--duration);
-    }
+  .burger-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9; /* pod hlavičkou (10) — burger zůstává klikací pro zavření */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--duration) var(--ease),
+      visibility 0s var(--duration);
+  }
 
-    :global(html.menu-open) .burger-screen {
-      visibility: visible;
-      opacity: 1;
-      transition: opacity var(--duration) var(--ease);
-    }
+  :global(html.menu-open) .burger-screen {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity var(--duration) var(--ease);
   }
 
   @media (prefers-reduced-motion: reduce) {

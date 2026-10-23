@@ -1,8 +1,6 @@
 ---
-// Velké logo vlevo + textová navigace „Intro, Atelier, Portfolio, Kontakt"
-// vpravo (dle náhledů — položky oddělené čárkami, aktivní podtržená).
-// Aktivní položku přepíná scroll-engine.ts (class .is-active).
-import { NAV_LINKS } from '../lib/nav';
+// Logo + burger. Na desktopu je logo na středu, burger vpravo; na mobilu
+// logo vlevo. Burger otevírá menu overlay (BurgerScreen) na všech šířkách.
 
 interface Props {
   siteName: string;
@@ -14,18 +12,6 @@ const { siteName } = Astro.props;
 <header class="site-header">
   <a class="logo" href="/" data-scroll-to="uvod">{siteName}</a>
 
-  <nav class="header-nav" aria-label="Hlavní navigace">
-    {
-      NAV_LINKS.map((link, i) => (
-        <span class="nav-item"
-          ><a href={link.href} data-scroll-to={link.id} data-nav-link={link.id}
-            >{link.label}</a
-          >{i < NAV_LINKS.length - 1 && ', '}</span
-        >
-      ))
-    }
-  </nav>
-
   <button
     class="burger"
     data-burger
@@ -35,6 +21,13 @@ const { siteName } = Astro.props;
   >
     <span></span>
     <span></span>
+    <!-- znak * z fontu Karnet (glyf asterisk) — burger se v intervalu
+         promění v hvězdičku a zpět -->
+    <svg class="burger-star" viewBox="0 0 920 700" aria-hidden="true">
+      <path
+        d="M284 419Q247 422 181 422H10V277H384V0H536V92Q536 178 533 214Q570 155 606 117L713 0H920L731 198Q701 228 637 280Q675 277 739 277H910V422H536V700H384V608Q384 522 387 486Q350 545 314 583L207 700H0L189 502Q219 472 284 419Z"
+      ></path>
+    </svg>
   </button>
 </header>
 
@@ -63,43 +56,8 @@ const { siteName } = Astro.props;
     text-decoration: none;
   }
 
-  .header-nav {
-    display: none;
-    font-size: var(--text-md);
-    letter-spacing: -0.01em;
-    line-height: 1;
-    padding-top: 0.35em;
-  }
-
-  .nav-item {
-    white-space: nowrap;
-  }
-
-  .header-nav a {
-    position: relative;
-  }
-
-  .header-nav a:hover {
-    text-decoration: none;
-  }
-
-  .header-nav a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 100%;
-    bottom: -0.12em;
-    height: 0.06em;
-    background: currentColor;
-    transition: right var(--duration) var(--ease);
-  }
-
-  .header-nav a:hover::after,
-  .header-nav a.is-active::after {
-    right: 0;
-  }
-
   .burger {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 7px;
@@ -112,45 +70,110 @@ const { siteName } = Astro.props;
     height: 2px;
     background: currentColor;
     transition: transform var(--duration) var(--ease);
+    animation: burger-lines 8s var(--ease) infinite;
   }
 
-  /* otevřený menu overlay: čárky burgeru se složí do křížku (zavření) */
-  :global(html.menu-open) .burger span:first-child {
+  .burger-star {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    margin: -11.4px 0 0 -15px; /* 30 × 700/920 → výška 22.8px, na střed */
+    fill: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    animation: burger-star 8s var(--ease) infinite;
+  }
+
+  /* Interval: ~4.5 s burger → čárky se stáhnou do středu a vytočí se
+     hvězdička → ~2.5 s hvězdička → zpět. Čárky i hvězdička běží na
+     stejném cyklu, takže se prolnou. */
+  @keyframes burger-lines {
+    0%,
+    55%,
+    100% {
+      transform: scaleX(1);
+    }
+
+    62%,
+    92% {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes burger-star {
+    0%,
+    56%,
+    100% {
+      opacity: 0;
+      transform: scale(0.4) rotate(-90deg);
+    }
+
+    64%,
+    90% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+
+    97% {
+      opacity: 0;
+      transform: scale(0.4) rotate(90deg);
+    }
+  }
+
+  /* otevřený menu overlay: čárky burgeru se složí do křížku (zavření),
+     interval stojí a hvězdička je skrytá */
+  :global(html.menu-open) .burger span,
+  :global(html.menu-open) .burger-star {
+    animation: none;
+  }
+
+  :global(html.menu-open) .burger span:first-of-type {
     transform: translateY(4.5px) rotate(45deg);
   }
 
-  :global(html.menu-open) .burger span:last-child {
+  :global(html.menu-open) .burger span:last-of-type {
     transform: translateY(-4.5px) rotate(-45deg);
   }
 
-  /* otevřený menu overlay (mobil): logo ustupuje pod poloprůhledné menu
-     jako zbytek stránky (dle náhledu); zůstává ale klikací — v overlayi
-     Intro není, vede na něj právě logo */
-  @media (max-width: 767px) {
-    .logo {
-      transition: opacity var(--duration) var(--ease);
-    }
-
-    :global(html.menu-open) .logo {
-      opacity: 0.35;
-    }
+  /* otevřený menu overlay: logo ustupuje pod poloprůhledné menu jako
+     zbytek stránky (dle náhledu); zůstává ale klikací — v overlayi Intro
+     není, vede na něj právě logo */
+  .logo {
+    transition: opacity var(--duration) var(--ease);
   }
 
+  :global(html.menu-open) .logo {
+    opacity: 0.35;
+  }
+
+  /* desktop: logo na středu hlavičky, burger vpravo */
   @media (min-width: 768px) {
-    .header-nav {
-      display: block;
+    .site-header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+    }
+
+    .logo {
+      grid-column: 2;
     }
 
     .burger {
-      display: none;
+      grid-column: 3;
+      justify-self: end;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .header-nav a::after,
     .burger span,
     .logo {
       transition: none;
+    }
+
+    .burger span,
+    .burger-star {
+      animation: none;
     }
   }
 </style>
