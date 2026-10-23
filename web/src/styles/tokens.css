@@ -75,5 +75,9 @@
        přibližně doprostřed mezery mezi koncem loga a ikonou menu a za ním
        už vykukuje začátek dalšího panelu. */
     --text-step: 72vw;
+    /* textové sloupce drah (karta projektu, ateliér) o kus širší než
+       obecná šířka obsahu — kratší řádky působily stísněně; okraj
+       dalšího panelu pořád vykukuje */
+    --text-column-width: calc(80vw - var(--page-pad));
   }
 }

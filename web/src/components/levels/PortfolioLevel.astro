@@ -5,6 +5,7 @@
 // dál od středu, tím víc blednou (data-row-distance nastavuje scroll-engine).
 import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
+import { aspectRatioFor } from '../../lib/image';
 import type { PortfolioLevel } from '../../types/sanity';
 
 interface Props {
@@ -22,6 +23,7 @@ const projects = data.projects ?? [];
         <a
           class="portfolio-item row-fade"
           href={`/portfolio/${project.slug}/`}
+          style={`--cover-ratio: ${aspectRatioFor(project.cover).toFixed(4)}`}
           data-astro-prefetch="viewport"
         >
           <SanityImage
@@ -136,9 +138,14 @@ const projects = data.projects ?? [];
       gap: var(--space-sm);
     }
 
-    /* výška stále stejná pro všechny, jen nižší; šířka se liší */
+    /* jako fotky na kartě projektu: každá fotka v rámečku 32dvh × 82vw
+       podle vlastního poměru stran — na šířku jsou nižší (nepřetečou
+       displej), stejnou výšku mají jen fotky na výšku. Šířka z poměru
+       (--cover-ratio) a výška dopočtená z width/height atributů funguje
+       i před stažením obrázku (smyčka drah měří šířky hned) */
     .portfolio :global(.portfolio-cover) {
-      height: 32dvh;
+      width: min(82vw, 32dvh * var(--cover-ratio));
+      height: auto;
     }
   }
 
