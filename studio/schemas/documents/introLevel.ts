@@ -33,6 +33,9 @@ export default defineType({
       title: 'Video (soubor MP4)',
       type: 'file',
       options: { accept: 'video/mp4' },
+      description:
+        'Na výšku 4:5 (ideálně 864 × 1080), H.264, bez zvuku, smyčka do ~15 s, max. ~3 MB. ' +
+        'Rámeček se na mobilu i desktopu ořezává na střed — hlavní motiv drž uprostřed.',
     }),
     defineField({
       name: 'videoUrl',
@@ -44,7 +47,8 @@ export default defineType({
       name: 'poster',
       title: 'Poster snímek videa',
       type: 'image',
-      description: 'Zobrazí se, než se video načte / když je autoplay vypnutý.',
+      description:
+        'Zobrazí se, než se video načte / když je autoplay vypnutý. Použij první snímek videa (4:5).',
     }),
     defineField({
       name: 'seo',

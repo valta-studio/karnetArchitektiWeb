@@ -1,7 +1,8 @@
 // Úvodní video: lazy autoplay až když je úroveň viditelná. V podkresech
 // dalších úrovní NEBĚŽÍ druhý <video> se stejným URL (dvojí stažení i dvojí
 // dekodér) — je tam canvas, do kterého zrcadlíme snímky téhož elementu.
-// Respektuje prefers-reduced-motion a Save-Data — pak zůstane poster/fotka.
+// Respektuje prefers-reduced-motion, Save-Data a 2G — pak zůstane poster/fotka.
+// Stahování videa začne až po `load`, aby nekonkurovalo posteru (LCP) a fontům.
 
 const painting = new Set<HTMLCanvasElement>();
 
@@ -12,13 +13,20 @@ export function initVideo(): void {
   if (!videos.length) return;
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } })
-    .connection;
-  if (reducedMotion || connection?.saveData) {
+  const connection = (
+    navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
+  ).connection;
+  const slowNetwork = connection?.effectiveType?.endsWith('2g') ?? false;
+  if (reducedMotion || connection?.saveData || slowNetwork) {
     for (const video of videos) video.removeAttribute('autoplay');
     return;
   }
 
+  if (document.readyState === 'complete') observeVideos(videos);
+  else window.addEventListener('load', () => observeVideos(videos), { once: true });
+}
+
+function observeVideos(videos: HTMLVideoElement[]): void {
   const source = videos[0];
   const mirrors = Array.from(
     document.querySelectorAll<HTMLCanvasElement>('canvas[data-intro-mirror]')

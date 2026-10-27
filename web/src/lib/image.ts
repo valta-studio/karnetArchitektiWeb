@@ -4,7 +4,7 @@
 import imageUrlBuilder from '@sanity/image-url';
 import type { ImageUrlBuilder } from '@sanity/image-url/lib/types/builder';
 import { client } from './sanity';
-import type { ImageSource, MockImage, SanityImageRef } from '../types/sanity';
+import type { ImageSource, IntroLevel, MockImage, SanityImageRef } from '../types/sanity';
 
 export const SRCSET_WIDTHS = [480, 768, 1080, 1440, 1920, 2560];
 
@@ -13,6 +13,20 @@ export const SRCSET_WIDTHS = [480, 768, 1080, 1440, 1920, 2560];
  *  jiného kandidáta ze srcsetu a stáhne tu samou fotku podruhé. */
 export const INTRO_MEDIA_SIZES = '(min-width: 768px) 34vw, 82vw';
 export const INTRO_MEDIA_MAX_WIDTH = 1440;
+
+/** URL úvodního videa, pokud se má video zobrazit (režim Video + soubor/URL). */
+export function introVideoSrc(intro: IntroLevel | undefined): string | undefined {
+  if (intro?.mode !== 'video') return undefined;
+  return intro.videoFileUrl ?? intro.videoUrl;
+}
+
+/** Poster úvodního videa. Úroveň 1, podkresy ateliéru a kontaktu i preload
+ *  v <head> musí mít totožné URL — jinak se tentýž snímek stáhne vícekrát. */
+export function introPosterUrl(intro: IntroLevel | undefined): string | undefined {
+  const poster = intro?.poster;
+  if (!poster) return undefined;
+  return isMockImage(poster) ? poster.src : urlFor(poster).width(1200).url();
+}
 
 const builder = client ? imageUrlBuilder(client) : null;
 

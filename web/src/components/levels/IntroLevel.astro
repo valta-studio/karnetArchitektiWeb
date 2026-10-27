@@ -3,7 +3,12 @@
 // (dle náhledů — médium NENÍ fullscreen). Jediná úroveň bez
 // horizontálního posunu.
 import SanityImage from '../SanityImage.astro';
-import { INTRO_MEDIA_MAX_WIDTH, INTRO_MEDIA_SIZES, isMockImage, urlFor } from '../../lib/image';
+import {
+  INTRO_MEDIA_MAX_WIDTH,
+  INTRO_MEDIA_SIZES,
+  introPosterUrl,
+  introVideoSrc,
+} from '../../lib/image';
 import type { IntroLevel } from '../../types/sanity';
 
 interface Props {
@@ -13,14 +18,9 @@ interface Props {
 
 const { data, siteName } = Astro.props;
 
-const videoSrc = data.videoFileUrl ?? data.videoUrl;
-const showVideo = data.mode === 'video' && Boolean(videoSrc);
-
-const posterUrl = data.poster
-  ? isMockImage(data.poster)
-    ? data.poster.src
-    : urlFor(data.poster).width(1200).url()
-  : undefined;
+const videoSrc = introVideoSrc(data);
+const showVideo = Boolean(videoSrc);
+const posterUrl = introPosterUrl(data);
 ---
 
 <section class="level intro" data-level="uvod" id="uvod">
@@ -35,6 +35,7 @@ const posterUrl = data.poster
           muted
           loop
           playsinline
+          disablepictureinpicture
           preload="none"
           poster={posterUrl}
         >

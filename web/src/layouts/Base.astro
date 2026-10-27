@@ -98,6 +98,7 @@ const isPlausible = Boolean(analyticsId && !analyticsId.startsWith('G-'));
     }
 
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <slot name="head" />
 
     {
       analyticsId && isPlausible && (

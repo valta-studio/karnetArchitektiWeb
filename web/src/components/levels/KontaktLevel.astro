@@ -3,7 +3,12 @@
 // adresa kanceláře, sociální sítě pod sebou, fakturační údaje.
 // Na desktopu za blokem prosvítá úvodní médium stejně jako v ateliéru.
 import SanityImage from '../SanityImage.astro';
-import { INTRO_MEDIA_MAX_WIDTH, INTRO_MEDIA_SIZES, isMockImage, urlFor } from '../../lib/image';
+import {
+  INTRO_MEDIA_MAX_WIDTH,
+  INTRO_MEDIA_SIZES,
+  introPosterUrl,
+  introVideoSrc,
+} from '../../lib/image';
 import type { Contact, IntroLevel } from '../../types/sanity';
 
 interface Props {
@@ -15,15 +20,9 @@ interface Props {
 const { contact, intro } = Astro.props;
 const billing = contact.billing;
 
-const backdropVideoSrc = intro?.videoFileUrl ?? intro?.videoUrl;
-const backdropIsVideo = intro?.mode === 'video' && Boolean(backdropVideoSrc);
+const backdropIsVideo = Boolean(introVideoSrc(intro));
 const backdropImage = intro?.photo ?? intro?.poster;
-
-const backdropPosterUrl = intro?.poster
-  ? isMockImage(intro.poster)
-    ? intro.poster.src
-    : urlFor(intro.poster).width(1200).url()
-  : undefined;
+const backdropPosterUrl = introPosterUrl(intro);
 ---
 
 <section class="level kontakt" data-level="kontakt" id="kontakt">
