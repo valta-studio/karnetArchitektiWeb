@@ -1,7 +1,7 @@
 ---
 // Karta projektu — úroveň 2: název + metadata + perex v prvním panelu,
-// každý textový odstavec ve vlastním panelu (jako ateliér) — obsah panelu
-// je svisle na středu. Odstavec delší, než se vejde na výšku, rozdělí
+// každý textový odstavec ve vlastním panelu (jako ateliér) — texty všech
+// panelů začínají na společné horní lince. Odstavec delší, než se vejde na výšku, rozdělí
 // scroll-engine (paginateText) do více panelů podobné výšky.
 import ProgressDots from '../ProgressDots.astro';
 import ScrollRow from '../ScrollRow.astro';
@@ -54,6 +54,12 @@ const columns = project.columns ?? [];
 
 <style>
   /* jako ateliér: aktivní panel na středu obrazovky (center-snap) */
+  .text-row {
+    /* strop výšky textu v panelu — delší odstavce stránkuje scroll-engine
+       (svh: výška nesmí skákat se schováním address baru) */
+    --text-max-h: 66svh;
+  }
+
   .text-row :global(.text-scroll) {
     min-height: 100svh;
     align-items: center;
@@ -67,11 +73,14 @@ const columns = project.columns ?? [];
     flex: 0 0 50vw;
   }
 
-  /* panel = sloupec textu, obsah svisle na středu (jako ateliér) */
+  /* panel = sloupec textu v plné výšce textu, panel je svisle na středu
+     a text v něm nahoře — všechny texty začínají na společné lince
+     (nejdelší text je na středu) */
   .text-panel {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     width: var(--text-column-width);
+    height: var(--text-max-h);
     scroll-snap-align: center;
     font-size: var(--text-body);
     line-height: var(--leading-snug);
@@ -88,11 +97,9 @@ const columns = project.columns ?? [];
     opacity: 0.3;
   }
 
-  /* strop výšky textu v panelu — delší odstavce stránkuje scroll-engine
-     (svh: výška nesmí skákat se schováním address baru) */
   .text-lead,
   .text-column {
-    max-height: 66svh;
+    max-height: var(--text-max-h);
   }
 
   .project-title {
@@ -110,9 +117,8 @@ const columns = project.columns ?? [];
   }
 
   @media (max-width: 767px) {
-    .text-lead,
-    .text-column {
-      max-height: 72svh;
+    .text-row {
+      --text-max-h: 72svh;
     }
   }
 

@@ -319,10 +319,19 @@ const panelCount = segments.length;
     }
   }
 
+  /* Textový i fotkový panel mají stejnou výšku a jsou svisle na středu;
+     text je v panelu nahoře — všechny texty začínají na společné lince
+     s horní hranou fotek. */
+  .atelier-text-panel,
+  .atelier-photo-panel {
+    height: 72dvh;
+    display: flex;
+  }
+
   .atelier-text-panel {
     /* Stejná geometrie jako textové sloupce projektu: šířka textu +
        page-pad mezera tvoří jeden vodorovný krok. */
-    display: flex;
+    align-items: flex-start;
     justify-content: flex-start;
     width: var(--text-column-width);
   }
@@ -330,8 +339,6 @@ const panelCount = segments.length;
   /* Fotka: jeden panel = jedna zastávka, přirozené proporce jako fotky
      na kartě projektu (PhotoRow). */
   .atelier-photo-panel {
-    height: 72dvh;
-    display: flex;
     align-items: center;
   }
 
@@ -342,6 +349,7 @@ const panelCount = segments.length;
   }
 
   @media (max-width: 767px) {
+    .atelier-text-panel,
     .atelier-photo-panel {
       height: 62dvh;
     }
