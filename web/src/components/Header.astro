@@ -15,8 +15,9 @@ const { siteName, backHref } = Astro.props;
   {
     backHref && (
       <a class="back" href={backHref} data-back aria-label="Zpět na portfolio">
-        <svg viewBox="0 0 30 24" aria-hidden="true">
-          <path d="M13 2.5 3.5 12l9.5 9.5M3.5 12H30" />
+        <!-- znak ← z fontu Karnet (glyf arrowleft) -->
+        <svg viewBox="0 0 825 700" aria-hidden="true">
+          <path d="M349 281Q421 273 505 273H825V426H505Q421 426 348 418Q396 462 444 516L607 700H415L163 413V700H0V0H163V287L415 0H607L444 184Q403 230 349 281Z" />
         </svg>
       </a>
     )
@@ -46,6 +47,9 @@ const { siteName, backHref } = Astro.props;
 
 <style>
   .site-header {
+    /* výška verzálek loga: glyfy Karnet mají cap height 700 z 1000 em —
+       hvězdička burgeru a šipka zpět jsou stejně velké jako písmo loga */
+    --glyph-h: calc(var(--text-xl) * 0.7);
     position: fixed;
     inset: 0 0 auto 0;
     z-index: 10;
@@ -70,9 +74,10 @@ const { siteName, backHref } = Astro.props;
     text-decoration: none;
   }
 
-  /* šipka zpět — tah jako čárky burgeru (5px), šířka jako burger (30px);
-     jen na desktopu (levý sloupec hlavičky), na mobilu skrytá — zpět
-     vede systémové gesto / tlačítko prohlížeče */
+  /* šipka zpět — glyf ← z fontu Karnet, stejně velký jako hvězdička
+     burgeru (výška verzálek loga); jen na desktopu (levý
+     sloupec hlavičky), na mobilu skrytá — zpět vede systémové gesto /
+     tlačítko prohlížeče */
   .back {
     position: relative;
     display: none;
@@ -86,11 +91,10 @@ const { siteName, backHref } = Astro.props;
   }
 
   .back svg {
-    width: 30px;
-    height: 24px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 5;
+    width: calc(var(--glyph-h) * 825 / 700);
+    height: var(--glyph-h);
+    max-width: none;
+    fill: currentColor;
     transition: transform var(--duration) var(--ease);
   }
 
@@ -98,8 +102,8 @@ const { siteName, backHref } = Astro.props;
     transform: translateX(-3px);
   }
 
-  /* Tloušťka čárky = tah hvězdičky (glyf: 145–152 z 920 jednotek šířky
-     → při 32px ≈ 5px). Tři čárky + dvě mezery ≈ výška hvězdičky (24.3px). */
+  /* Tloušťka čárky ≈ tah hvězdičky (glyf: 145–152 z 700 jednotek výšky
+     → ≈ 5px). Tři čárky + dvě mezery ≈ výška hvězdičky. */
   .burger {
     --burger-line: 5px;
     --burger-gap: 4px;
@@ -125,13 +129,16 @@ const { siteName, backHref } = Astro.props;
     animation: burger-lines 8s var(--ease) var(--burger-start) infinite;
   }
 
+  /* hvězdička je velká jako písmo loga (výška glyfu = verzálka loga),
+     pravým okrajem lícuje s čárkami */
   .burger-star {
     position: absolute;
     top: 50%;
-    left: 50%;
-    width: 32px;
+    right: 0;
+    width: calc(var(--glyph-h) * 920 / 700);
+    height: var(--glyph-h);
     max-width: none; /* global.css omezuje svg na šířku rodiče (30px burger) */
-    margin: -12.17px 0 0 -16px; /* 32 × 700/920 → výška 24.3px, na střed */
+    margin-top: calc(var(--glyph-h) / -2);
     fill: currentColor;
     opacity: 0;
     pointer-events: none;
