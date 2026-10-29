@@ -87,7 +87,8 @@ const photos = [
     view-transition-name: project-cover;
   }
 
-  /* stejný styl jako název pod fotkou v portfoliu; sedí nad tečkami
+  /* písmo jako název pod fotkou v portfoliu, velikost i barevný efekt
+     jako logo (--text-xl, chrome + difference — Header); sedí nad tečkami
      (scroll.css .progress-dots: bottom --space-lg, výška 4px). Fixed —
      zůstává vidět na všech úrovních karty; z-index jako svislé tečky
      (LevelDots), pod burger obrazovkou (9) */
@@ -101,9 +102,11 @@ const photos = [
     max-width: calc(100% - 2 * var(--page-pad));
     margin: 0;
     font-family: var(--font-display);
-    font-size: var(--text-sm);
+    font-size: var(--text-xl);
     line-height: 1.2;
     text-align: center;
+    color: var(--color-chrome);
+    mix-blend-mode: difference;
     view-transition-name: project-title;
   }
 
