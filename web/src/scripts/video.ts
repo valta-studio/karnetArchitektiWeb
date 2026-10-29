@@ -61,26 +61,37 @@ function observeVideos(videos: HTMLVideoElement[]): void {
     if (!owners?.size) video.pause();
   };
 
+  // Zrcadlo kreslí, jen když je úroveň vidět, canvas vykreslený (skrytý
+  // breakpoint ne) a dráha úrovně stojí na výchozím panelu — po přejetí
+  // vlevo/vpravo podkres zmizí (data-row-at-start, scroll-engine).
+  const intersecting = new Set<Element>();
+  const syncMirrors = (owner: Element) => {
+    const ownMirrors = mirrorOwners.get(owner) ?? [];
+    const row = owner.querySelector('.scroll-row[data-row]');
+    const atStart = !row || row.hasAttribute('data-row-at-start');
+    const shown = intersecting.has(owner) && atStart
+      ? ownMirrors.filter((mirror) => mirror.clientWidth > 0)
+      : [];
+    if (shown.length) {
+      request(source, owner);
+      for (const mirror of shown) startMirror(mirror, source);
+    } else {
+      release(source, owner);
+      for (const mirror of ownMirrors) painting.delete(mirror);
+    }
+  };
+
   const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         const target = entry.target;
-        const video = target instanceof HTMLVideoElement ? target : source;
-        const targetMirrors =
-          target instanceof HTMLVideoElement ? mirrors : (mirrorOwners.get(target) ?? []);
-        if (entry.isIntersecting) {
-          // Skryté zrcadlo (display: none, např. mobilní breakpoint) video
-          // nepotřebuje — nespouštěj kvůli němu ani přehrávání, ani kreslení.
-          const visibleMirrors = targetMirrors.filter((mirror) => mirror.clientWidth > 0);
-          if (target instanceof HTMLVideoElement || visibleMirrors.length) {
-            request(video, target);
-          }
-          for (const mirror of visibleMirrors) startMirror(mirror, video);
+        if (entry.isIntersecting) intersecting.add(target);
+        else intersecting.delete(target);
+        if (target instanceof HTMLVideoElement) {
+          if (entry.isIntersecting) request(target, target);
+          else release(target, target);
         } else {
-          release(video, target);
-          if (!wanted.get(video)?.size) {
-            for (const mirror of mirrors) painting.delete(mirror);
-          }
+          syncMirrors(target);
         }
       }
     },
@@ -88,7 +99,13 @@ function observeVideos(videos: HTMLVideoElement[]): void {
   );
 
   for (const video of videos) observer.observe(video);
-  for (const owner of mirrorOwners.keys()) observer.observe(owner);
+  for (const owner of mirrorOwners.keys()) {
+    observer.observe(owner);
+    new MutationObserver(() => syncMirrors(owner)).observe(owner, {
+      subtree: true,
+      attributeFilter: ['data-row-at-start'],
+    });
+  }
 }
 
 function startMirror(canvas: HTMLCanvasElement, video: HTMLVideoElement): void {

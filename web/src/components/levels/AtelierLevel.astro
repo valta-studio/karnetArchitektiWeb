@@ -191,6 +191,17 @@ const panelCount = segments.length;
     object-fit: cover;
   }
 
+  /* Podkres drží jen na výchozím panelu; po přejetí vlevo/vpravo zmizí
+     (data-row-at-start, scroll-engine). Opacity na dítěti — opacity
+     samotného podkresu řídí scroll-driven animace. */
+  .atelier-backdrop > :global(*) {
+    transition: opacity 400ms var(--ease);
+  }
+
+  :global(.atelier:has(.scroll-row:not([data-row-at-start])) .atelier-backdrop > *) {
+    opacity: 0;
+  }
+
   /* Poster pod zrcadlem — canvas je do prvního snímku průhledný. */
   .atelier-backdrop :global(canvas) {
     background-position: center;
@@ -387,7 +398,8 @@ const panelCount = segments.length;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .atelier-panel {
+    .atelier-panel,
+    .atelier-backdrop > :global(*) {
       transition: none;
     }
   }

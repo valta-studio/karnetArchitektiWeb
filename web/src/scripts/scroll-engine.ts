@@ -611,6 +611,9 @@ function observeRows(): void {
     const syncActive = () => {
       const active = nearest(rendered);
       const activeDot = active ? visible.indexOf(originalOf(active)) : 0;
+      // dráha stojí na výchozím panelu (i na jeho klonu) — podkres ateliéru
+      // je vidět jen tady, po přejetí vlevo/vpravo zmizí
+      row.toggleAttribute('data-row-at-start', activeDot <= 0);
       if (!active || active === lastActive) {
         syncDots(dots, activeDot);
         return;
