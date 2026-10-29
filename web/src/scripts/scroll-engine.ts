@@ -90,8 +90,17 @@ function rowTargetLeft(row: HTMLElement, target: HTMLElement): number {
   return Math.max(0, Math.min(maxLeft, left));
 }
 
-/** Posune vodorovnou dráhu na snap pozici prvku bez svislého pohybu stránky. */
+/** Klik/tap, který posouvá dráhu (tečka, panel) — pouští guard snapu. */
+const ROW_TAP = 'row:tap';
+
+/**
+ * Posune vodorovnou dráhu na snap pozici prvku bez svislého pohybu stránky.
+ * Volá se jen z kliknutí uživatele (tečka, tlumený panel) — dá vědět guardu
+ * (initSnapActivation), jinak by tap na mobilu před prvním gestem srazil
+ * dráhu zpátky na začátek.
+ */
 function scrollRowTo(row: HTMLElement, target: HTMLElement): void {
+  window.dispatchEvent(new Event(ROW_TAP));
   row.scrollTo({ left: rowTargetLeft(row, target), behavior: scrollBehavior() });
 }
 
@@ -457,6 +466,7 @@ function initSnapActivation(): void {
     on('touchmove', release, { passive: true });
     on('wheel', release, { passive: true });
     on('keydown', release);
+    on(ROW_TAP, release);
     const mouseRelease = (event: Event) => {
       if ((event as PointerEvent).pointerType === 'mouse') release();
     };
@@ -652,6 +662,22 @@ function observeRows(): void {
       }
       syncActive();
     };
+
+    // klik na tlumený (neaktivní) panel ho posune na střed — jako tečka;
+    // u položky portfolia místo otevření karty (otevře ji až klik na
+    // aktivní). Modifikátory (nová karta / okno) nechávají odkaz být.
+    row.addEventListener('click', (event) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      let panel = event.target instanceof Element ? event.target : null;
+      while (panel && panel.parentElement !== row) panel = panel.parentElement;
+      if (!(panel instanceof HTMLElement) || panel === lastActive || !rendered.includes(panel)) {
+        return;
+      }
+      event.preventDefault();
+      scrollRowTo(row, panel);
+    });
 
     let scrollFrame = 0;
     row.addEventListener(

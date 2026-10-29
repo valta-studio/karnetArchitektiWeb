@@ -147,6 +147,11 @@ html:focus-within .scroll-deck {
   }
 }
 
+/* tlumený panel jde kliknutím posunout na střed (scroll-engine observeRows) */
+.scroll-row > [data-row-distance]:not([data-row-distance='0']) {
+  cursor: pointer;
+}
+
 /* přeběh aktivní tečky při přechodu do nového kola (scroll-engine
    sweepDot) — dočasný pruh, letí ze staré aktivní tečky na novou */
 .dot-sweep {
