@@ -166,6 +166,61 @@ img[data-skeleton]:not(.is-loaded) {
   translate: -50% 0;
 }
 
+/* sousední projekty portfolia (page-transition.ts nameSideItems) odjedou
+   ze středu do stran a zmizí */
+::view-transition-old(*.vt-side-left) {
+  animation: vt-out-left 600ms var(--ease) both;
+}
+
+::view-transition-old(*.vt-side-right) {
+  animation: vt-out-right 600ms var(--ease) both;
+}
+
+/* fotky karty kolem náhledové přijedou ze stran na střed — nová stránka je
+   během přechodu živá, :active-view-transition platí jen při příchodu
+   z portfolia (jiné navigace page-transition.ts přeskočí). Animuje se
+   obrázek, ne panel — panel nese tlumení .row-fade. */
+html:active-view-transition
+  .photo-panel:has(~ .photo-panel[data-cover]:not([data-loop-clone]))
+  .photo-img {
+  animation: vt-in-left 600ms var(--ease) both;
+}
+
+html:active-view-transition
+  .photo-panel[data-cover]:not([data-loop-clone])
+  ~ .photo-panel
+  .photo-img {
+  animation: vt-in-right 600ms var(--ease) both;
+}
+
+@keyframes vt-out-left {
+  to {
+    translate: -30vw 0;
+    opacity: 0;
+  }
+}
+
+@keyframes vt-out-right {
+  to {
+    translate: 30vw 0;
+    opacity: 0;
+  }
+}
+
+@keyframes vt-in-left {
+  from {
+    translate: -30vw 0;
+    opacity: 0;
+  }
+}
+
+@keyframes vt-in-right {
+  from {
+    translate: 30vw 0;
+    opacity: 0;
+  }
+}
+
 @keyframes vt-fade-in {
   from {
     opacity: 0;

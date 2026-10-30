@@ -4,6 +4,9 @@
 // a názvu karty (PhotoRow). Jméno
 // přechodu smí na stránce nést jediný prvek, jinak se přechod zahodí —
 // a dráha portfolia má klony smyčky, proto ho nelze dát staticky v CSS.
+// Viditelné sousední projekty dostanou vlastní jména a ve snímku odjedou
+// ze středu do stran (třídy vt-side-left/right, global.css); fotky karty
+// pak přijedou ze stran na střed (:active-view-transition, global.css).
 
 // [selektor uvnitř položky portfolia, jméno přechodu]
 const NAMES = [
@@ -42,6 +45,7 @@ export function initPageTransition(): void {
       const el = clicked.querySelector<HTMLElement>(selector);
       if (el) el.style.viewTransitionName = name;
     }
+    nameSideItems(clicked);
   });
 
   initBackLink();
@@ -49,12 +53,30 @@ export function initPageTransition(): void {
   // návrat z bfcache — stránka je ve stavu z odchodu, jméno uklidit
   window.addEventListener('pageshow', () => {
     for (const el of document.querySelectorAll<HTMLElement>(
-      '.portfolio-item img, .portfolio-item-title'
+      '.portfolio-item, .portfolio-item img, .portfolio-item-title'
     )) {
       el.style.viewTransitionName = '';
+      el.style.removeProperty('view-transition-class');
     }
     clicked = null;
   });
+}
+
+/** Sousední projekty viditelné vedle kliknutého — odjedou do stran. */
+function nameSideItems(clicked: HTMLAnchorElement): void {
+  const center = (rect: DOMRect) => rect.left + rect.width / 2;
+  const clickedCenter = center(clicked.getBoundingClientRect());
+  let index = 0;
+  for (const item of clicked.parentElement?.children ?? []) {
+    if (item === clicked || !(item instanceof HTMLElement)) continue;
+    const rect = item.getBoundingClientRect();
+    if (rect.width === 0 || rect.right <= 0 || rect.left >= window.innerWidth) continue;
+    item.style.viewTransitionName = `portfolio-side-${index++}`;
+    item.style.setProperty(
+      'view-transition-class',
+      center(rect) < clickedCenter ? 'vt-side-left' : 'vt-side-right'
+    );
+  }
 }
 
 /**
