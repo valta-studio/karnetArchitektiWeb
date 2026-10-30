@@ -50,8 +50,12 @@ const photos = [
 </section>
 
 <style>
+  /* fotka svisle na středu mezi spodkem loga a vrškem názvu — stejná
+     mezera nad i pod fotkou (--card-top / --card-bottom, card-layout.ts) */
   .photo-row :global(.scroll-row) {
     min-height: 100svh;
+    padding-top: var(--card-top);
+    padding-bottom: var(--card-bottom);
     align-items: center;
     /* stejná mezera jako mezi textovými panely (TextRow) */
     gap: var(--page-pad);
@@ -60,6 +64,8 @@ const photos = [
   .photo-panel {
     scroll-snap-align: center;
     height: 72dvh;
+    /* mezi logem a dlouhým (víceřádkovým) názvem musí zbýt mezera */
+    max-height: calc(100svh - var(--card-top) - var(--card-bottom) - 2 * var(--space-sm));
     display: flex;
     align-items: center;
     transition: opacity 300ms var(--ease);

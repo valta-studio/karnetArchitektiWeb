@@ -90,6 +90,21 @@ h3 {
   outline-offset: 2px;
 }
 
+/* Karta projektu: spodní hrana loga a horní hrana názvu projektu — fotky
+   i výkresy se centrují mezi ně. Přesné hodnoty změří card-layout.ts
+   (inline na <html>); tyhle platí do změření (jednořádkový název nad
+   tečkami, PhotoRow). */
+:root {
+  --card-top: var(--header-bottom);
+  --card-bottom: calc(var(--space-lg) + 4px + var(--space-sm) + var(--text-xl));
+}
+
+@media (max-width: 767px) {
+  :root {
+    --card-bottom: calc(2 * var(--space-sm) + 4px + var(--text-xl));
+  }
+}
+
 /* Skeleton obrázků — šedý podklad, dokud se fotka stahuje (img-skeleton.ts).
    Jemný pulz; po načtení podklad zmizí, aby neprosvítal průhlednými PNG. */
 img[data-skeleton]:not(.is-loaded) {

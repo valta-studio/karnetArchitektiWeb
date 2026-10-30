@@ -40,16 +40,22 @@ const drawings = project.drawings ?? [];
 }
 
 <style>
+  /* pás svisle na středu mezi spodkem loga a vrškem názvu — stejná
+     mezera nad i pod pásem (--card-top / --card-bottom, card-layout.ts) */
   .drawings-row {
     display: flex;
     flex-direction: column;
     justify-content: center;
     min-height: 100svh;
+    padding-top: var(--card-top);
+    padding-bottom: var(--card-bottom);
   }
 
   .drawings-band {
     background: var(--color-paper);
     height: 60dvh;
+    /* mezi logem a dlouhým (víceřádkovým) názvem musí zbýt mezera */
+    max-height: calc(100svh - var(--card-top) - var(--card-bottom) - 2 * var(--space-sm));
   }
 
   .drawings-row :global(.scroll-row) {
