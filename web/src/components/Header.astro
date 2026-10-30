@@ -212,6 +212,13 @@ const { siteName, backHref } = Astro.props;
     opacity: 0.35;
   }
 
+  /* nad tmavým podkladem menu by difference dal šedou na šedé
+     (chrome − overlay) — hlavička je při otevřeném menu tmavá bez blendu */
+  :global(html.menu-open) .site-header {
+    color: var(--color-text);
+    mix-blend-mode: normal;
+  }
+
   /* desktop: logo na středu hlavičky, burger vpravo */
   @media (min-width: 768px) {
     .site-header {
