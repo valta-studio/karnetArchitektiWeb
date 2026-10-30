@@ -42,6 +42,10 @@ const { siteName, backHref } = Astro.props;
         d="M284 419Q247 422 181 422H10V277H384V0H536V92Q536 178 533 214Q570 155 606 117L713 0H920L731 198Q701 228 637 280Q675 277 739 277H910V422H536V700H384V608Q384 522 387 486Q350 545 314 583L207 700H0L189 502Q219 472 284 419Z"
       ></path>
     </svg>
+    <!-- znak X z fontu Karnet (glyf X) — zavření otevřeného menu -->
+    <svg class="burger-close" viewBox="0 0 814 700" aria-hidden="true">
+      <path d="M302 346 7 0H209L407 228L605 0H807L512 346L814 700H611L407 464L203 700H0Z"></path>
+    </svg>
   </button>
 </header>
 
@@ -181,24 +185,39 @@ const { siteName, backHref } = Astro.props;
     }
   }
 
-  /* otevřený menu overlay: krajní čárky se složí do křížku (zavření),
-     prostřední zmizí; interval stojí a hvězdička je skrytá.
-     Posun = výška čárky + mezera (krajní čárka dojede na osu prostřední) */
+  /* zavírací X — glyf z fontu Karnet ve výšce verzálek loga, umístěný
+     jako hvězdička (pravým okrajem lícuje s čárkami) */
+  .burger-close {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: calc(var(--glyph-h) * 814 / 700);
+    height: var(--glyph-h);
+    max-width: none; /* global.css omezuje svg na šířku rodiče (30px burger) */
+    margin-top: calc(var(--glyph-h) / -2);
+    fill: currentColor;
+    opacity: 0;
+    transform: scale(0.4);
+    pointer-events: none;
+    transition:
+      opacity var(--duration) var(--ease),
+      transform var(--duration) var(--ease);
+  }
+
+  /* otevřený menu overlay: čárky se stáhnou, interval stojí, hvězdička
+     je skrytá a místo nich je X (zavření) */
   :global(html.menu-open) .burger span,
   :global(html.menu-open) .burger-star {
     animation: none;
   }
 
-  :global(html.menu-open) .burger span:first-of-type {
-    transform: translateY(calc(var(--burger-line) + var(--burger-gap))) rotate(45deg);
+  :global(html.menu-open) .burger span {
+    transform: scaleX(0);
   }
 
-  :global(html.menu-open) .burger span:nth-of-type(2) {
-    opacity: 0;
-  }
-
-  :global(html.menu-open) .burger span:last-of-type {
-    transform: translateY(calc(-1 * (var(--burger-line) + var(--burger-gap)))) rotate(-45deg);
+  :global(html.menu-open) .burger-close {
+    opacity: 1;
+    transform: none;
   }
 
   /* otevřený menu overlay: logo ustupuje pod poloprůhledné menu jako
@@ -245,6 +264,7 @@ const { siteName, backHref } = Astro.props;
 
   @media (prefers-reduced-motion: reduce) {
     .burger span,
+    .burger-close,
     .logo {
       transition: none;
     }
