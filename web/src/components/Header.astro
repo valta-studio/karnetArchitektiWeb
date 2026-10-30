@@ -54,12 +54,16 @@ const { siteName, backHref } = Astro.props;
     /* výška verzálek loga: glyfy Karnet mají cap height 700 z 1000 em —
        hvězdička burgeru a šipka zpět jsou stejně velké jako písmo loga */
     --glyph-h: calc(var(--text-xl) * 0.7);
+    /* horní hrana verzálek loga pod vrškem jeho řádku: hhea ascent 1000
+       + descent 200 při line-height 1 → baseline 0.9em, verzálka 0.7em */
+    --cap-top: calc(var(--text-xl) * 0.2);
     position: fixed;
     inset: 0 0 auto 0;
     z-index: 10;
     display: flex;
-    /* burger svisle na středu loga (na mobilu dvouřádkového) */
-    align-items: center;
+    /* burger, hvězdička, X i šipka zpět lícují vrškem s verzálkami
+       (prvního řádku) loga */
+    align-items: start;
     justify-content: space-between;
     padding: var(--space-md) calc(var(--page-pad) - 1.5px) 0;
     color: var(--color-chrome);
@@ -86,6 +90,7 @@ const { siteName, backHref } = Astro.props;
     position: relative;
     display: none;
     flex: none;
+    margin-top: var(--cap-top);
   }
 
   .back::after {
@@ -119,6 +124,8 @@ const { siteName, backHref } = Astro.props;
     flex-direction: column;
     gap: var(--burger-gap);
     padding: var(--space-xs) 0;
+    /* vršek čárek (obsah pod paddingem) = vršek verzálek loga */
+    margin-top: calc(var(--cap-top) - var(--space-xs));
     margin-left: auto;
   }
 
@@ -134,15 +141,14 @@ const { siteName, backHref } = Astro.props;
   }
 
   /* hvězdička je velká jako písmo loga (výška glyfu = verzálka loga),
-     pravým okrajem lícuje s čárkami */
+     pravým okrajem lícuje s čárkami, vrškem s horní čárkou */
   .burger-star {
     position: absolute;
-    top: 50%;
+    top: var(--space-xs);
     right: 0;
     width: calc(var(--glyph-h) * 920 / 700);
     height: var(--glyph-h);
     max-width: none; /* global.css omezuje svg na šířku rodiče (30px burger) */
-    margin-top: calc(var(--glyph-h) / -2);
     fill: currentColor;
     opacity: 0;
     pointer-events: none;
@@ -186,15 +192,14 @@ const { siteName, backHref } = Astro.props;
   }
 
   /* zavírací X — glyf z fontu Karnet ve výšce verzálek loga, umístěný
-     jako hvězdička (pravým okrajem lícuje s čárkami) */
+     jako hvězdička (pravým okrajem lícuje s čárkami, vrškem s horní) */
   .burger-close {
     position: absolute;
-    top: 50%;
+    top: var(--space-xs);
     right: 0;
     width: calc(var(--glyph-h) * 814 / 700);
     height: var(--glyph-h);
     max-width: none; /* global.css omezuje svg na šířku rodiče (30px burger) */
-    margin-top: calc(var(--glyph-h) / -2);
     fill: currentColor;
     opacity: 0;
     transform: scale(0.4);
@@ -243,7 +248,6 @@ const { siteName, backHref } = Astro.props;
     .site-header {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
-      align-items: center;
     }
 
     .back {
