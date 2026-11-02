@@ -102,13 +102,14 @@ const backdropPosterUrl = introPosterUrl(intro);
 </section>
 
 <style>
-  /* blok kontaktů vodorovně na středu (osa loga a menu) */
+  /* blok kontaktů vodorovně na středu (osa loga a menu); svisle na středu
+     prostoru POD hlavičkou — střed celé obrazovky působil nahoře těžce */
   .kontakt {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100svh;
-    padding-inline: var(--page-pad);
+    padding: var(--header-bottom) var(--page-pad) 0;
   }
 
   /* Podkres jen na desktopu — mobil zůstává bez média (viz náhledy).
