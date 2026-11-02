@@ -142,6 +142,15 @@ const menuLinks = NAV_LINKS;
     display: block;
   }
 
+  /* mobil: řádky menu stejně těsné jako dvouřádkové logo (line-height 1,
+     Header.astro) */
+  @media (max-width: 767px) {
+    .burger-nav a,
+    .burger-socials a {
+      line-height: 1;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .burger-screen {
       transition: none;
