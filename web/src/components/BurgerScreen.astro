@@ -44,24 +44,39 @@ const menuLinks = NAV_LINKS;
   }
 </section>
 
-<!-- Vzorkovací proužky pro lišty Safari 26 (iOS 26): prohlížeč tónuje
-     lišty podle background-color fixed/sticky elementů u hran viewportu
-     (theme-color metu ignoruje, menu.ts). Vzorkuje i opacity: 0, takže
-     proužky nejsou nikdy vidět; display: none se nevzorkuje, takže
-     existují jen s otevřeným menu — zavřené menu vrací lišty k podkladu
-     body. Spodní lišta se tónuje jen s viewport-fit=cover (Base.astro). -->
+<!-- Proužky pro lišty Safari 26 (iOS 26), theme-color metu Safari
+     ignoruje (menu.ts). WebKit (LocalFrameView::fixedContainerEdges)
+     udělá hit test 4px od horní/spodní hrany uprostřed viewportu a první
+     fixed/sticky předek ≥ 90 % šířky je „kontejner" hrany: má-li viditelný
+     background-color, lišta ho převezme. Nemá-li (naše hlavička je
+     průhledná), barva se vzorkuje ze snímku fixed vrstev a pak se pro
+     stejný kontejner už jen RECYKLUJE (Page::updateFixedContainerEdges) —
+     proto lišta po zavření menu držela šedou: kontejnerem byla pořád
+     hlavička. Proužky proto leží NAD hlavičkou (z-index 11), mají plnou
+     neprůhlednost a viditelný podklad = s otevřeným menu jsou kontejnerem
+     ony a barva je vždy čerstvá. Zavřené jsou display: none, čímž
+     z kontejneru vypadnou (element bez rendereru WebKit zahodí) a lišta
+     se vrátí k podkladu body. Spodní lišta se tónuje jen
+     s viewport-fit=cover (Base.astro). -->
 <div class="bar-tint bar-tint-top" aria-hidden="true"></div>
 <div class="bar-tint bar-tint-bottom" aria-hidden="true"></div>
 
 <style>
+  /* Výška proužků .bar-tint (viz níže): overlay o ni u obou hran
+     ustupuje, proužky mají stejný podklad — opticky jedna plocha. */
+  .burger-screen,
+  .bar-tint {
+    --bar-tint-height: 12px;
+    background: color-mix(in srgb, var(--color-overlay) 90%, transparent);
+  }
+
   .burger-screen {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 100dvh;
-    padding: calc(var(--header-height) + var(--space-lg)) var(--page-pad)
-      var(--space-lg);
-    background: color-mix(in srgb, var(--color-overlay) 90%, transparent);
+    /* obsah sedí stejně, jako by overlay začínal na hraně viewportu */
+    padding: calc(var(--header-height) + var(--space-lg) - var(--bar-tint-height))
+      var(--page-pad) calc(var(--space-lg) - var(--bar-tint-height));
     color: var(--color-text);
   }
 
@@ -94,7 +109,10 @@ const menuLinks = NAV_LINKS;
      bez podpory menu jen přepnou bez prolnutí. */
   .burger-screen {
     position: fixed;
-    inset: 0;
+    /* u horní a spodní hrany ustupuje proužkům .bar-tint (ty jsou nad
+       hlavičkou; kdyby se překrývaly, byl by pruh u hrany o 10 % tmavší) */
+    inset: var(--bar-tint-height) 0;
+    min-height: 0; /* ne 100dvh z .level — výšku dává inset */
     z-index: 9; /* pod hlavičkou (10) — burger zůstává klikací pro zavření */
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -116,18 +134,27 @@ const menuLinks = NAV_LINKS;
     }
   }
 
-  /* Geometrie dle pravidel vzorkování Safari: ≥80 % šířky viewportu,
-     ≥3px výšky, horní hrana do 4px od vršku; dole smí přesahovat
-     až bottom: -8px při min-height: 12px. */
+  /* Geometrie dle WebKitu: hit test 4px od hrany uprostřed → proužek
+     musí ležet na hraně a být vyšší než 10px („tenký okraj" se
+     přeskakuje); šířka ≥ 90 % viewportu. Podklad s alfou 0,9 WebKit
+     zaokrouhlí na plnou barvu (práh 0,75), lišta = --color-overlay.
+     Opacity ani visibility se tu NESMÍ animovat: pod 0,1 proužek
+     přestane být kontejnerem, hit test propadne na hlavičku a ta si
+     mezibarvu prolínajícího overlaye zapamatuje napořád. */
   .bar-tint {
     display: none;
     position: fixed;
     left: 0;
     width: 100%;
-    height: 12px;
-    background-color: var(--color-overlay);
-    opacity: 0;
+    height: var(--bar-tint-height);
+    z-index: 11; /* nad hlavičkou (10): hit test musí trefit proužek */
     pointer-events: none;
+    /* Zavírá se až PO doběhnutí fade-outu overlaye: dokud overlay
+       mizí, kontejnerem zůstává proužek; teprve pak hit test padne na
+       hlavičku, snímek fixed vrstev je už prázdný a lišta se vrátí
+       k podkladu body. Kdyby proužek zmizel dřív, hlavička by si ze
+       snímku vzala zbytek prolínajícího overlaye. */
+    transition: display calc(var(--duration) + 50ms) allow-discrete;
   }
 
   .bar-tint-top {
@@ -135,14 +162,15 @@ const menuLinks = NAV_LINKS;
   }
 
   .bar-tint-bottom {
-    bottom: -8px;
+    bottom: 0;
   }
 
   :global(html.menu-open) .bar-tint {
     display: block;
   }
   @media (prefers-reduced-motion: reduce) {
-    .burger-screen {
+    .burger-screen,
+    .bar-tint {
       transition: none;
     }
   }
