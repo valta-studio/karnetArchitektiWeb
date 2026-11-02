@@ -8,6 +8,7 @@ import BurgerScreen from '../../components/BurgerScreen.astro';
 import PhotoRow from '../../components/project/PhotoRow.astro';
 import TextRow from '../../components/project/TextRow.astro';
 import DrawingsRow from '../../components/project/DrawingsRow.astro';
+import ProjectTitle from '../../components/project/ProjectTitle.astro';
 import { getContact, getProjects, getSeoSettings } from '../../lib/sanity';
 import type { Project } from '../../types/sanity';
 
@@ -30,6 +31,7 @@ const [contact, settings] = await Promise.all([getContact(), getSeoSettings()]);
 <Base title={project.title} description={project.perex} seo={project.seo}>
   <Header siteName={settings.siteName} backHref="/#portfolio" />
   <LevelDots count={project.drawings?.length ? 3 : 2} />
+  <ProjectTitle title={project.title} />
 
   <ScrollDeck menuAtEnd>
     <PhotoRow project={project} />

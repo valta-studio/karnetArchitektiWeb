@@ -24,7 +24,7 @@ function lineMetrics(el: HTMLElement) {
 
 export function initCardLayout(): void {
   const root = document.documentElement;
-  const title = document.querySelector<HTMLElement>('.photo-row-title');
+  const title = document.querySelector<HTMLElement>('.project-title-fixed');
   const logo = document.querySelector<HTMLElement>('.site-header .logo');
   if (!title || !logo) return;
 

@@ -1,0 +1,46 @@
+---
+// Karta projektu — název nad tečkami fotek (fixed, vidět na všech úrovních
+// karty). Cíl přechodu z názvu v portfoliu (page-transition.ts); h1 je až
+// v textové úrovni. Mimo scroll deck jako hlavička a LevelDots: v iOS Safari
+// je deck vlastní vrstva a blend (difference) uvnitř něj neviděl pozadí —
+// název měl jinou barvu než logo.
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<p class="project-title-fixed">{title}</p>
+
+<style>
+  /* písmo jako název pod fotkou v portfoliu, velikost i barevný efekt
+     jako logo (--text-xl, chrome + difference — Header); sedí nad tečkami
+     fotek (scroll.css .progress-dots: bottom --space-lg, výška 4px);
+     z-index jako svislé tečky (LevelDots), pod burger obrazovkou (9) */
+  .project-title-fixed {
+    position: fixed;
+    z-index: 5;
+    left: 50%;
+    bottom: calc(var(--space-lg) + 4px + var(--space-sm));
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100% - 2 * var(--page-pad));
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: 1.2;
+    text-align: center;
+    color: var(--color-chrome);
+    mix-blend-mode: difference;
+    view-transition-name: project-title;
+  }
+
+  /* tečky jsou na mobilu níž (scroll.css: bottom --space-sm) */
+  @media (max-width: 767px) {
+    .project-title-fixed {
+      bottom: calc(var(--space-sm) + 4px + var(--space-sm));
+    }
+  }
+</style>
