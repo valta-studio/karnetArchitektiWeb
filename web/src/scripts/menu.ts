@@ -15,17 +15,22 @@ function setMenuOpen(open: boolean): void {
   syncThemeColor(open);
 }
 
-// iOS Safari tónuje lištu prohlížeče podle theme-color (Base.astro) —
-// s otevřeným menu se přepíná na podklad overlaye (--color-overlay),
-// jinak by nad tmavým menu zůstala světlá lišta v barvě stránky.
+// iOS Safari tónuje lištu prohlížeče podle theme-color — nad otevřeným
+// menu musí ztmavnout na podklad overlaye (--color-overlay). Změnu
+// content atributu zpět na světlou ale Safari (iOS 26) umí ignorovat,
+// takže meta existuje jen pro otevřené menu: při zavření se odstraní
+// a lišta se vrátí k výchozímu vzorkování pozadí stránky.
 function syncThemeColor(open: boolean): void {
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (!meta) return;
-  if (!meta.dataset.default) meta.dataset.default = meta.content;
+  document.querySelector('meta[name="theme-color"]')?.remove();
+  if (!open) return;
   const overlay = getComputedStyle(document.documentElement)
     .getPropertyValue('--color-overlay')
     .trim();
-  meta.content = open && overlay ? overlay : meta.dataset.default;
+  if (!overlay) return;
+  const meta = document.createElement('meta');
+  meta.name = 'theme-color';
+  meta.content = overlay;
+  document.head.append(meta);
 }
 
 export function initMenu(): void {
