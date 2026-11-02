@@ -12,6 +12,20 @@ function setMenuOpen(open: boolean): void {
   for (const button of document.querySelectorAll<HTMLElement>('[data-burger]')) {
     button.setAttribute('aria-expanded', String(open));
   }
+  syncThemeColor(open);
+}
+
+// iOS Safari tónuje lištu prohlížeče podle theme-color (Base.astro) —
+// s otevřeným menu se přepíná na podklad overlaye (--color-overlay),
+// jinak by nad tmavým menu zůstala světlá lišta v barvě stránky.
+function syncThemeColor(open: boolean): void {
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!meta) return;
+  if (!meta.dataset.default) meta.dataset.default = meta.content;
+  const overlay = getComputedStyle(document.documentElement)
+    .getPropertyValue('--color-overlay')
+    .trim();
+  meta.content = open && overlay ? overlay : meta.dataset.default;
 }
 
 export function initMenu(): void {
