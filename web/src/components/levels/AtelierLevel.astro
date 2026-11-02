@@ -1,8 +1,9 @@
 ---
 // Úroveň 2 — ateliér (dle náhledů): texty ve dvou sloupcích přes zesvětlené
 // úvodní médium, ocenění jako prozaické odstavce, závěrem založení + lidé.
-// Panely jsou užší než viewport — další „nakukuje". Fotky (pole `photos`)
-// jsou samostatné panely, zařazené mezi texty podle `placement`.
+// Panely jsou užší než viewport — další „nakukuje". Fotky jsou samostatné
+// panely mezi texty — každá textová sekce má před/za sebou vlastní seznam
+// (`photosStart`, `photosAfterIntro`, `photosAfterAwards`, `photosEnd`).
 import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
 import ScrollRow from '../ScrollRow.astro';
@@ -13,7 +14,7 @@ import {
   introPosterUrl,
   introVideoSrc,
 } from '../../lib/image';
-import type { AtelierLevel, AtelierPhotoPlacement, IntroLevel } from '../../types/sanity';
+import type { AtelierLevel, AtelierPhoto, IntroLevel } from '../../types/sanity';
 
 interface Props {
   data: AtelierLevel;
@@ -35,26 +36,38 @@ const hasPeople = Boolean(data.founding || data.people?.length);
 // Na mobilu se založení a lidé dělí do dvou panelů (jen když jsou obojí).
 const splitPeople = Boolean(data.founding && data.people?.length);
 
-// Pořadí panelů: texty v pevném pořadí, fotky mezi ně podle umístění
-// (bez vyplněného umístění za úvodní texty — výchozí hodnota ve Studiu).
-const photos = (data.photos ?? []).map((photo, index) => ({ photo, index }));
-const photosAt = (placement: AtelierPhotoPlacement) =>
-  photos
-    .filter(({ photo }) => (photo.placement ?? 'afterIntro') === placement)
-    .map((entry) => ({ kind: 'photo' as const, ...entry }));
+// Pořadí panelů: texty v pevném pořadí, mezi nimi seznamy fotek (nula,
+// jedna nebo více) v pořadí ze Studia.
+const slots = {
+  start: data.photosStart ?? [],
+  afterIntro: data.photosAfterIntro ?? [],
+  afterAwards: data.photosAfterAwards ?? [],
+  end: data.photosEnd ?? [],
+};
 
-type Segment =
-  | { kind: 'intro' | 'awards' | 'people' }
-  | ReturnType<typeof photosAt>[number];
+// Zpětná kompatibilita: dokud obsah neprošel migrací
+// `atelier-photos-by-section`, fotky sedí ve starém poli `photos` s volbou
+// umístění u každé z nich. Použije se jen když jsou nové seznamy prázdné.
+if (!Object.values(slots).some((list) => list.length) && data.photos?.length) {
+  for (const photo of data.photos) {
+    slots[photo.placement ?? 'afterIntro'].push(photo);
+  }
+}
+
+let photoIndex = 0;
+const photoSegments = (list: AtelierPhoto[]) =>
+  list.map((photo) => ({ kind: 'photo' as const, photo, index: photoIndex++ }));
+
+type Segment = { kind: 'intro' | 'awards' | 'people' } | ReturnType<typeof photoSegments>[number];
 
 const segments: Segment[] = [
-  ...photosAt('start'),
+  ...photoSegments(slots.start),
   ...(introHtml ? [{ kind: 'intro' as const }] : []),
-  ...photosAt('afterIntro'),
+  ...photoSegments(slots.afterIntro),
   ...(hasAwards ? [{ kind: 'awards' as const }] : []),
-  ...photosAt('afterAwards'),
+  ...photoSegments(slots.afterAwards),
   ...(hasPeople ? [{ kind: 'people' as const }] : []),
-  ...photosAt('end'),
+  ...photoSegments(slots.end),
 ];
 
 // výchozí počet teček (desktop); na mobilu je scroll-engine přepočítá

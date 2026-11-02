@@ -123,15 +123,13 @@ export const atelierLevel: AtelierLevel = {
       text: 'V roce 2020 jsme obdrželi BigSEE interior Design Award za návrh kavárny Cafe Smoo v Příbrami.',
     },
   ],
-  photos: [
-    { ...php(2), placement: 'afterIntro' },
-    { ...ph(3, 1600, 1200), placement: 'afterAwards' },
-  ],
+  photosAfterIntro: [php(2)],
   founding: 'Ateliér byl založen v roce 2019 v Příbrami.',
   people: [
     { degree: 'Ing. arch.', name: 'Jan Karnet' },
     { degree: 'Ing. arch.', name: 'Marie Karnetová' },
   ],
+  photosAfterAwards: [ph(3, 1600, 1200)],
 };
 
 export const portfolioLevel: PortfolioLevel = {

@@ -81,7 +81,10 @@ export async function getIntroLevel(): Promise<IntroLevel> {
 export async function getAtelierLevel(): Promise<AtelierLevel> {
   return fetchOrMock<AtelierLevel>(
     'úroveň 2 — ateliér',
-    `*[_type == "atelierLevel"][0] { intro, awardsIntro, awards, photos, founding, people }`,
+    `*[_type == "atelierLevel"][0] {
+      photosStart, intro, photosAfterIntro, awardsIntro, awards, photosAfterAwards,
+      founding, people, photosEnd, photos
+    }`,
     mock.atelierLevel
   );
 }

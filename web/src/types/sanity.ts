@@ -107,21 +107,35 @@ export interface IntroLevel {
   seo?: Seo;
 }
 
-/** Kam se fotka ateliéru zařadí mezi textové panely. */
-export type AtelierPhotoPlacement = 'start' | 'afterIntro' | 'afterAwards' | 'end';
-
+/** Fotka ateliéru — jedna fotka = jedna zastávka vodorovného posunu. */
 export type AtelierPhoto = ImageSource & {
   alt?: string;
+};
+
+/** Původní pole `photos`: umístění vybírané u každé fotky (migrace `atelier-photos-by-section`). */
+export type AtelierPhotoPlacement = 'start' | 'afterIntro' | 'afterAwards' | 'end';
+
+/** Fotka ze starého pole `photos`. */
+export type LegacyAtelierPhoto = AtelierPhoto & {
   placement?: AtelierPhotoPlacement;
 };
 
 export interface AtelierLevel {
+  /** Fotky před úvodními texty. */
+  photosStart?: AtelierPhoto[];
   intro?: PortableTextBlock[];
+  /** Fotky mezi úvodními texty a oceněními. */
+  photosAfterIntro?: AtelierPhoto[];
   awardsIntro?: string;
   awards?: Award[];
-  photos?: AtelierPhoto[];
+  /** Fotky mezi oceněními a lidmi. */
+  photosAfterAwards?: AtelierPhoto[];
   founding?: string;
   people?: Person[];
+  /** Fotky na konci (za lidmi). */
+  photosEnd?: AtelierPhoto[];
+  /** Staré pole — použije se jen když jsou všechny nové seznamy prázdné. */
+  photos?: LegacyAtelierPhoto[];
 }
 
 export interface PortfolioLevel {

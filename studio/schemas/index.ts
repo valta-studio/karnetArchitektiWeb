@@ -10,6 +10,7 @@ import award from './objects/award';
 import person from './objects/person';
 import socialLink from './objects/socialLink';
 import credit from './objects/credit';
+import atelierPhoto from './objects/atelierPhoto';
 
 export const schemaTypes = [
   // documents
@@ -25,4 +26,5 @@ export const schemaTypes = [
   person,
   socialLink,
   credit,
+  atelierPhoto,
 ];
