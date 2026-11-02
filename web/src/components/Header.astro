@@ -1,6 +1,7 @@
 ---
-// Logo + burger. Na desktopu je logo na středu, burger vpravo; na mobilu
-// logo vlevo. Burger otevírá menu overlay (BurgerScreen) na všech šířkách.
+// Logo + burger. Logo je na středu hlavičky (každé slovo na vlastním
+// řádku), burger vpravo. Burger otevírá menu overlay (BurgerScreen)
+// na všech šířkách.
 
 interface Props {
   siteName: string;
@@ -9,6 +10,8 @@ interface Props {
 }
 
 const { siteName, backHref } = Astro.props;
+// logo láme název po slovech — „Karnet," / „architekti"
+const logoLines = siteName.split(/\s+/);
 ---
 
 <header class="site-header">
@@ -23,7 +26,9 @@ const { siteName, backHref } = Astro.props;
     )
   }
 
-  <a class="logo" href="/" data-scroll-to="uvod">{siteName}</a>
+  <a class="logo" href="/" data-scroll-to="uvod">
+    {logoLines.map((line) => <span>{line}</span>)}
+  </a>
 
   <button
     class="burger"
@@ -60,22 +65,30 @@ const { siteName, backHref } = Astro.props;
     position: fixed;
     inset: 0 0 auto 0;
     z-index: 10;
-    display: flex;
+    display: grid;
+    /* logo na středu, šipka zpět vlevo, burger vpravo */
+    grid-template-columns: 1fr auto 1fr;
     /* burger, hvězdička, X i šipka zpět lícují vrškem s verzálkami
        (prvního řádku) loga */
     align-items: start;
-    justify-content: space-between;
     padding: var(--space-md) calc(var(--page-pad) - 1.5px) 0;
     color: var(--color-chrome);
     mix-blend-mode: difference;
   }
 
   .logo {
+    grid-column: 2;
     font-family: var(--font-display);
     font-size: var(--text-xl);
     font-weight: var(--weight-heavy);
     letter-spacing: -0.02em;
     line-height: 1;
+    text-align: center;
+  }
+
+  /* každé slovo názvu na vlastním řádku */
+  .logo span {
+    display: block;
   }
 
   .logo:hover {
@@ -89,7 +102,8 @@ const { siteName, backHref } = Astro.props;
   .back {
     position: relative;
     display: none;
-    flex: none;
+    grid-column: 1;
+    justify-self: start;
     margin-top: var(--cap-top);
   }
 
@@ -123,10 +137,11 @@ const { siteName, backHref } = Astro.props;
     display: flex;
     flex-direction: column;
     gap: var(--burger-gap);
+    grid-column: 3;
+    justify-self: end;
     padding: var(--space-xs) 0;
     /* vršek čárek (obsah pod paddingem) = vršek verzálek loga */
     margin-top: calc(var(--cap-top) - var(--space-xs));
-    margin-left: auto;
   }
 
   .burger span {
@@ -243,26 +258,10 @@ const { siteName, backHref } = Astro.props;
     mix-blend-mode: normal;
   }
 
-  /* desktop: logo na středu hlavičky, burger vpravo */
+  /* šipka zpět jen na desktopu — na mobilu vede zpět systémové gesto */
   @media (min-width: 768px) {
-    .site-header {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-    }
-
     .back {
       display: flex;
-      grid-column: 1;
-      justify-self: start;
-    }
-
-    .logo {
-      grid-column: 2;
-    }
-
-    .burger {
-      grid-column: 3;
-      justify-self: end;
     }
   }
 
