@@ -50,6 +50,11 @@ const projects = data.projects ?? [];
   .portfolio-track {
     height: 100%;
     align-items: center;
+    /* fotka s názvem svisle na středu MEZI spodkem loga a tečkami
+       (bottom --space-lg + výška tečky 4px), ne na středu celé obrazovky —
+       padding posouvá content box, ve kterém flex centruje */
+    padding-top: var(--header-bottom);
+    padding-bottom: calc(var(--space-lg) + 4px);
     /* stejná mezera jako na ostatních drahách */
     gap: var(--page-pad);
   }
@@ -135,6 +140,11 @@ const projects = data.projects ?? [];
   }
 
   @media (max-width: 767px) {
+    /* tečky jsou na mobilu blíž spodnímu okraji (scroll.css) */
+    .portfolio-track {
+      padding-bottom: calc(var(--space-sm) + 4px);
+    }
+
     /* jako fotky na kartě projektu: každá fotka v rámečku 32dvh × 82vw
        podle vlastního poměru stran — na šířku jsou nižší (nepřetečou
        displej), stejnou výšku mají jen fotky na výšku. Šířka z poměru
