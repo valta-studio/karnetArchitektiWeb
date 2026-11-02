@@ -96,12 +96,11 @@ const logoLines = siteName.split(/\s+/);
   }
 
   /* šipka zpět — glyf ← z fontu Karnet, stejně velký jako hvězdička
-     burgeru (výška verzálek loga); jen na desktopu (levý
-     sloupec hlavičky), na mobilu skrytá — zpět vede systémové gesto /
-     tlačítko prohlížeče */
+     burgeru (výška verzálek loga); levý sloupec hlavičky, na všech
+     šířkách */
   .back {
     position: relative;
-    display: none;
+    display: flex;
     grid-column: 1;
     justify-self: start;
     margin-top: var(--cap-top);
@@ -256,13 +255,6 @@ const logoLines = siteName.split(/\s+/);
   :global(html.menu-open) .site-header {
     color: var(--color-text);
     mix-blend-mode: normal;
-  }
-
-  /* šipka zpět jen na desktopu — na mobilu vede zpět systémové gesto */
-  @media (min-width: 768px) {
-    .back {
-      display: flex;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
