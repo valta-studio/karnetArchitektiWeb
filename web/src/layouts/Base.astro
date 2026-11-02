@@ -132,12 +132,15 @@ const isPlausible = Boolean(analyticsId && !analyticsId.startsWith('G-'));
       import { initPageTransition } from '../scripts/page-transition';
       import { initCardLayout } from '../scripts/card-layout';
 
+      // card layout PŘED scroll enginem: callbacky document.fonts.ready běží
+      // v pořadí registrace — --card-top/--card-bottom se musí přeměřit dřív,
+      // než z nich stránkování textu (initTextPagination) spočítá strop výšky
+      initCardLayout();
       initScrollEngine();
       initMenu();
       initVideo();
       initImgSkeleton();
       initPageTransition();
-      initCardLayout();
     </script>
   </body>
 </html>

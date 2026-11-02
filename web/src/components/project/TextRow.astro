@@ -56,8 +56,14 @@ const columns = project.columns ?? [];
   /* jako ateliér: aktivní panel na středu obrazovky (center-snap) */
   .text-row {
     /* strop výšky textu v panelu — delší odstavce stránkuje scroll-engine
-       (svh: výška nesmí skákat se schováním address baru) */
-    --text-max-h: 66svh;
+       (svh: výška nesmí skákat se schováním address baru); zároveň text
+       nesmí pod logo ani dlouhý (víceřádkový) název — panel je na středu
+       OBRAZOVKY, proto ho omezuje větší z obou okrajů (--card-top /
+       --card-bottom, card-layout.ts) na obou stranách */
+    --text-max-h: min(
+      66svh,
+      100svh - 2 * max(var(--card-top), var(--card-bottom)) - 2 * var(--space-sm)
+    );
   }
 
   .text-row :global(.text-scroll) {
@@ -118,7 +124,10 @@ const columns = project.columns ?? [];
 
   @media (max-width: 767px) {
     .text-row {
-      --text-max-h: 72svh;
+      --text-max-h: min(
+        72svh,
+        100svh - 2 * max(var(--card-top), var(--card-bottom)) - 2 * var(--space-sm)
+      );
     }
   }
 
