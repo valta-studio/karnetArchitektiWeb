@@ -75,12 +75,12 @@ const menuLinks = NAV_LINKS;
   }
 
   /* Položky ve velikosti loga (--text-xl, Header) — velká polotučná
-     typografie */
+     typografie, řádky stejně těsné jako dvouřádkové logo (line-height 1) */
   .burger-nav a,
   .burger-socials a {
     display: block;
     font-size: var(--text-xl);
-    line-height: var(--leading-snug);
+    line-height: 1;
     font-weight: var(--weight-heavy);
     letter-spacing: -0.02em;
   }
@@ -141,16 +141,6 @@ const menuLinks = NAV_LINKS;
   :global(html.menu-open) .bar-tint {
     display: block;
   }
-
-  /* mobil: řádky menu stejně těsné jako dvouřádkové logo (line-height 1,
-     Header.astro) */
-  @media (max-width: 767px) {
-    .burger-nav a,
-    .burger-socials a {
-      line-height: 1;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .burger-screen {
       transition: none;
