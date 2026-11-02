@@ -364,6 +364,9 @@ const panelCount = segments.length;
     .atelier :global(.atelier-photo) {
       max-width: 82vw;
       object-fit: contain;
+      /* contain fotku v rámečku centruje — viditelná fotka musí začínat
+         na společné horní lince s texty */
+      object-position: top;
     }
   }
 
