@@ -17,11 +17,13 @@ const { title } = Astro.props;
 <style>
   /* písmo jako název pod fotkou v portfoliu, velikost i barevný efekt
      jako logo (--text-xl, chrome + difference — Header); sedí nad tečkami
-     fotek (scroll.css .progress-dots: bottom --space-lg, výška 4px);
-     z-index jako svislé tečky (LevelDots), pod burger obrazovkou (9) */
+     fotek (scroll.css .progress-dots: bottom --space-lg, výška 4px).
+     z-index 0 = pod scroll deckem (je v DOM až za názvem): menu overlay
+     je v decku a v iOS Safari je deck vlastní vrstva, takže vyšší z-index
+     názvu ho vytáhl nad otevřené menu. Obsah decku název nepřekrývá. */
   .project-title-fixed {
     position: fixed;
-    z-index: 5;
+    z-index: 0;
     left: 50%;
     bottom: calc(var(--space-lg) + 4px + var(--space-sm));
     transform: translateX(-50%);
