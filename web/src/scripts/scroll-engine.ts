@@ -507,6 +507,8 @@ function observeLevels(): void {
 
   const setActive = (target: HTMLElement): void => {
     const id = target.dataset.level ?? '';
+    // aktivní úroveň pro styly (podkres ateliéru na úvodu, AtelierLevel)
+    document.documentElement.dataset.activeLevel = id;
     for (const link of navLinks) {
       const isActive = link.dataset.navLink === id;
       link.classList.toggle('is-active', isActive);

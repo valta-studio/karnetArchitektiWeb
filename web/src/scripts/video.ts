@@ -61,17 +61,22 @@ function observeVideos(videos: HTMLVideoElement[]): void {
     if (!owners?.size) video.pause();
   };
 
-  // Zrcadlo kreslí, jen když je úroveň vidět, canvas vykreslený (skrytý
-  // breakpoint ne) a dráha úrovně stojí na výchozím panelu — po přejetí
-  // vlevo/vpravo podkres zmizí (data-row-at-start, scroll-engine).
+  // Zrcadlo kreslí, když je vidět úvodní video, nebo když je vidět úroveň
+  // zrcadla a její dráha stojí na výchozím panelu (po přejetí vlevo/vpravo
+  // podkres zmizí — data-row-at-start, scroll-engine). Jen vykreslený canvas
+  // (skrytý breakpoint ne).
+  // Podkres ateliéru je fixovaný a na úvodu leží přes video (plná opacity,
+  // přechod úvod → ateliér) — bez kreslení by tam místo videa byl poster
+  // (po návratu zamrzlý poslední snímek).
   const intersecting = new Set<Element>();
   const syncMirrors = (owner: Element) => {
     const ownMirrors = mirrorOwners.get(owner) ?? [];
     const row = owner.querySelector('.scroll-row[data-row]');
     const atStart = !row || row.hasAttribute('data-row-at-start');
-    const shown = intersecting.has(owner) && atStart
-      ? ownMirrors.filter((mirror) => mirror.clientWidth > 0)
-      : [];
+    const shown =
+      intersecting.has(source) || (intersecting.has(owner) && atStart)
+        ? ownMirrors.filter((mirror) => mirror.clientWidth > 0)
+        : [];
     if (shown.length) {
       request(source, owner);
       for (const mirror of shown) startMirror(mirror, source);
@@ -90,6 +95,7 @@ function observeVideos(videos: HTMLVideoElement[]): void {
         if (target instanceof HTMLVideoElement) {
           if (entry.isIntersecting) request(target, target);
           else release(target, target);
+          if (target === source) for (const owner of mirrorOwners.keys()) syncMirrors(owner);
         } else {
           syncMirrors(target);
         }

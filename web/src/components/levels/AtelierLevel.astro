@@ -193,12 +193,19 @@ const panelCount = segments.length;
 
   /* Podkres drží jen na výchozím panelu; po přejetí vlevo/vpravo zmizí
      (data-row-at-start, scroll-engine). Opacity na dítěti — opacity
-     samotného podkresu řídí scroll-driven animace. */
+     samotného podkresu řídí scroll-driven animace. Na úvodu je podkres
+     samotné úvodní médium (originál pod ním zmizel, IntroLevel) — tam se
+     vrací bez ohledu na polohu dráhy (data-active-level, scroll-engine). */
   .atelier-backdrop > :global(*) {
     transition: opacity 400ms var(--ease);
   }
 
-  :global(.atelier:has(.scroll-row:not([data-row-at-start])) .atelier-backdrop > *) {
+  :global(
+      html:not([data-active-level='uvod'])
+        .atelier:has(.scroll-row:not([data-row-at-start]))
+        .atelier-backdrop
+        > *
+    ) {
     opacity: 0;
   }
 
