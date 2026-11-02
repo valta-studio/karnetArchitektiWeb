@@ -44,6 +44,15 @@ const menuLinks = NAV_LINKS;
   }
 </section>
 
+<!-- Vzorkovací proužky pro lišty Safari 26 (iOS 26): prohlížeč tónuje
+     lišty podle background-color fixed/sticky elementů u hran viewportu
+     (theme-color metu ignoruje, menu.ts). Vzorkuje i opacity: 0, takže
+     proužky nejsou nikdy vidět; display: none se nevzorkuje, takže
+     existují jen s otevřeným menu — zavřené menu vrací lišty k podkladu
+     body. Spodní lišta se tónuje jen s viewport-fit=cover (Base.astro). -->
+<div class="bar-tint bar-tint-top" aria-hidden="true"></div>
+<div class="bar-tint bar-tint-bottom" aria-hidden="true"></div>
+
 <style>
   .burger-screen {
     display: flex;
@@ -77,24 +86,60 @@ const menuLinks = NAV_LINKS;
   }
 
   /* Obrazovka není ve scroll toku — je fixed overlay nad aktuální
-     úrovní, otevírá se burgerem. Stránka pod ním zůstává, kde byla. */
+     úrovní, otevírá se burgerem. Stránka pod ním zůstává, kde byla.
+     Zavřená je display: none, NE visibility: hidden: Safari 26 (iOS 26)
+     tónuje lišty vzorkováním fixed elementů u hran viewportu a vzorkuje
+     i visibility: hidden — skrytý overlay by lištu držel napořád.
+     Fade zůstává přes transition display + allow-discrete; prohlížeče
+     bez podpory menu jen přepnou bez prolnutí. */
   .burger-screen {
     position: fixed;
     inset: 0;
     z-index: 9; /* pod hlavičkou (10) — burger zůstává klikací pro zavření */
     overflow-y: auto;
     overscroll-behavior: contain;
-    visibility: hidden;
+    display: none;
     opacity: 0;
     transition:
       opacity var(--duration) var(--ease),
-      visibility 0s var(--duration);
+      display var(--duration) allow-discrete;
   }
 
   :global(html.menu-open) .burger-screen {
-    visibility: visible;
+    display: flex;
     opacity: 1;
-    transition: opacity var(--duration) var(--ease);
+  }
+
+  @starting-style {
+    :global(html.menu-open) .burger-screen {
+      opacity: 0;
+    }
+  }
+
+  /* Geometrie dle pravidel vzorkování Safari: ≥80 % šířky viewportu,
+     ≥3px výšky, horní hrana do 4px od vršku; dole smí přesahovat
+     až bottom: -8px při min-height: 12px. */
+  .bar-tint {
+    display: none;
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    background-color: var(--color-overlay);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .bar-tint-top {
+    top: 0;
+  }
+
+  .bar-tint-bottom {
+    bottom: -8px;
+  }
+
+  :global(html.menu-open) .bar-tint {
+    display: block;
   }
 
   @media (prefers-reduced-motion: reduce) {

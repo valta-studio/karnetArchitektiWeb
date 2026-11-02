@@ -44,9 +44,10 @@ body {
 }
 
 /* Otevřené burger menu: podklad dokumentu ztmavne na barvu overlaye.
-   iOS Safari tónuje svoje lišty vzorkováním pozadí stránky a theme-color
-   metu umí ignorovat (menu.ts) — tohle je jediná spolehlivá cesta.
-   Pod 90% overlayem změna podkladu vidět není. */
+   Safari 26 (iOS 26) tónuje lišty vzorkováním fixed elementů u hran
+   viewportu (primárně .bar-tint proužky, BurgerScreen) a bez kandidáta
+   padá na background body — tohle je záchytná síť. Pod 90% overlayem
+   změna podkladu vidět není. */
 html.menu-open body {
   background: var(--color-overlay);
 }

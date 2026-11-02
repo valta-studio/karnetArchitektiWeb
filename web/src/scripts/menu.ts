@@ -15,9 +15,10 @@ function setMenuOpen(open: boolean): void {
   syncThemeColor(open);
 }
 
-// Lišta prohlížeče v barvě otevřeného menu. iOS Safari (26) umí theme-color
-// ignorovat úplně — tam lištu řídí podklad dokumentu (global.css,
-// html.menu-open body). Meta zůstává pro prohlížeče, které ji ctí
+// Lišta prohlížeče v barvě otevřeného menu. Safari 26 (iOS 26) theme-color
+// ignoruje úplně — lišty tónuje vzorkováním fixed elementů u hran viewportu;
+// to řeší .bar-tint proužky v BurgerScreen (+ podklad body v global.css
+// jako záchytná síť). Meta zůstává pro prohlížeče, které ji ctí
 // (Android Chrome): existuje jen pro otevřené menu, při zavření se
 // odstraní a lišta se vrátí k výchozí barvě.
 function syncThemeColor(open: boolean): void {
