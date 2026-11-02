@@ -61,7 +61,7 @@ const columns = project.columns ?? [];
        OBRAZOVKY, proto ho omezuje větší z obou okrajů (--card-top /
        --card-bottom, card-layout.ts) na obou stranách */
     --text-max-h: min(
-      66svh,
+      60svh,
       100svh - 2 * max(var(--card-top), var(--card-bottom)) - 2 * var(--space-sm)
     );
   }
@@ -125,7 +125,7 @@ const columns = project.columns ?? [];
   @media (max-width: 767px) {
     .text-row {
       --text-max-h: min(
-        72svh,
+        64svh,
         100svh - 2 * max(var(--card-top), var(--card-bottom)) - 2 * var(--space-sm)
       );
     }
