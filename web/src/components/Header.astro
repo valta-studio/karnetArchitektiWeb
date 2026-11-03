@@ -10,8 +10,9 @@ interface Props {
 }
 
 const { siteName, backHref } = Astro.props;
-// logo láme název po slovech — „Karnet," / „architekti"
-const logoLines = siteName.split(/\s+/);
+// logo láme název po slovech — „Karnet" / „architekti"; čárka z názvu
+// (titulky, JSON-LD) se v logu nezobrazuje
+const logoLines = siteName.replace(/,/g, '').split(/\s+/).filter(Boolean);
 ---
 
 <header class="site-header">

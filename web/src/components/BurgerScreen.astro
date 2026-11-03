@@ -91,6 +91,14 @@ const menuLinks = NAV_LINKS;
     letter-spacing: -0.02em;
   }
 
+  /* podtržení při hoveru přiléhá k písmu (global.css odsazuje 0.2em);
+     bez skip-ink — čára by se u spodních hran verzálek přerušovala */
+  .burger-nav a:hover,
+  .burger-socials a:hover {
+    text-underline-offset: 0;
+    text-decoration-skip-ink: none;
+  }
+
   /* Obrazovka není ve scroll toku — je fixed overlay nad aktuální
      úrovní, otevírá se burgerem. Stránka pod ním zůstává, kde byla.
      Zavřená je display: none, NE visibility: hidden: Safari 26 (iOS 26)

@@ -64,6 +64,11 @@ export function initMenu(): void {
     };
     screen.addEventListener('wheel', blockScroll, { passive: false });
     screen.addEventListener('touchmove', blockScroll, { passive: false });
+
+    // klik do pozadí overlaye (mimo položky) menu zavře
+    screen.addEventListener('click', (event) => {
+      if (!(event.target as Element).closest('a')) setMenuOpen(false);
+    });
   }
 
   // kotvy v rámci stránky → snap úroveň (otevřený overlay se zavírá)
