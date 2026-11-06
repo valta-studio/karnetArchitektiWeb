@@ -14,9 +14,16 @@ interface Props {
 
 const { data } = Astro.props;
 const projects = data.projects ?? [];
+// nejširší fotka určuje na mobilu společnou výšku řady (musí se vejít na šířku)
+const maxCoverRatio = Math.max(1, ...projects.map((project) => aspectRatioFor(project.cover)));
 ---
 
-<section class="level portfolio" data-level="portfolio" id="portfolio">
+<section
+  class="level portfolio"
+  data-level="portfolio"
+  id="portfolio"
+  style={`--max-cover-ratio: ${maxCoverRatio.toFixed(4)}`}
+>
   <div class="scroll-row portfolio-track" data-row="portfolio-row" data-loop>
     {
       projects.map((project) => (
@@ -61,13 +68,18 @@ const projects = data.projects ?? [];
 
   /* projekt = snap cíl; center-snap → aktivní projekt ve středu.
      width: min-content → šířka položky = šířka fotky (název ji
-     neovlivní, viz .portfolio-item-title) */
+     neovlivní, viz .portfolio-item-title). Spodní padding drží místo
+     pro mezeru + jeden řádek názvu, takže všechny položky mají stejnou
+     výšku jako fotka s jednořádkovým názvem a fotky v řadě lícují. */
   .portfolio-item {
+    --title-gap: 0.9rem;
+    --title-line: calc(var(--text-sm) * 1.2);
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     width: min-content;
-    gap: 0.9rem;
+    padding-bottom: calc(var(--title-gap) + var(--title-line));
     scroll-snap-align: center;
     transition: opacity 300ms var(--ease);
   }
@@ -84,17 +96,16 @@ const projects = data.projects ?? [];
     max-width: none;
   }
 
-  /* Název vždy na jeden řádek a na střed pod fotkou, ale šířku položky
-     neurčuje (mezery v řadě drží fotky): width 0 → do min-content šířky
-     položky nepřispívá, min-width 100 % ho roztáhne na šířku fotky
-     a delší text přesahuje rovnoměrně na obě strany (flex center) —
-     zalomený název by navíc položku zvýšil a fotku posunul výš. */
+  /* Název na střed pod fotkou, nejvýš na šířku fotky — delší se zalomí
+     (vyvážené řádky), aby nepřekrýval názvy sousedních projektů.
+     Absolutně → šířku ani výšku položky neurčuje: další řádky jdou
+     dolů do volného místa nad tečkami a fotka zůstává na místě. */
   .portfolio-item-title {
-    display: flex;
-    justify-content: center;
-    width: 0;
-    min-width: 100%;
-    white-space: nowrap;
+    position: absolute;
+    top: calc(100% - var(--title-line));
+    left: 0;
+    right: 0;
+    text-wrap: balance;
     font-family: var(--font-display);
     font-size: var(--text-sm);
     line-height: 1.2;
@@ -145,14 +156,17 @@ const projects = data.projects ?? [];
       padding-bottom: calc(var(--space-sm) + 4px);
     }
 
-    /* jako fotky na kartě projektu: každá fotka v rámečku 32dvh × 82vw
-       podle vlastního poměru stran — na šířku jsou nižší (nepřetečou
-       displej), stejnou výšku mají jen fotky na výšku. Šířka z poměru
-       (--cover-ratio) a výška dopočtená z width/height atributů funguje
-       i před stažením obrázku (smyčka drah měří šířky hned) */
+    /* všechny fotky stejně vysoké (jako na desktopu), nejvýš 32dvh;
+       výšku omezuje i nejširší fotka řady, aby se vešla do 82vw.
+       Šířka z poměru (--cover-ratio) funguje i před stažením obrázku
+       (smyčka drah měří šířky hned) */
+    .portfolio {
+      --cover-height: min(32dvh, 82vw / var(--max-cover-ratio));
+    }
+
     .portfolio :global(.portfolio-cover) {
-      width: min(82vw, 32dvh * var(--cover-ratio));
-      height: auto;
+      width: calc(var(--cover-height) * var(--cover-ratio));
+      height: var(--cover-height);
     }
   }
 
