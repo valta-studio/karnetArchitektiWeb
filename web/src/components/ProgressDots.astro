@@ -10,15 +10,19 @@ interface Props {
 const { rowId, count, class: className } = Astro.props;
 ---
 
-{
-  count > 1 && (
-    <div
-      class:list={['progress-dots', className]}
-      data-dots-for={rowId}
-      role="group"
-      aria-label="Posun v obsahu"
-    >
-      {Array.from({ length: count }).map((_, i) => (
+{/* box je v DOM i pro jediný panel (hidden): stránkování textu
+    (scroll-engine) může panely přidat až po layoutu a tečky si do boxu
+    přestaví — i odkrýt */}
+<div
+  class:list={['progress-dots', className]}
+  data-dots-for={rowId}
+  role="group"
+  aria-label="Posun v obsahu"
+  hidden={count < 2 || undefined}
+>
+  {
+    count > 1 &&
+      Array.from({ length: count }).map((_, i) => (
         <button
           type="button"
           class:list={['dot', { 'is-active': i === 0 }]}
@@ -26,10 +30,9 @@ const { rowId, count, class: className } = Astro.props;
           aria-label={`Přejít na pozici ${i + 1} z ${count}`}
           aria-current={i === 0 ? 'true' : undefined}
         />
-      ))}
-    </div>
-  )
-}
+      ))
+  }
+</div>
 
 {/* styl .progress-dots / .dot je globálně ve scroll.css — tečky textové
     dráhy vkládá scroll-engine.ts dynamicky (počet sloupců zná až po layoutu)

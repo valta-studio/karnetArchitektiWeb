@@ -602,6 +602,8 @@ function observeRows(): void {
         return dot;
       });
       dotsBox.replaceChildren(...dots);
+      // jediný panel tečky nepotřebuje (stránkování je může dodat i ubrat)
+      dotsBox.hidden = dots.length < 2;
     };
 
     // Na desktopu je často viditelných více užších panelů najednou,
@@ -708,47 +710,79 @@ function observeRows(): void {
 
 /**
  * Stránkování textu (karta projektu, odstavce s data-paginate): odstavec
- * vyšší než jeho max-height se rozdělí po slovech do více panelů podobné
+ * vyšší než jeho strop se rozdělí po slovech do více panelů podobné
  * výšky — každý panel pak drží text svisle na středu (jako ateliér).
- * Přesné měření potřebuje načtený font, proto se po document.fonts.ready
- * a při změně šířky stránkuje znovu z původního textu (+ nové klony smyčky).
+ * Strop = vlastní max-height odstavce (sloupce textu); odstavec bez něj
+ * (perex pod názvem a metadaty) dostane pro první díl zbytek výšky
+ * nejbližšího omezeného předka a pro pokračování v nových panelech výšku
+ * celou. Přesné měření potřebuje načtený font, proto se po
+ * document.fonts.ready a při změně šířky stránkuje znovu z původního
+ * textu (+ nové klony smyčky).
  */
 function initTextPagination(): void {
   for (const row of document.querySelectorAll<HTMLElement>('.scroll-row')) {
-    const sources = Array.from(
-      row.querySelectorAll<HTMLElement>(':scope > * > [data-paginate]')
-    ).map((paragraph) => ({ paragraph, text: paragraph.textContent ?? '' }));
+    const sources = Array.from(row.querySelectorAll<HTMLElement>(':scope > * [data-paginate]')).map(
+      (paragraph) => {
+        let panel = paragraph.parentElement as HTMLElement;
+        while (panel.parentElement !== row) panel = panel.parentElement as HTMLElement;
+        return { paragraph, panel, text: paragraph.textContent ?? '' };
+      }
+    );
     if (!sources.length) continue;
 
     let signature = '';
 
-    // části jednoho odstavce: n dílů podobné délky, dokud se každý vejde
-    const split = (paragraph: HTMLElement, text: string): string[] => {
+    // stropy výšky [první díl, pokračování]; první díl nejméně řádek,
+    // aby originál nezůstal prázdný
+    const budgets = (paragraph: HTMLElement, panel: HTMLElement): [number, number] | null => {
+      const own = parseFloat(getComputedStyle(paragraph).maxHeight);
+      if (own) return [own, own];
+      for (let el = paragraph.parentElement; el; el = el.parentElement) {
+        const max = parseFloat(getComputedStyle(el).maxHeight);
+        if (max) {
+          const used = paragraph.getBoundingClientRect().top - el.getBoundingClientRect().top;
+          const line = parseFloat(getComputedStyle(paragraph).lineHeight) || 24;
+          return [Math.max(max - used, line), max];
+        }
+        if (el === panel) break;
+      }
+      return null;
+    };
+
+    // části jednoho odstavce: n dílů s délkami v poměru stropů, dokud se
+    // každý vejde
+    const split = (paragraph: HTMLElement, panel: HTMLElement, text: string): string[] => {
       paragraph.textContent = text;
-      const maxHeight = parseFloat(getComputedStyle(paragraph).maxHeight);
-      if (!maxHeight || paragraph.scrollHeight <= maxHeight + 1) return [text];
+      const caps = budgets(paragraph, panel);
+      if (!caps || paragraph.scrollHeight <= caps[0] + 1) return [text];
+      const [firstMax, restMax] = caps;
       const words = text.match(/\S+\s*/g) ?? [text];
       const total = text.length;
-      for (let n = Math.ceil(paragraph.scrollHeight / maxHeight); n <= 12; n += 1) {
+      const start = Math.max(2, Math.ceil(paragraph.scrollHeight / restMax));
+      for (let n = start; n <= 12; n += 1) {
+        const capacity = firstMax + (n - 1) * restMax;
         const parts: string[] = Array.from({ length: n }, () => '');
         let length = 0;
         for (const word of words) {
-          parts[Math.min(n - 1, Math.floor((length / total) * n))] += word;
+          const pos = (length / total) * capacity;
+          parts[pos < firstMax ? 0 : Math.min(n - 1, 1 + Math.floor((pos - firstMax) / restMax))] +=
+            word;
           length += word.length;
         }
-        const trimmed = parts.map((part) => part.trim()).filter(Boolean);
-        const fits = trimmed.every((part) => {
-          paragraph.textContent = part;
-          return paragraph.scrollHeight <= maxHeight + 1;
+        const fits = parts.every((part, i) => {
+          const trimmed = part.trim();
+          if (!trimmed) return true;
+          paragraph.textContent = trimmed;
+          return paragraph.scrollHeight <= (i === 0 ? firstMax : restMax) + 1;
         });
-        if (fits) return trimmed;
+        if (fits) return parts.map((part) => part.trim()).filter(Boolean);
       }
       return [text];
     };
 
     // vrací true, pokud se rozdělení změnilo (a DOM přestavěl)
     const paginate = (): boolean => {
-      const result = sources.map(({ paragraph, text }) => split(paragraph, text));
+      const result = sources.map(({ paragraph, panel, text }) => split(paragraph, panel, text));
       const next = JSON.stringify(result);
       if (next === signature) {
         sources.forEach(({ paragraph }, i) => (paragraph.textContent = result[i][0]));
@@ -756,21 +790,21 @@ function initTextPagination(): void {
       }
       signature = next;
       for (const extra of row.querySelectorAll(':scope > [data-page-part]')) extra.remove();
-      sources.forEach(({ paragraph }, i) => {
+      sources.forEach(({ paragraph, panel }, i) => {
         const [first, ...rest] = result[i];
         paragraph.textContent = first;
-        let after = paragraph.parentElement as HTMLElement;
+        let after = panel;
         for (const part of rest) {
-          const panel = after.cloneNode(false) as HTMLElement;
+          const page = panel.cloneNode(false) as HTMLElement;
           const copy = paragraph.cloneNode(false) as HTMLElement;
-          panel.dataset.pagePart = '';
-          delete panel.dataset.loopIndex;
-          delete panel.dataset.rowDistance;
+          page.dataset.pagePart = '';
+          delete page.dataset.loopIndex;
+          delete page.dataset.rowDistance;
           delete copy.dataset.paginate;
           copy.textContent = part;
-          panel.append(copy);
-          after.after(panel);
-          after = panel;
+          page.append(copy);
+          after.after(page);
+          after = page;
         }
       });
       return true;

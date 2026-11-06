@@ -103,6 +103,20 @@ html:focus-within .scroll-deck {
   flex: none;
 }
 
+/* dráha s jediným panelem (např. karta bez dalších odstavců textu) se
+   nescrolluje — bez klonů smyčky (setupLoop chce aspoň 2) by panel lepil
+   na levou hranu: na střed autem a bez koncového spaceru (::after
+   v TextRow / ateliéru), aby dráha nepřetékala */
+.scroll-row > :only-child {
+  margin-inline: auto;
+}
+
+/* !important: spacery jsou ve scoped stylech komponent (atribut Astro
+   zvyšuje specificitu) — globální pravidlo by jinak prohrálo */
+.scroll-row:has(> :only-child)::after {
+  content: none !important;
+}
+
 /* skok smyčky z klonu na originál (scroll-engine.ts): stav panelů závislý
    na pozici se musí přepnout okamžitě, jinak by přechody problikly */
 .scroll-row[data-loop-jump] *,
@@ -179,6 +193,13 @@ html:focus-within .scroll-deck {
   align-items: center;
   gap: 6px;
   z-index: 2;
+}
+
+/* pro jediný panel tečky nejsou — hidden přepíná ProgressDots.astro
+   (SSR) i scroll-engine.ts (po stránkování textu); display: flex výš
+   by jinak atribut hidden přebil */
+.progress-dots[hidden] {
+  display: none;
 }
 
 /* vodorovná osa → vodorovné obdélníky, aktivní se prodlouží a zesílí,

@@ -1,8 +1,10 @@
 ---
 // Karta projektu — úroveň 2: název + metadata + perex v prvním panelu,
 // každý textový odstavec ve vlastním panelu (jako ateliér) — texty všech
-// panelů začínají na společné horní lince. Odstavec delší, než se vejde na výšku, rozdělí
-// scroll-engine (paginateText) do více panelů podobné výšky.
+// panelů začínají na společné horní lince. Odstavec delší, než se vejde na
+// výšku, rozdělí scroll-engine (initTextPagination) do více panelů podobné
+// výšky; perex má v prvním panelu k dispozici jen zbytek pod názvem
+// a metadaty, pokračuje v dalších panelech.
 import ProgressDots from '../ProgressDots.astro';
 import ScrollRow from '../ScrollRow.astro';
 import type { Project } from '../../types/sanity';
@@ -34,7 +36,7 @@ const columns = project.columns ?? [];
           }
         </p>
 
-        {project.perex && <p class="project-perex pre-line">{project.perex}</p>}
+        {project.perex && <p class="project-perex pre-line" data-paginate>{project.perex}</p>}
       </div>
     </div>
 
