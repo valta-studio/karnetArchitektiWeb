@@ -4,7 +4,11 @@
 import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
 import ScrollRow from '../ScrollRow.astro';
-import { isMockImage } from '../../lib/image';
+import {
+  isMockImage,
+  PORTFOLIO_COVER_MAX_WIDTH,
+  PORTFOLIO_COVER_SIZES,
+} from '../../lib/image';
 import type { ImageSource, Project } from '../../types/sanity';
 
 interface Props {
@@ -15,6 +19,8 @@ const { project } = Astro.props;
 
 // Náhledová fotka z portfolia je na kartě vždy první (přechod z portfolia
 // na ni plynule navazuje); pokud je zároveň mezi fotkami, podruhé se nezobrazí.
+// Vykreslí se nejdřív ve verzi z portfolia (z cache, bez nového stahování)
+// a plná kvalita se dotáhne na pozadí (SanityImage preview, img-upgrade.ts).
 const assetKey = (image: ImageSource) =>
   isMockImage(image) ? image.src : image.asset._ref;
 const coverKey = project.cover ? assetKey(project.cover) : undefined;
@@ -36,6 +42,11 @@ const photos = [
             loading={index === 0 ? 'eager' : 'lazy'}
             class="photo-img"
             skeleton
+            preview={
+              index === 0
+                ? { sizes: PORTFOLIO_COVER_SIZES, maxWidth: PORTFOLIO_COVER_MAX_WIDTH }
+                : undefined
+            }
           />
         </div>
       ))

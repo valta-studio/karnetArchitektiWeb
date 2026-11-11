@@ -5,7 +5,11 @@
 // dál od středu, tím víc blednou (data-row-distance nastavuje scroll-engine).
 import ProgressDots from '../ProgressDots.astro';
 import SanityImage from '../SanityImage.astro';
-import { aspectRatioFor } from '../../lib/image';
+import {
+  aspectRatioFor,
+  PORTFOLIO_COVER_MAX_WIDTH,
+  PORTFOLIO_COVER_SIZES,
+} from '../../lib/image';
 import type { PortfolioLevel } from '../../types/sanity';
 
 interface Props {
@@ -36,8 +40,8 @@ const maxCoverRatio = Math.max(1, ...projects.map((project) => aspectRatioFor(pr
           <SanityImage
             image={project.cover}
             alt={project.title}
-            sizes="(min-width: 768px) 50vw, 84vw"
-            maxWidth={1600}
+            sizes={PORTFOLIO_COVER_SIZES}
+            maxWidth={PORTFOLIO_COVER_MAX_WIDTH}
             class="portfolio-cover"
           />
           <span class="portfolio-item-title">{project.title}</span>

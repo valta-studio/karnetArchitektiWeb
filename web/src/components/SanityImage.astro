@@ -13,6 +13,10 @@ interface Props {
   maxWidth?: number;
   /** Šedý podklad, dokud se obrázek nestáhne (viz img-skeleton.ts). */
   skeleton?: boolean;
+  /** Nejdřív vykreslit menší verzi (srcset do `maxWidth` se `sizes` jiného
+   *  místa, typicky portfolia → z cache) a plnou kvalitu dotáhnout na pozadí
+   *  po jejím načtení (viz img-upgrade.ts). */
+  preview?: { sizes: string; maxWidth: number };
 }
 
 const {
@@ -23,12 +27,15 @@ const {
   class: className,
   maxWidth = 2560,
   skeleton = false,
+  preview,
 } = Astro.props;
 
 const mock = isMockImage(image);
 const dimensions = mock
   ? { width: image.width, height: image.height }
   : dimensionsFor(image);
+const fullSrcset = mock ? undefined : srcsetFor(image, maxWidth);
+const previewSrcset = mock || !preview ? undefined : srcsetFor(image, preview.maxWidth);
 ---
 
 {
@@ -47,8 +54,10 @@ const dimensions = mock
   ) : (
     <img
       src={urlFor(image).width(1080).url()}
-      srcset={srcsetFor(image, maxWidth)}
-      sizes={sizes}
+      srcset={previewSrcset ?? fullSrcset}
+      sizes={preview?.sizes ?? sizes}
+      data-full-srcset={preview ? fullSrcset : undefined}
+      data-full-sizes={preview ? sizes : undefined}
       width={dimensions.width}
       height={dimensions.height}
       alt={alt}

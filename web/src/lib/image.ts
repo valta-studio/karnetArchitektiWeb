@@ -14,6 +14,13 @@ export const SRCSET_WIDTHS = [480, 768, 1080, 1440, 1920, 2560];
 export const INTRO_MEDIA_SIZES = '(min-width: 768px) 34vw, 82vw';
 export const INTRO_MEDIA_MAX_WIDTH = 1440;
 
+/** Obálka projektu v portfoliu. První fotka karty se nejdřív vykreslí se
+ *  stejným srcsetem i `sizes` (SanityImage `preview`) — prohlížeč vybere
+ *  totožnou URL a vezme ji z cache, plnou kvalitu karty dotáhne až potom
+ *  (img-upgrade.ts). */
+export const PORTFOLIO_COVER_SIZES = '(min-width: 768px) 50vw, 84vw';
+export const PORTFOLIO_COVER_MAX_WIDTH = 1600;
+
 /** URL úvodního videa, pokud se má video zobrazit (režim Video + soubor/URL). */
 export function introVideoSrc(intro: IntroLevel | undefined): string | undefined {
   if (intro?.mode !== 'video') return undefined;
