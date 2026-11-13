@@ -411,6 +411,12 @@ const panelCount = segments.length;
     line-height: var(--leading-tight);
   }
 
+  /* Prosté textové pole ze Studia — Enter (\n) je zalomení řádku. */
+  .awards p,
+  .atelier-people p {
+    white-space: pre-line;
+  }
+
   .atelier-intro :global(p + p),
   .awards p + p,
   .atelier-people p + ul {

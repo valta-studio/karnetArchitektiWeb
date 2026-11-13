@@ -16,7 +16,9 @@ export default defineType({
     defineField({
       name: 'text',
       title: 'Text ocenění',
-      type: 'string',
+      // text (víceřádkový) místo string — stejná uložená hodnota, bez migrace
+      type: 'text',
+      rows: 3,
       validation: (rule) => rule.required(),
     }),
   ],
