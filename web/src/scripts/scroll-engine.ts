@@ -90,7 +90,7 @@ function rowTargetLeft(row: HTMLElement, target: HTMLElement): number {
   return Math.max(0, Math.min(maxLeft, left));
 }
 
-/** Klik/tap, který posouvá dráhu (tečka, panel) — pouští guard snapu. */
+/** Klik/tap, který posouvá stránku (tečka, panel, položka menu) — pouští guard snapu. */
 const ROW_TAP = 'row:tap';
 
 /**
@@ -863,6 +863,13 @@ let jumpToken = 0;
  * skokem na cíl. Zásah uživatele (touch, kolečko) skok okamžitě pouští.
  */
 export function scrollToTarget(target: HTMLElement): void {
+  // Volá se jen z vědomé akce uživatele (položka menu, tečka, klávesa) —
+  // pustit guard snapu (initSnapActivation). Tap guard schválně nepouští
+  // (přenesený offset umí přijít i sekundy po loadu), takže na dotykovém
+  // zařízení by hned po načtení guard každý programový skok srážel zpět
+  // na držený cíl: menu po prvním načtení nikam nescrollovalo.
+  window.dispatchEvent(new Event(ROW_TAP));
+
   // sticky úroveň pod menu (desktop): přilnutá je „vidět" pořád, takže
   // scrollIntoView by nikam nejel — cílem je její statický slot
   if (getComputedStyle(target).position === 'sticky' && target.parentElement) {
