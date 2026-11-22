@@ -99,8 +99,15 @@ const posterUrl = introPosterUrl(data);
         animation: intro-hand-off linear both;
         animation-timeline: --uvod;
         /* Originál zmizí ještě ve chvíli, kdy ho fixovaný podkres
-           Ateliéru plně kryje. Jeho přirozený pohyb nahoru tak neprosvítá. */
-        animation-range: exit 0% exit 0%;
+           Ateliéru plně kryje (ten je plně neprůhledný do entry 12,5 %
+           = 2 % exitu úvodu je bezpečně uvnitř). Pohyb originálu nahoru
+           tak neprosvítá. Rozsah NESMÍ být nulový (exit 0% exit 0%):
+           na vršku stránky (= přesně exit 0 %) ho prohlížeče vyhodnotí
+           jako „za rozsahem" a originál je trvale neviditelný — úvod pak
+           stojí jen na canvas zrcadle podkresu a při jeho výpadku
+           (Safari) video „zmizí". Start 0,5 % drží rezervu na
+           subpixelové pozice scrollu. */
+        animation-range: exit 0.5% exit 2%;
       }
     }
   }

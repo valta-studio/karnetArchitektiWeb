@@ -895,11 +895,30 @@ export function scrollToTarget(target: HTMLElement): void {
   const abort = () => {
     aborted = true;
   };
+  // Dotek je vždy nové gesto. Kolečko/trackpad ne: Safari posílá doběh
+  // setrvačnosti ještě sekundy po gestu — typicky po tom, které na konci
+  // stránky otevřelo menu těsně před klikem na položku. Kdyby skok rušila
+  // každá wheel událost, doběh by ho utnul a stránka zůstala stát mezi
+  // úrovněmi (snap se vrací doprostřed letu). Ruší proto jen skutečné
+  // nové gesto — pauza, obrat směru, nebo znovu rostoucí velikost (doběh
+  // jen klesá); stejná detekce jako otevírání menu posunem (menu.ts).
+  let lastWheelAt = started;
+  let lastDy = 0;
+  const onWheel = (event: WheelEvent) => {
+    const now = performance.now();
+    const dy = event.deltaY;
+    const pause = now - lastWheelAt > 250;
+    const flip = lastDy !== 0 && Math.sign(dy) !== Math.sign(lastDy);
+    const rise = lastDy !== 0 && !flip && Math.abs(dy) > Math.abs(lastDy) + 2;
+    lastWheelAt = now;
+    lastDy = dy;
+    if (pause || flip || rise) abort();
+  };
   window.addEventListener('touchstart', abort, { once: true, passive: true });
-  window.addEventListener('wheel', abort, { once: true, passive: true });
+  window.addEventListener('wheel', onWheel, { passive: true });
   const cleanup = () => {
     window.removeEventListener('touchstart', abort);
-    window.removeEventListener('wheel', abort);
+    window.removeEventListener('wheel', onWheel);
   };
 
   const tick = () => {
@@ -920,6 +939,12 @@ export function scrollToTarget(target: HTMLElement): void {
       // nesmí spustit další animaci, do které by se vrátil snap
       if (!aborted) target.scrollIntoView({ behavior: 'instant' });
       html.classList.remove('is-jumping');
+      // Safari umí scroll-driven animace po skoku přes více úrovní
+      // (vypnutý a vrácený snap) přestat vzorkovat — podkres ateliéru
+      // i předání úvodního videa pak zamrznou ve stavu z místa před
+      // skokem a úvod je prázdný („video zmizelo"). Po doběhnutí se
+      // proto znovu založí, stejně jako po návratu z bfcache.
+      restartScrollAnimations();
       return;
     }
     requestAnimationFrame(tick);
@@ -934,26 +959,33 @@ function scrollToLevel(index: number): void {
 }
 
 /**
+ * Znovu založí scroll-driven animace (view() / pojmenované view-timeline):
+ * animation-name: none → reflow → zpět na hodnotu z CSS (nové CSSAnimation
+ * dostanou čerstvé časové osy a navzorkují aktuální pozici scrollu —
+ * u živých animací je to neviditelné no-op). Safari je umí přestat
+ * vzorkovat po návratu z bfcache i po programovém skoku přes úrovně.
+ */
+function restartScrollAnimations(): void {
+  if (!CSS.supports('animation-timeline: view()')) return;
+  const animated = Array.from(document.body.querySelectorAll<HTMLElement>('*')).filter((el) => {
+    const timelines = getComputedStyle(el).getPropertyValue('animation-timeline');
+    return timelines.split(',').some((t) => t.trim() !== '' && t.trim() !== 'auto');
+  });
+  for (const el of animated) el.style.animationName = 'none';
+  void document.body.offsetWidth;
+  for (const el of animated) el.style.removeProperty('animation-name');
+}
+
+/**
  * Návrat z bfcache (zpět z karty projektu): Safari po obnovení stránky
- * přestane hýbat scroll-driven animacemi (view() / pojmenované
- * view-timeline) — tlumení drah (.row-fade) i tónování titulků zamrznou
- * ve stavu z odchodu a vodorovný posun je nemění. Animace se proto
- * znovu založí: animation-name: none → reflow → zpět na hodnotu z CSS
- * (nové CSSAnimation dostanou čerstvé časové osy).
+ * přestane hýbat scroll-driven animacemi — tlumení drah (.row-fade)
+ * i tónování titulků zamrznou ve stavu z odchodu a vodorovný posun je
+ * nemění. Po pageshow se proto znovu založí.
  */
 function initScrollAnimationRestore(): void {
-  if (!CSS.supports('animation-timeline: view()')) return;
   window.addEventListener('pageshow', (event) => {
     if (!event.persisted) return;
-    const animated = Array.from(document.body.querySelectorAll<HTMLElement>('*')).filter(
-      (el) => {
-        const timelines = getComputedStyle(el).getPropertyValue('animation-timeline');
-        return timelines.split(',').some((t) => t.trim() !== '' && t.trim() !== 'auto');
-      }
-    );
-    for (const el of animated) el.style.animationName = 'none';
-    void document.body.offsetWidth;
-    for (const el of animated) el.style.removeProperty('animation-name');
+    restartScrollAnimations();
   });
 }
 
