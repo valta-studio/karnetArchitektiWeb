@@ -38,7 +38,7 @@ const photos = [
           <SanityImage
             image={photo}
             alt={`${project.title} — fotografie ${index + 1}`}
-            sizes="(min-width: 768px) 60vw, 90vw"
+            sizes="(min-width: 768px) and (orientation: portrait) 86vw, (min-width: 768px) 60vw, 90vw"
             loading={index === 0 ? 'eager' : 'lazy'}
             class="photo-img"
             skeleton
@@ -104,6 +104,15 @@ const photos = [
     height: 100%;
     width: auto;
     max-width: none;
+  }
+
+  /* tablet na výšku: fotka vysoká 72dvh by přetekla šířku obrazovky —
+     šířku omezí viewport, celá fotka je vidět a další nakukuje od kraje */
+  @media (min-width: 768px) and (orientation: portrait) {
+    .photo-row :global(.photo-img) {
+      max-width: 86vw;
+      object-fit: contain;
+    }
   }
 
   @media (max-width: 767px) {
